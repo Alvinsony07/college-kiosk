@@ -367,7 +367,7 @@
 
         .server-status:hover {
             background: var(--surface-hover);
-            border-color: var(--swiggy-orange);
+            border-color: var(--gray-400);
         }
 
         body.theme-dark .server-status:hover {
@@ -384,6 +384,26 @@
 
         .server-status .status-text.checking {
             color: var(--text-muted);
+        }
+
+        /* Ensure server status has clean styling */
+        .server-status {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .server-status::after,
+        .server-status::before {
+            display: none !important;
+        }
+
+        /* Ensure topbar actions container has no orange artifacts */
+        .topbar-actions {
+            background: transparent !important;
+        }
+
+        .topbar-actions > *:last-child::after {
+            display: none !important;
         }
 
         .btn-outline {
