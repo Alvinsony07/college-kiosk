@@ -6,6 +6,8 @@ import sqlite3
 import hashlib
 import random
 import string
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -39,7 +41,8 @@ def initialize_db():
             email TEXT UNIQUE,
             password TEXT,
             role TEXT DEFAULT 'user',
-            status TEXT DEFAULT 'pending'
+            status TEXT DEFAULT 'pending',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
@@ -66,9 +69,23 @@ def initialize_db():
             items TEXT,
             total_price REAL,
             status TEXT DEFAULT 'Order Received',
-            otp TEXT
+            otp TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    def ensure_column(table, column, definition, default_expression=None):
+        cursor.execute(f"PRAGMA table_info({table})")
+        existing = {row[1] for row in cursor.fetchall()}
+        if column not in existing:
+            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            if default_expression:
+                cursor.execute(
+                    f"UPDATE {table} SET {column} = COALESCE({column}, {default_expression})"
+                )
+
+    ensure_column('users', 'created_at', "TEXT", "CURRENT_TIMESTAMP")
+    ensure_column('orders', 'created_at', "TEXT", "CURRENT_TIMESTAMP")
 
     # Insert default admin if not exists
     cursor.execute("SELECT * FROM users WHERE email = ?", ('kioskadmin@saintgits.org',))
@@ -505,130 +522,150 @@ def get_analytics():
     try:
         # Basic metrics
         cursor.execute("SELECT COUNT(*) FROM users WHERE role='user'")
-        total_users = cursor.fetchone()[0]
-        
+        total_users = cursor.fetchone()[0] or 0
+
         cursor.execute("SELECT COUNT(*) FROM orders")
-        total_orders = cursor.fetchone()[0]
-        
+        total_orders = cursor.fetchone()[0] or 0
+
         cursor.execute("SELECT SUM(total_price) FROM orders WHERE status='Completed'")
         total_revenue = cursor.fetchone()[0] or 0
-        
+
         cursor.execute("SELECT AVG(total_price) FROM orders")
         avg_order_value = cursor.fetchone()[0] or 0
-        
-        # Conversion rate (orders/users)
-        conversion_rate = (total_orders / max(total_users, 1)) * 100
-        
-        # Customer retention (returning customers)
-        cursor.execute("""
-            SELECT customer_email, COUNT(*) as order_count 
-            FROM orders 
-            GROUP BY customer_email 
-            HAVING order_count > 1
-        """)
-        returning_customers = len(cursor.fetchall())
-        customer_retention = (returning_customers / max(total_users, 1)) * 100
-        
-        # Monthly growth (simplified - compare last 30 days vs previous 30 days)
-        cursor.execute("""
-            SELECT COUNT(*) FROM orders 
-            WHERE created_at >= date('now', '-30 days')
-        """)
-        recent_orders = cursor.fetchone()[0] or 0
-        
-        cursor.execute("""
-            SELECT COUNT(*) FROM orders 
-            WHERE created_at >= date('now', '-60 days') 
-            AND created_at < date('now', '-30 days')
-        """)
-        previous_orders = cursor.fetchone()[0] or 1
-        monthly_growth = ((recent_orders - previous_orders) / previous_orders) * 100 if previous_orders > 0 else 0
-        
-        # New customers this month
-        cursor.execute("""
-            SELECT COUNT(*) FROM users 
-            WHERE role='user' 
-            AND datetime(id) >= date('now', '-30 days')
-        """)
-        new_customers = cursor.fetchone()[0] or 0
-        
-        # Average orders per customer
-        avg_orders_per_customer = total_orders / max(total_users, 1)
-        
-        # User growth trend (last 6 months)
+
+        conversion_rate = (total_orders / total_users * 100) if total_users else 0
+
+        cursor.execute("SELECT customer_email FROM orders")
+        customer_emails = [row[0] for row in cursor.fetchall() if row[0]]
+        email_counter = Counter(customer_emails)
+        returning_customers = sum(1 for count in email_counter.values() if count > 1)
+        customer_retention = (returning_customers / total_users * 100) if total_users else 0
+
+        cursor.execute("SELECT created_at FROM orders")
+        raw_order_dates = [row[0] for row in cursor.fetchall() if row[0]]
+
+        def parse_ts(value):
+            if not value:
+                return None
+            for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d'):
+                try:
+                    return datetime.strptime(value, fmt)
+                except ValueError:
+                    continue
+            return None
+
+        order_datetimes = [parse_ts(ts) for ts in raw_order_dates]
+        order_datetimes = [dt for dt in order_datetimes if dt]
+
+        now = datetime.utcnow()
+        recent_start = now - timedelta(days=30)
+        previous_start = now - timedelta(days=60)
+        last_week_start = now - timedelta(days=6)
+
+        recent_orders = sum(1 for dt in order_datetimes if dt >= recent_start)
+        previous_orders = sum(1 for dt in order_datetimes if previous_start <= dt < recent_start)
+        if previous_orders == 0:
+            monthly_growth = 0 if recent_orders == 0 else 100
+        else:
+            monthly_growth = ((recent_orders - previous_orders) / previous_orders) * 100
+
+        cursor.execute("SELECT created_at FROM users WHERE role='user'")
+        raw_user_dates = [parse_ts(row[0]) for row in cursor.fetchall() if row[0]]
+        user_month_counts = Counter((dt.year, dt.month) for dt in raw_user_dates if dt)
+
+        def month_offset(base, offset):
+            year = base.year
+            month = base.month - offset
+            while month <= 0:
+                month += 12
+                year -= 1
+            return year, month
+
         user_growth_labels = []
         user_growth_values = []
         for i in range(5, -1, -1):
-            month_start = f"date('now', '-{i+1} months')"
-            month_end = f"date('now', '-{i} months')" if i > 0 else "date('now')"
-            
-            cursor.execute(f"""
-                SELECT COUNT(*) FROM users 
-                WHERE role='user' 
-                AND datetime(id) >= {month_start} 
-                AND datetime(id) < {month_end}
-            """)
-            count = cursor.fetchone()[0] or 0
-            
-            # Generate month labels
-            import datetime
-            month_date = datetime.datetime.now() - datetime.timedelta(days=30*i)
+            year, month = month_offset(now, i)
+            month_date = datetime(year, month, 1)
             user_growth_labels.append(month_date.strftime('%b'))
-            user_growth_values.append(count)
-        
-        # Revenue by category
-        cursor.execute("""
-            SELECT m.category, SUM(o.total_price) as revenue
-            FROM orders o
-            JOIN menu m ON json_extract(o.items, '$[0].name') = m.name
-            WHERE o.status = 'Completed'
-            GROUP BY m.category
-        """)
-        revenue_data = cursor.fetchall()
-        revenue_labels = [row[0] for row in revenue_data] if revenue_data else ['No Data']
-        revenue_values = [row[1] for row in revenue_data] if revenue_data else [0]
-        
-        # Daily order patterns (last 7 days)
+            user_growth_values.append(user_month_counts.get((year, month), 0))
+
+        new_customers = sum(1 for dt in raw_user_dates if dt and dt >= recent_start)
+        avg_orders_per_customer = (total_orders / total_users) if total_users else 0
+
+        cursor.execute("SELECT id, name, category, price FROM menu")
+        menu_rows = cursor.fetchall()
+        menu_by_id = {
+            row[0]: {
+                'name': row[1],
+                'category': row[2] or 'Uncategorised',
+                'price': row[3] or 0.0
+            }
+            for row in menu_rows
+        }
+
+        cursor.execute("SELECT items, total_price, status, created_at FROM orders")
+        order_rows = cursor.fetchall()
+
+        category_revenue = defaultdict(float)
+        top_items_map = defaultdict(lambda: {'orders': 0, 'revenue': 0.0, 'category': 'Uncategorised'})
         order_pattern_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        order_pattern_values = []
-        
-        for i in range(7):
-            cursor.execute(f"""
-                SELECT COUNT(*) FROM orders 
-                WHERE date(created_at) = date('now', '-{6-i} days')
-            """)
-            count = cursor.fetchone()[0] or 0
-            order_pattern_values.append(count)
-        
-        # Top performing items (with dummy ratings since we don't have ratings table)
-        cursor.execute("""
-            SELECT json_extract(items, '$[0].name') as item_name,
-                   COUNT(*) as order_count,
-                   SUM(total_price) as revenue
-            FROM orders 
-            WHERE status = 'Completed'
-            GROUP BY item_name
-            ORDER BY order_count DESC
-            LIMIT 5
-        """)
-        top_items_data = cursor.fetchall()
-        
-        top_items = []
-        for item in top_items_data:
-            if item[0]:  # Check if item_name is not None
-                # Get item category
-                cursor.execute("SELECT category FROM menu WHERE name = ?", (item[0],))
-                category_result = cursor.fetchone()
-                category = category_result[0] if category_result else 'Unknown'
-                
-                top_items.append({
-                    'name': item[0],
-                    'category': category,
-                    'orders': item[1],
-                    'revenue': item[2],
-                    'rating': round(4.0 + (hash(item[0]) % 10) / 10, 1)  # Dummy rating
-                })
-        
+        order_pattern_counts = {label: 0 for label in order_pattern_labels}
+
+        for items_str, order_total, status, created_at in order_rows:
+            payload = {}
+            if items_str:
+                try:
+                    payload = ast.literal_eval(items_str)
+                except (ValueError, SyntaxError):
+                    payload = {}
+
+            items = payload.get('items', []) if isinstance(payload, dict) else []
+            order_dt = parse_ts(created_at)
+
+            for item in items:
+                item_id = item.get('id')
+                qty = item.get('qty', 0)
+                menu_item = menu_by_id.get(item_id)
+                if not menu_item or qty <= 0:
+                    continue
+
+                revenue = menu_item['price'] * qty
+                if status == 'Completed':
+                    category_revenue[menu_item['category']] += revenue
+
+                top_entry = top_items_map[menu_item['name']]
+                top_entry['orders'] += qty
+                top_entry['revenue'] += revenue
+                top_entry['category'] = menu_item['category']
+
+            if order_dt and order_dt >= last_week_start:
+                day_label = order_pattern_labels[order_dt.weekday()]
+                order_pattern_counts[day_label] += 1
+
+        if category_revenue:
+            revenue_items = sorted(category_revenue.items(), key=lambda x: x[1], reverse=True)
+            revenue_labels = [item[0] for item in revenue_items]
+            revenue_values = [round(item[1], 2) for item in revenue_items]
+        else:
+            revenue_labels = ['No Data']
+            revenue_values = [0]
+
+        top_items = [
+            {
+                'name': name,
+                'category': data['category'],
+                'orders': data['orders'],
+                'revenue': round(data['revenue'], 2),
+                'rating': None
+            }
+            for name, data in top_items_map.items()
+            if data['orders'] > 0
+        ]
+        top_items.sort(key=lambda x: x['orders'], reverse=True)
+        top_items = top_items[:5]
+
+        order_pattern_values = [order_pattern_counts[label] for label in order_pattern_labels]
+
         analytics_data = {
             'conversionRate': round(conversion_rate, 1),
             'avgOrderValue': round(avg_order_value, 2),
@@ -651,39 +688,12 @@ def get_analytics():
             },
             'topItems': top_items
         }
-        
+
         return jsonify(analytics_data), 200
-        
+
     except Exception as e:
         print(f"Analytics error: {e}")
-        # Return dummy data on error
-        return jsonify({
-            'conversionRate': 12.5,
-            'avgOrderValue': 250,
-            'customerRetention': 68,
-            'monthlyGrowth': 15.2,
-            'newCustomers': 23,
-            'returningCustomers': 45,
-            'avgOrdersPerCustomer': 2.3,
-            'userGrowth': {
-                'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                'values': [5, 8, 12, 15, 18, 23]
-            },
-            'revenueByCategory': {
-                'labels': ['Beverages', 'Snacks', 'Meals', 'Desserts'],
-                'values': [30, 25, 35, 10]
-            },
-            'orderPatterns': {
-                'labels': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                'values': [12, 8, 15, 18, 25, 22, 10]
-            },
-            'topItems': [
-                {'name': 'Sandwich', 'category': 'Meals', 'orders': 45, 'revenue': 2250, 'rating': 4.5},
-                {'name': 'Coffee', 'category': 'Beverages', 'orders': 38, 'revenue': 1140, 'rating': 4.2},
-                {'name': 'Pizza', 'category': 'Meals', 'orders': 32, 'revenue': 1920, 'rating': 4.7},
-                {'name': 'Juice', 'category': 'Beverages', 'orders': 28, 'revenue': 840, 'rating': 4.1}
-            ]
-        }), 200
+        return jsonify({'error': 'Failed to compute analytics'}), 500
     
     finally:
         conn.close()

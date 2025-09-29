@@ -180,6 +180,27 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            gap: 1.5rem;
+        }
+
+        .topbar-clock {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.15rem;
+            color: var(--text-muted);
+        }
+
+        .topbar-clock .clock-time {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-strong);
+        }
+
+        .topbar-clock .clock-date {
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
         .page-title {
@@ -191,11 +212,11 @@
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
         .btn {
-            padding: 0.5rem 1rem;
+            padding: 0.625rem 1.125rem;
             border: none;
             border-radius: 0.5rem;
             font-weight: 500;
@@ -205,6 +226,9 @@
             align-items: center;
             gap: 0.5rem;
             text-decoration: none;
+            min-width: 44px;
+            min-height: 44px;
+            justify-content: center;
         }
 
         .btn-primary {
@@ -224,6 +248,24 @@
 
         .btn-outline:hover {
             background: var(--gray-50);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .table-actions .btn {
+            padding: 0.4rem 0.875rem;
+            font-size: 0.85rem;
+        }
+
+        .input-help {
+            display: block;
+            margin-top: 0.35rem;
+            font-size: 0.75rem;
+            color: var(--gray-600);
         }
 
         .content-area {
@@ -502,6 +544,11 @@
             transition: transform 0.3s ease;
         }
 
+        .modal.modal-large {
+            max-width: 640px;
+            width: 95%;
+        }
+
         .modal-overlay.show .modal {
             transform: scale(1);
         }
@@ -522,6 +569,53 @@
             display: flex;
             gap: 0.75rem;
             justify-content: flex-end;
+        }
+
+        .modal-form-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-bottom: 1rem;
+        }
+
+        .form-toggle-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
+        .form-toggle-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .edit-menu-preview {
+            border: 1px dashed var(--border);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+            background: var(--surface-2);
+        }
+
+        .edit-menu-preview img {
+            max-width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            display: none;
+        }
+
+        .edit-menu-preview span {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            text-align: center;
         }
 
         .btn-cancel {
@@ -561,19 +655,21 @@
 
         .notification-center {
             position: fixed;
-            top: 0;
+            top: 70px;
             right: -400px;
-            width: 400px;
-            height: 100vh;
-            background: var(--white);
-            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            width: 380px;
+            max-height: calc(100vh - 80px);
+            background: var(--surface);
+            box-shadow: var(--shadow-lg);
+            border-radius: 1rem;
             transition: right 0.3s ease;
             z-index: 10001;
             overflow-y: auto;
+            border: 1px solid var(--border);
         }
 
         .notification-center.show {
-            right: 0;
+            right: 20px;
         }
 
         .notification-header {
@@ -722,8 +818,25 @@
                 padding: 0.75rem 1rem;
             }
 
+            .topbar-actions {
+                gap: 0.75rem;
+            }
+
+            .topbar-clock {
+                display: none;
+            }
+
             .page-title {
                 font-size: 1.25rem;
+            }
+
+            .notification-center {
+                width: calc(100vw - 40px);
+                right: -100vw;
+            }
+
+            .notification-center.show {
+                right: 20px;
             }
         }
     </style>
@@ -765,6 +878,67 @@
                 <button class="btn-cancel" id="cancelLogout">Cancel</button>
                 <button class="btn-confirm" id="confirmLogout">Logout</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Menu Modal -->
+    <div id="editMenuModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal modal-large" role="dialog" aria-labelledby="editMenuTitle">
+            <div class="modal-title" id="editMenuTitle">Edit Menu Item</div>
+            <p class="modal-message">Update the fields below and save to apply your changes.</p>
+            <form id="editMenuForm">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="editMenuName">Item Name</label>
+                        <input type="text" id="editMenuName" name="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editMenuPrice">Price (₹)</label>
+                        <input type="number" id="editMenuPrice" name="price" class="form-input" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editMenuCategory">Category</label>
+                        <input type="text" id="editMenuCategory" name="category" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editMenuStock">Stock</label>
+                        <input type="number" id="editMenuStock" name="stock" class="form-input" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <span class="form-label">Options</span>
+                    <div class="form-toggle-group">
+                        <label for="editMenuAvailable">
+                            <input type="checkbox" id="editMenuAvailable" name="available">
+                            Available
+                        </label>
+                        <label for="editMenuDeliverable">
+                            <input type="checkbox" id="editMenuDeliverable" name="deliverable">
+                            Deliverable
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Current Image</label>
+                    <div class="edit-menu-preview">
+                        <img id="editMenuImagePreview" alt="Menu item image preview">
+                        <span id="editMenuImagePlaceholder">No image uploaded for this item.</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editMenuImage">Upload New Image</label>
+                    <input type="file" id="editMenuImage" name="image" class="form-input" accept="image/*">
+                    <small class="input-help">Leave blank to keep the current image.</small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancelEditMenu">Cancel</button>
+                    <button type="submit" class="btn-confirm" id="saveMenuBtn"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -827,13 +1001,17 @@
                     </button>
                     <div class="page-title" id="pageTitle">Dashboard</div>
                 </div>
+                <div class="topbar-clock" aria-live="polite">
+                    <div class="clock-time" id="clockTime">--:-- --</div>
+                    <div class="clock-date" id="clockDate">Loading…</div>
+                </div>
                 <div class="topbar-actions">
                     <button class="btn btn-outline" id="themeToggleBtn" title="Toggle theme">
                         <i class="fas fa-moon" id="themeToggleIcon"></i>
                     </button>
-                    <button class="btn btn-outline" id="notificationBtn" onclick="toggleNotificationCenter()" style="position: relative; cursor: pointer; z-index: 1000;">
+                    <button class="btn btn-outline" id="notificationBtn" style="position: relative;" title="Notifications">
                         <i class="fas fa-bell"></i>
-                        <span id="notificationBadge" class="badge" style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">0</span>
+                        <span id="notificationBadge" class="badge" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; font-weight: bold;">0</span>
                     </button>
                     <button class="btn btn-outline" id="refreshBtn">
                         <i class="fas fa-sync-alt"></i>
@@ -1223,6 +1401,7 @@
                 this.initNavigation();
                 this.initEventListeners();
                 this.initTheme();
+                this.initClock();
                 this.initNotifications();
                 await this.loadDashboard();
             }
@@ -1259,6 +1438,33 @@
                 if (!icon) return;
                 const isDark = document.body.classList.contains('theme-dark');
                 icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+
+            initClock() {
+                this.updateClock();
+                if (this.clockInterval) {
+                    clearInterval(this.clockInterval);
+                }
+                this.clockInterval = setInterval(() => this.updateClock(), 1000);
+            }
+
+            updateClock() {
+                const timeEl = document.getElementById('clockTime');
+                const dateEl = document.getElementById('clockDate');
+                if (!timeEl || !dateEl) return;
+
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
+                const weekday = now.toLocaleDateString('en-IN', { weekday: 'short' });
+                const datePart = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                timeEl.textContent = timeString;
+                dateEl.textContent = `${weekday}, ${datePart}`;
             }
 
             initNotifications() {
@@ -1647,14 +1853,10 @@
                         if (isHidden) {
                             notificationCenter.classList.remove('hidden');
                             notificationCenter.classList.add('show');
+                            this.loadNotifications();
                         } else {
                             notificationCenter.classList.add('hidden');
                             notificationCenter.classList.remove('show');
-                        }
-                        
-                        // Load notifications when opening
-                        if (isHidden) {
-                            this.loadNotifications();
                         }
                     });
                 }
@@ -1717,6 +1919,38 @@
                         this.hideLogoutModal();
                     }
                 });
+
+                // Edit menu modal events
+                const editModal = document.getElementById('editMenuModal');
+                const cancelEdit = document.getElementById('cancelEditMenu');
+                const editForm = document.getElementById('editMenuForm');
+                const editImageInput = document.getElementById('editMenuImage');
+
+                if (editModal) {
+                    editModal.addEventListener('click', (e) => {
+                        if (e.target.id === 'editMenuModal') {
+                            this.hideEditMenuModal();
+                        }
+                    });
+                }
+
+                if (cancelEdit) {
+                    cancelEdit.addEventListener('click', () => this.hideEditMenuModal());
+                }
+
+                if (editForm) {
+                    editForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.saveMenuEdits();
+                    });
+                }
+
+                if (editImageInput) {
+                    editImageInput.addEventListener('change', (e) => {
+                        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                        this.updateEditMenuImagePreview(file);
+                    });
+                }
             }
 
             setupUserEventListeners() {
@@ -1919,6 +2153,150 @@
                 }
             }
 
+            showEditMenuModal(id) {
+                const item = (this.data.menu || []).find(m => m.id === id);
+                if (!item) {
+                    this.showToast('Menu item not found', 'error');
+                    return;
+                }
+
+                this.currentEditingMenuId = id;
+
+                const modal = document.getElementById('editMenuModal');
+                const form = document.getElementById('editMenuForm');
+                if (form) form.reset();
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+
+                document.getElementById('editMenuName').value = item.name || '';
+                document.getElementById('editMenuPrice').value = item.price != null ? Number(item.price) : '';
+                document.getElementById('editMenuCategory').value = item.category || '';
+                document.getElementById('editMenuStock').value = item.stock != null ? Number(item.stock) : '';
+                document.getElementById('editMenuAvailable').checked = !!item.available;
+                document.getElementById('editMenuDeliverable').checked = !!item.deliverable;
+
+                this.updateEditMenuImagePreview(null, item.image ? `/static/images/${item.image}` : null);
+
+                // Reset file input
+                const fileInput = document.getElementById('editMenuImage');
+                fileInput.value = '';
+
+                // Handle ESC key
+                const escHandler = (evt) => {
+                    if (evt.key === 'Escape') {
+                        this.hideEditMenuModal();
+                    }
+                };
+
+                this._editEscHandler = escHandler;
+                document.addEventListener('keydown', this._editEscHandler);
+            }
+
+            hideEditMenuModal() {
+                const modal = document.getElementById('editMenuModal');
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
+                this.currentEditingMenuId = null;
+
+                 const form = document.getElementById('editMenuForm');
+                if (form) form.reset();
+                this.updateEditMenuImagePreview(null, null);
+
+                if (this._editEscHandler) {
+                    document.removeEventListener('keydown', this._editEscHandler);
+                    this._editEscHandler = null;
+                }
+            }
+
+            async saveMenuEdits() {
+                if (!this.currentEditingMenuId) {
+                    this.showToast('No menu item selected', 'error');
+                    return;
+                }
+
+                const nameInput = document.getElementById('editMenuName');
+                const priceInput = document.getElementById('editMenuPrice');
+                const categoryInput = document.getElementById('editMenuCategory');
+                const stockInput = document.getElementById('editMenuStock');
+                const availableInput = document.getElementById('editMenuAvailable');
+                const deliverableInput = document.getElementById('editMenuDeliverable');
+                const imageInput = document.getElementById('editMenuImage');
+
+                const name = (nameInput.value || '').trim();
+                const price = parseFloat(priceInput.value);
+                const category = (categoryInput.value || '').trim();
+                const stock = parseInt(stockInput.value, 10);
+
+                if (!name || !category || isNaN(price) || isNaN(stock)) {
+                    this.showToast('Please fill in all required fields correctly', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('price', price.toString());
+                formData.append('category', category);
+                formData.append('stock', Math.max(0, stock).toString());
+                formData.append('available', availableInput.checked ? '1' : '0');
+                formData.append('deliverable', deliverableInput.checked ? '1' : '0');
+
+                if (imageInput.files && imageInput.files[0]) {
+                    formData.append('image', imageInput.files[0]);
+                }
+
+                const menuId = this.currentEditingMenuId;
+
+                try {
+                    const response = await fetch(`/api/menu/${menuId}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    this.showToast('Menu item updated successfully');
+                    this.hideEditMenuModal();
+                    await this.loadMenu();
+
+                    if (this.currentPage === 'dashboard') {
+                        this.updateDashboardStats();
+                    }
+                } catch (error) {
+                    console.error('Menu update error:', error);
+                    this.showToast('Failed to update menu item', 'error');
+                }
+            }
+
+            updateEditMenuImagePreview(file, fallbackUrl = null) {
+                const previewImg = document.getElementById('editMenuImagePreview');
+                const placeholder = document.getElementById('editMenuImagePlaceholder');
+
+                if (!previewImg || !placeholder) return;
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        previewImg.src = event.target.result;
+                        previewImg.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        placeholder.textContent = 'Preview of the new image will appear here.';
+                    };
+                    reader.readAsDataURL(file);
+                } else if (fallbackUrl) {
+                    previewImg.src = fallbackUrl;
+                    previewImg.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    placeholder.textContent = 'Existing image will remain unless you upload a new one.';
+                } else {
+                    previewImg.removeAttribute('src');
+                    previewImg.style.display = 'none';
+                    placeholder.style.display = 'block';
+                    placeholder.textContent = 'No image uploaded for this item.';
+                }
+            }
+
             renderMenuTable() {
                 const tbody = document.getElementById('menuTableBody');
                 let menu = this.data.menu || [];
@@ -1979,7 +2357,10 @@
                         <td>${item.stock}</td>
                         <td><span class="badge badge-${item.available ? 'success' : 'danger'}">${item.available ? 'Available' : 'Unavailable'}</span></td>
                         <td>
-                            <button class="btn btn-outline" onclick="app.deleteMenuItem(${item.id})">Delete</button>
+                            <div class="table-actions">
+                                <button class="btn btn-outline" onclick="app.showEditMenuModal(${item.id})"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-outline" onclick="app.deleteMenuItem(${item.id})"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
                         </td>
                     </tr>
                 `).join('');
@@ -2117,8 +2498,8 @@
                     this.renderTopItemsTable(analyticsData.topItems);
                 } catch (error) {
                     console.error('Analytics load error:', error);
-                    // Show dummy data if API fails
-                    this.showDummyAnalytics();
+                    this.analyticsData = null;
+                    this.handleAnalyticsError();
                 }
             }
 
@@ -2286,41 +2667,41 @@
                 `).join('');
             }
 
-            showDummyAnalytics() {
-                // Show dummy data when API is not available
-                const dummyData = {
-                    conversionRate: 12.5,
-                    avgOrderValue: 250,
-                    customerRetention: 68,
-                    monthlyGrowth: 15.2,
-                    newCustomers: 23,
-                    returningCustomers: 45,
-                    avgOrdersPerCustomer: 2.3,
-                    userGrowth: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                        values: [5, 8, 12, 15, 18, 23]
-                    },
-                    revenueByCategory: {
-                        labels: ['Beverages', 'Snacks', 'Meals', 'Desserts'],
-                        values: [30, 25, 35, 10]
-                    },
-                    orderPatterns: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                        values: [12, 8, 15, 18, 25, 22, 10]
-                    },
-                    topItems: [
-                        { name: 'Sandwich', category: 'Meals', orders: 45, revenue: 2250, rating: 4.5 },
-                        { name: 'Coffee', category: 'Beverages', orders: 38, revenue: 1140, rating: 4.2 },
-                        { name: 'Pizza', category: 'Meals', orders: 32, revenue: 1920, rating: 4.7 },
-                        { name: 'Juice', category: 'Beverages', orders: 28, revenue: 840, rating: 4.1 }
-                    ]
+            handleAnalyticsError() {
+                this.showToast('Unable to load analytics data right now', 'error');
+
+                const metricPlaceholders = {
+                    conversionRate: '—',
+                    avgOrderValue: '—',
+                    customerRetention: '—',
+                    monthlyGrowth: '—',
+                    newCustomers: '—',
+                    returningCustomers: '—',
+                    avgOrdersPerCustomer: '—'
                 };
 
-                this.updateAnalyticsCards(dummyData);
-                this.renderUserGrowthChart(dummyData.userGrowth);
-                this.renderRevenueCategoryChart(dummyData.revenueByCategory);
-                this.renderOrderPatternsChart(dummyData.orderPatterns);
-                this.renderTopItemsTable(dummyData.topItems);
+                Object.entries(metricPlaceholders).forEach(([id, value]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                });
+
+                ['userGrowth', 'revenueCategory', 'orderPatterns'].forEach(chartKey => {
+                    if (this.charts[chartKey]) {
+                        this.charts[chartKey].destroy();
+                        delete this.charts[chartKey];
+                    }
+                });
+
+                const topItemsBody = document.getElementById('topItemsTableBody');
+                if (topItemsBody) {
+                    topItemsBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 1.5rem 0; color: var(--gray-500);">
+                                Analytics data is unavailable. Please try again later.
+                            </td>
+                        </tr>
+                    `;
+                }
             }
 
             // Utility Methods
