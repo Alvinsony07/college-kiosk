@@ -298,6 +298,94 @@
             border-color: var(--swiggy-orange-light);
         }
 
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--surface);
+            color: var(--text-strong);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: default;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #6b7280;
+            transition: all 0.3s ease;
+            animation: pulse-checking 2s infinite;
+        }
+
+        .status-dot.online {
+            background: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-online 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: none;
+        }
+
+        .status-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @keyframes pulse-online {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        @keyframes pulse-checking {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        body.theme-dark .server-status {
+            background: var(--surface-2);
+            border-color: var(--border);
+        }
+
+        .server-status:hover {
+            background: var(--surface-hover);
+            border-color: var(--swiggy-orange);
+        }
+
+        body.theme-dark .server-status:hover {
+            background: var(--surface-hover);
+        }
+
+        .server-status .status-text.online {
+            color: #10b981;
+        }
+
+        .server-status .status-text.offline {
+            color: #ef4444;
+        }
+
+        .server-status .status-text.checking {
+            color: var(--text-muted);
+        }
+
         .btn-outline {
             background: var(--surface);
             color: var(--text);
@@ -975,6 +1063,19 @@
                 font-size: 0.875rem;
             }
 
+            .server-status {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .status-text {
+                display: none;
+            }
+
+            .status-dot {
+                width: 12px;
+                height: 12px;
+            }
+
             .notification-center {
                 width: 100vw;
                 right: -100vw;
@@ -1209,6 +1310,11 @@
                         <i class="fas fa-user"></i>
                         Admin
                     </button>
+                    <!-- Server Status Indicator -->
+                    <div class="server-status" id="serverStatus" title="Server Status">
+                        <div class="status-dot" id="statusDot"></div>
+                        <span class="status-text" id="statusText">Checking...</span>
+                    </div>
                 </div>
             </header>
 
@@ -3358,9 +3464,85 @@
             }
         }
 
-        let app;
+        // Server status checker
+        class ServerStatusChecker {
+            constructor() {
+                this.statusDot = document.getElementById('statusDot');
+                this.statusText = document.getElementById('statusText');
+                this.checkInterval = null;
+                this.isOnline = false;
+                this.init();
+            }
+
+            init() {
+                this.checkServerStatus();
+                // Check server status every 10 seconds
+                this.checkInterval = setInterval(() => {
+                    this.checkServerStatus();
+                }, 10000);
+            }
+
+            async checkServerStatus() {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    
+                    const response = await fetch('/api/menu', {
+                        method: 'GET',
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        this.updateStatus(true, 'Online');
+                    } else {
+                        this.updateStatus(false, 'Error');
+                    }
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        this.updateStatus(false, 'Timeout');
+                    } else {
+                        this.updateStatus(false, 'Offline');
+                    }
+                }
+            }
+
+            updateStatus(isOnline, statusText) {
+                this.isOnline = isOnline;
+                
+                // Remove existing classes
+                this.statusDot.classList.remove('online', 'offline');
+                this.statusText.classList.remove('online', 'offline', 'checking');
+                
+                // Add appropriate class
+                if (isOnline) {
+                    this.statusDot.classList.add('online');
+                    this.statusText.classList.add('online');
+                } else {
+                    this.statusDot.classList.add('offline');
+                    this.statusText.classList.add('offline');
+                }
+                
+                // Update status text
+                this.statusText.textContent = statusText;
+                
+                // Update tooltip
+                const serverStatus = document.getElementById('serverStatus');
+                serverStatus.title = `Server Status: ${statusText}`;
+            }
+
+            destroy() {
+                if (this.checkInterval) {
+                    clearInterval(this.checkInterval);
+                }
+            }
+        }
+
+        let app, serverStatus;
         document.addEventListener('DOMContentLoaded', () => {
             app = new AdminApp();
+            serverStatus = new ServerStatusChecker();
             
             // Initialize mobile features
             app.initMobileFeatures();
