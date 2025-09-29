@@ -1,0 +1,119 @@
+<!DOCTYPE html>  
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>College Kiosk Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 320px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #004080;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      color: red;
+    }
+    .register-link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .register-link a {
+      color: #004080;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-container">
+  <h2>Login - College Kiosk</h2>
+  <input type="email" id="email" placeholder="Email (@saintgits.org)" required />
+  <input type="password" id="password" placeholder="Password" required />
+  <button onclick="login()">Login</button>
+  <div class="message" id="msg"></div>
+
+  <!-- Register Link -->
+  <div class="register-link">
+    Don't have an account? <a href="/register">Register here</a>
+  </div>
+</div>
+
+<script>
+  async function login() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (!email.endsWith("@saintgits.org")) {
+      msg.textContent = "Only @saintgits.org emails allowed.";
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        // Save role in local storage
+        localStorage.setItem("userRole", data.role);
+        msg.style.color = "green";
+        msg.textContent = "Login successful! Redirecting...";
+
+        setTimeout(() => {
+          if (data.role === "admin") {
+            window.location.href = "/admin";
+          } else if (data.role === "staff") {
+            window.location.href = "/staff";
+          } else if (data.role === "user") {
+            window.location.href = "/users";  // unified "users" module
+          } else {
+            msg.textContent = "Unknown role. Contact admin.";
+          }
+        }, 1000);
+      } else {
+        msg.style.color = "red";
+        msg.textContent = data.error || "Invalid credentials";
+      }
+    } catch (err) {
+      msg.textContent = "Server error. Try again.";
+    }
+  }
+</script>
+
+</body>
+</html>

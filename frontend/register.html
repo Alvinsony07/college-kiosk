@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register - College Kiosk</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      width: 350px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #004080;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="register-container">
+  <h2>Register</h2>
+  <input type="text" id="name" placeholder="Full Name" required />
+  <input type="email" id="email" placeholder="Email (@saintgits.org)" required />
+  <input type="password" id="password" placeholder="Password" required />
+  <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+  <button onclick="register()">Register</button>
+  <div id="msg" class="message"></div>
+</div>
+
+<script>
+  async function register() {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
+    const msg = document.getElementById("msg");
+
+    msg.style.color = "red";
+
+    if (!email.endsWith("@saintgits.org")) {
+      msg.textContent = "Only @saintgits.org emails allowed.";
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      msg.textContent = "Passwords do not match.";
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        msg.style.color = "green";
+        msg.textContent = data.message;
+
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      } else {
+        msg.textContent = data.error || "Registration failed.";
+      }
+    } catch (err) {
+      msg.textContent = "Server error. Try again.";
+    }
+  }
+</script>
+
+</body>
+</html>

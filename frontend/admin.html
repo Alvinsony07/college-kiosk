@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - College Kiosk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--white);
+            box-shadow: var(--shadow-lg);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 2rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--gray-600);
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 0.75rem 2rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-50);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .nav-item i {
+            width: 1.25rem;
+            margin-right: 0.75rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            background: var(--gray-50);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-50);
+        }
+
+        .content-area {
+            padding: 2rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--info);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--white);
+            color: var(--gray-900);
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            color: var(--gray-600);
+        }
+
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid var(--gray-200);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--white);
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            padding: 1rem;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left-color: var(--success);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .logout-section {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--danger);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .logout-btn i {
+            margin-right: 0.75rem;
+            width: 1rem;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-message {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-confirm {
+            background: var(--danger);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-confirm:hover {
+            background: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .grid-cols-3, .grid-cols-2 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast">
+        <div id="toast-message"></div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-title">Confirm Logout</div>
+            <div class="modal-message">Are you sure you want to logout? You will be redirected to the login page.</div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelLogout">Cancel</button>
+                <button class="btn-confirm" id="confirmLogout">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>College Kiosk</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        Dashboard
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="#users" class="nav-item" data-page="users">
+                        <i class="fas fa-users"></i>
+                        Users
+                    </a>
+                    <a href="#menu" class="nav-item" data-page="menu">
+                        <i class="fas fa-utensils"></i>
+                        Menu
+                    </a>
+                    <a href="#orders" class="nav-item" data-page="orders">
+                        <i class="fas fa-shopping-cart"></i>
+                        Orders
+                    </a>
+                </div>
+                
+                <div class="logout-section">
+                    <button class="logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="page-title" id="pageTitle">Dashboard</div>
+                <div class="topbar-actions">
+                    <button class="btn btn-outline" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-user"></i>
+                        Admin
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="page-content">
+                    <div class="grid grid-cols-4">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalUsers">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalOrders">0</div>
+                            <div class="stat-label">Total Orders</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalRevenue">₹0</div>
+                            <div class="stat-label">Total Revenue</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="menuItems">0</div>
+                            <div class="stat-label">Menu Items</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Order Status Distribution</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="orderStatusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Revenue Trend</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="revenueTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Orders</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentOrdersBody">
+                                        <tr>
+                                            <td colspan="5" class="loading">
+                                                <div class="spinner"></div>
+                                                Loading orders...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Page -->
+                <div id="users-page" class="page-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">User Management</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <tr>
+                                            <td colspan="4" class="loading">
+                                                <div class="spinner"></div>
+                                                Loading users...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Page -->
+                <div id="menu-page" class="page-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Add New Menu Item</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="menuForm">
+                                <div class="grid grid-cols-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Item Name</label>
+                                        <input type="text" name="name" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Price (₹)</label>
+                                        <input type="number" name="price" class="form-input" step="0.01" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Category</label>
+                                        <input type="text" name="category" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Stock</label>
+                                        <input type="number" name="stock" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Image</label>
+                                        <input type="file" name="image" class="form-input" accept="image/*" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Options</label>
+                                        <div style="margin-top: 0.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="checkbox" name="deliverable" value="1">
+                                                Deliverable
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    Add Menu Item
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Menu Items</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Available</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="menuTableBody">
+                                        <tr>
+                                            <td colspan="6" class="loading">
+                                                <div class="spinner"></div>
+                                                Loading menu items...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Page -->
+                <div id="orders-page" class="page-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Order Management</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Items</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ordersTableBody">
+                                        <tr>
+                                            <td colspan="7" class="loading">
+                                                <div class="spinner"></div>
+                                                Loading orders...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        class AdminApp {
+            constructor() {
+                this.currentPage = 'dashboard';
+                this.data = { users: [], menu: [], orders: [] };
+                this.charts = {};
+                this.init();
+            }
+
+            async init() {
+                this.initNavigation();
+                this.initEventListeners();
+                await this.loadDashboard();
+            }
+
+            initNavigation() {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.showPage(item.dataset.page);
+                    });
+                });
+            }
+
+            showPage(pageName) {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.page === pageName);
+                });
+
+                document.querySelectorAll('.page-content').forEach(page => {
+                    page.classList.add('hidden');
+                });
+
+                const targetPage = document.getElementById(`${pageName}-page`);
+                if (targetPage) {
+                    targetPage.classList.remove('hidden');
+                }
+
+                const titles = {
+                    'dashboard': 'Dashboard',
+                    'users': 'User Management',
+                    'menu': 'Menu Management',
+                    'orders': 'Order Management'
+                };
+                document.getElementById('pageTitle').textContent = titles[pageName] || 'Dashboard';
+
+                this.currentPage = pageName;
+                this.loadPageData(pageName);
+            }
+
+            async loadPageData(page) {
+                switch (page) {
+                    case 'dashboard':
+                        await this.loadDashboard();
+                        break;
+                    case 'users':
+                        await this.loadUsers();
+                        break;
+                    case 'menu':
+                        await this.loadMenu();
+                        break;
+                    case 'orders':
+                        await this.loadOrders();
+                        break;
+                }
+            }
+
+            async apiCall(endpoint, options = {}) {
+                try {
+                    const response = await fetch(`/api${endpoint}`, {
+                        headers: { 'Content-Type': 'application/json', ...options.headers },
+                        ...options,
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error:`, error);
+                    this.showToast('Failed to fetch data', 'error');
+                    throw error;
+                }
+            }
+
+            async loadDashboard() {
+                try {
+                    const [users, menu, orders] = await Promise.all([
+                        this.apiCall('/users'),
+                        this.apiCall('/menu'),
+                        this.apiCall('/orders')
+                    ]);
+
+                    this.data = { users, menu, orders };
+                    this.updateDashboardStats();
+                    this.renderCharts();
+                    this.renderRecentOrders();
+                } catch (error) {
+                    console.error('Dashboard load error:', error);
+                }
+            }
+
+            updateDashboardStats() {
+                const { users, menu, orders } = this.data;
+                const totalRevenue = orders.reduce((sum, order) => sum + (order.total_price || 0), 0);
+
+                document.getElementById('totalUsers').textContent = users.length;
+                document.getElementById('totalOrders').textContent = orders.length;
+                document.getElementById('totalRevenue').textContent = this.formatCurrency(totalRevenue);
+                document.getElementById('menuItems').textContent = menu.length;
+            }
+
+            renderCharts() {
+                this.renderOrderStatusChart();
+                this.renderRevenueTrendChart();
+            }
+
+            renderOrderStatusChart() {
+                const ctx = document.getElementById('orderStatusChart');
+                if (!ctx) return;
+
+                const { orders } = this.data;
+                const statusCounts = orders.reduce((acc, order) => {
+                    acc[order.status] = (acc[order.status] || 0) + 1;
+                    return acc;
+                }, {});
+
+                if (this.charts.orderStatus) this.charts.orderStatus.destroy();
+
+                this.charts.orderStatus = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            renderRevenueTrendChart() {
+                const ctx = document.getElementById('revenueTrendChart');
+                if (!ctx) return;
+
+                const { orders } = this.data;
+                const last7Days = [];
+                const revenues = [];
+
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toDateString();
+                    last7Days.push(date.toLocaleDateString());
+
+                    const dayRevenue = orders
+                        .filter(order => new Date(order.created_at || Date.now()).toDateString() === dateStr)
+                        .reduce((sum, order) => sum + (order.total_price || 0), 0);
+                    revenues.push(dayRevenue);
+                }
+
+                if (this.charts.revenueTrend) this.charts.revenueTrend.destroy();
+
+                this.charts.revenueTrend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: last7Days,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: revenues,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: (value) => '₹' + value }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderRecentOrders() {
+                const tbody = document.getElementById('recentOrdersBody');
+                const { orders } = this.data;
+                const recentOrders = orders
+                    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+                    .slice(0, 10);
+
+                if (recentOrders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No orders found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = recentOrders.map(order => `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.customer_name || 'N/A'}</td>
+                        <td>${this.formatCurrency(order.total_price)}</td>
+                        <td><span class="badge badge-${this.getStatusBadgeClass(order.status)}">${order.status}</span></td>
+                        <td>${this.formatDate(order.created_at)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            async loadUsers() {
+                try {
+                    this.data.users = await this.apiCall('/users');
+                    this.renderUsersTable();
+                } catch (error) {
+                    console.error('Users load error:', error);
+                }
+            }
+
+            renderUsersTable() {
+                const tbody = document.getElementById('usersTableBody');
+                const { users } = this.data;
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No users found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.email}</td>
+                        <td><span class="badge badge-info">${user.role}</span></td>
+                        <td><span class="badge badge-${user.status === 'approved' ? 'success' : 'warning'}">${user.status}</span></td>
+                        <td>
+                            <button class="btn btn-outline" onclick="app.deleteUser('${user.email}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            async deleteUser(email) {
+                if (!confirm(`Delete user ${email}?`)) return;
+                try {
+                    await this.apiCall('/users/delete', {
+                        method: 'POST',
+                        body: JSON.stringify({ email })
+                    });
+                    this.showToast('User deleted successfully');
+                    await this.loadUsers();
+                } catch (error) {
+                    this.showToast('Failed to delete user', 'error');
+                }
+            }
+
+            async loadMenu() {
+                try {
+                    this.data.menu = await this.apiCall('/menu');
+                    this.renderMenuTable();
+                } catch (error) {
+                    console.error('Menu load error:', error);
+                }
+            }
+
+            renderMenuTable() {
+                const tbody = document.getElementById('menuTableBody');
+                const { menu } = this.data;
+
+                if (menu.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No menu items found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = menu.map(item => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                ${item.image ? `<img src="/static/images/${item.image}" alt="${item.name}" style="width: 40px; height: 40px; border-radius: 0.5rem; object-fit: cover;">` : ''}
+                                <div>
+                                    <div style="font-weight: 500;">${item.name}</div>
+                                    <div style="font-size: 0.75rem; color: var(--gray-600);">ID: ${item.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${item.category}</td>
+                        <td>${this.formatCurrency(item.price)}</td>
+                        <td>${item.stock}</td>
+                        <td><span class="badge badge-${item.available ? 'success' : 'danger'}">${item.available ? 'Available' : 'Unavailable'}</span></td>
+                        <td>
+                            <button class="btn btn-outline" onclick="app.deleteMenuItem(${item.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            async deleteMenuItem(id) {
+                if (!confirm('Delete this menu item?')) return;
+                try {
+                    await this.apiCall(`/menu/${id}`, { method: 'DELETE' });
+                    this.showToast('Menu item deleted successfully');
+                    await this.loadMenu();
+                } catch (error) {
+                    this.showToast('Failed to delete menu item', 'error');
+                }
+            }
+
+            async loadOrders() {
+                try {
+                    this.data.orders = await this.apiCall('/orders');
+                    this.renderOrdersTable();
+                } catch (error) {
+                    console.error('Orders load error:', error);
+                }
+            }
+
+            renderOrdersTable() {
+                const tbody = document.getElementById('ordersTableBody');
+                const { orders } = this.data;
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No orders found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>
+                            <div style="font-weight: 500;">${order.customer_name || 'N/A'}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-600);">${order.customer_email || ''}</div>
+                        </td>
+                        <td>
+                            ${order.items ? order.items.map(item => `${item.name} x${item.qty}`).join('<br>') : 'N/A'}
+                        </td>
+                        <td>${this.formatCurrency(order.total_price)}</td>
+                        <td><span class="badge badge-${this.getStatusBadgeClass(order.status)}">${order.status}</span></td>
+                        <td>${this.formatDate(order.created_at)}</td>
+                        <td>
+                            <select class="form-select" style="width: 150px;" onchange="app.updateOrderStatus(${order.id}, this.value)">
+                                <option value="Order Received" ${order.status === 'Order Received' ? 'selected' : ''}>Order Received</option>
+                                <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
+                                <option value="Ready for Pickup" ${order.status === 'Ready for Pickup' ? 'selected' : ''}>Ready for Pickup</option>
+                                <option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            async updateOrderStatus(orderId, status) {
+                try {
+                    await this.apiCall(`/orders/${orderId}/status`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ status })
+                    });
+                    this.showToast('Order status updated');
+                    await this.loadOrders();
+                } catch (error) {
+                    this.showToast('Failed to update order status', 'error');
+                }
+            }
+
+            initEventListeners() {
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.loadPageData(this.currentPage);
+                    this.showToast('Data refreshed');
+                });
+
+                const menuForm = document.getElementById('menuForm');
+                if (menuForm) {
+                    menuForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.addMenuItem(new FormData(menuForm));
+                    });
+                }
+
+                // Logout functionality
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.showLogoutModal();
+                });
+
+                document.getElementById('cancelLogout').addEventListener('click', () => {
+                    this.hideLogoutModal();
+                });
+
+                document.getElementById('confirmLogout').addEventListener('click', () => {
+                    this.performLogout();
+                });
+
+                // Close modal when clicking overlay
+                document.getElementById('logoutModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'logoutModal') {
+                        this.hideLogoutModal();
+                    }
+                });
+            }
+
+            showLogoutModal() {
+                const modal = document.getElementById('logoutModal');
+                modal.classList.add('show');
+            }
+
+            hideLogoutModal() {
+                const modal = document.getElementById('logoutModal');
+                modal.classList.remove('show');
+            }
+
+            performLogout() {
+                // Hide the modal first
+                this.hideLogoutModal();
+                
+                // Show logout toast
+                this.showToast('Logging out...', 'info');
+                
+                // Clear any stored session data (if any)
+                localStorage.removeItem('adminSession');
+                sessionStorage.removeItem('adminSession');
+                
+                // Redirect to login page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            }
+
+            async addMenuItem(formData) {
+                try {
+                    const response = await fetch('/api/menu', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) throw new Error('Failed to add menu item');
+
+                    this.showToast('Menu item added successfully');
+                    document.getElementById('menuForm').reset();
+                    await this.loadMenu();
+                } catch (error) {
+                    this.showToast('Failed to add menu item', 'error');
+                }
+            }
+
+            formatCurrency(amount) {
+                return new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR'
+                }).format(amount || 0);
+            }
+
+            formatDate(date) {
+                return new Date(date || Date.now()).toLocaleDateString('en-IN');
+            }
+
+            getStatusBadgeClass(status) {
+                const statusMap = {
+                    'completed': 'success',
+                    'preparing': 'warning',
+                    'cancelled': 'danger',
+                    'order received': 'info'
+                };
+                return statusMap[status?.toLowerCase()] || 'info';
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const messageEl = document.getElementById('toast-message');
+                
+                messageEl.textContent = message;
+                toast.className = `toast ${type} show`;
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new AdminApp();
+            
+            setInterval(() => {
+                if (app.currentPage === 'dashboard') {
+                    app.loadDashboard();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

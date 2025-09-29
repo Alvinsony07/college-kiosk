@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Staff Dashboard - College Kiosk</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 30px; background-color: #f2f2f2; }
+  h2 { color: #004080; }
+  .section { background: white; padding: 20px; margin-bottom: 30px; border-radius: 10px; box-shadow: 0 0 8px rgba(0, 0, 0, 0.05); }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+  button, select, input { padding: 6px 10px; margin: 2px; border-radius: 6px; border: 1px solid #ccc; }
+  button { cursor: pointer; color: white; border: none; }
+  .toggle { background: #17a2b8; }
+  .add-btn { background: #007bff; color: white; }
+  img { max-width: 60px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<h2>Menu Management</h2>
+<div class="section">
+  <form id="add-item-form" enctype="multipart/form-data">
+    <input type="text" name="name" id="item-name" placeholder="Item Name" required>
+    <input type="number" step="5" name="price" id="item-price" placeholder="Price" required>
+    <select name="category" id="item-category" required>
+      <option value="" disabled selected>Select Category</option>
+      <option value="Veg">Veg</option>
+      <option value="Non-Veg">Non-Veg</option>
+    </select>
+    <input type="number" id="item-stock" placeholder="Stock" required>
+    <input type="file" name="image" id="item-image" accept="image/*" required>
+    <button type="submit" class="add-btn">Add Item</button>
+  </form>
+  <table>
+    <thead>
+      <tr><th>Image</th><th>Name</th><th>Price</th><th>Category</th><th>Stock</th><th>Delivery</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="menu-list"></tbody>
+  </table>
+</div>
+
+<h2>Orders</h2>
+<div class="section">
+  <table>
+   <thead>
+  <tr><th>Customer</th><th>Email</th><th>Item</th><th>Quantity</th><th>Total Price</th><th>OTP</th><th>Status</th></tr>
+</thead>
+<tbody id="orders-list"></tbody>
+
+<tbody id="orders-list"></tbody>
+
+    <tbody id="orders-list"></tbody>
+  </table>
+</div>
+
+<script>
+async function loadMenu() {
+  const res = await fetch('/api/menu');
+  const menu = await res.json();
+  const menuTable = document.getElementById('menu-list');
+  menuTable.innerHTML = '';
+  menu.forEach(item => {
+    const row = document.createElement('tr');
+    row.setAttribute("id", `menu-row-${item.id}`);
+    row.innerHTML = `
+      <td><img src="/static/images/${item.image}" alt="${item.name}" style="max-width:50px;"></td>
+      <td>${item.name}</td>
+      <td>₹${item.price.toFixed(2)}</td>
+      <td>${item.category}</td>
+      <td>${item.stock}</td>
+      <td>${item.available ? 'Yes' : 'No'}</td>
+      <td>
+        <button class="toggle" onclick="toggleAvailability(${item.id})">Toggle</button>
+        <button class="complete" onclick="editMenuItem(${item.id}, '${item.name}', ${item.price}, '${item.category}', ${item.stock}, ${item.available}, '${item.image}')">Edit</button>
+        <button style="background:#dc3545;" onclick="deleteMenuItem(${item.id})">Delete</button>
+      </td>
+    `;
+    menuTable.appendChild(row);
+  });
+}
+
+async function addMenuItem(e) {
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append('name', document.getElementById('item-name').value.trim());
+  formData.append('price', document.getElementById('item-price').value);
+  formData.append('category', document.getElementById('item-category').value);
+  formData.append('stock',  document.getElementById('item-stock').value);
+  formData.append('image', document.getElementById('item-image').files[0]);
+
+  await fetch('/api/menu', { method: 'POST', body: formData });
+  document.getElementById('add-item-form').reset();
+  loadMenu();
+}
+
+async function toggleAvailability(id) {
+  const row = document.getElementById(`menu-row-${id}`);
+  const currentText = row.querySelector("td:nth-child(6)").innerText; 
+  const newStatus = currentText === "Yes" ? 0 : 1;
+
+  await fetch(`/api/menu/${id}`, { 
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ available: newStatus }) 
+  });
+  loadMenu();
+}
+
+async function editMenuItem(id, name, price, category, stock, available, image) {
+  const row = document.getElementById(`menu-row-${id}`);
+  row.innerHTML = `
+    <td>
+      <img src="/static/images/${image}" alt="${name}" style="max-width:50px;">
+      <br><input type="file" id="edit-image-${id}" accept="image/*">
+    </td>
+    <td><input type="text" id="edit-name-${id}" value="${name}"></td>
+    <td><input type="number" step="5" id="edit-price-${id}" value="${price}"></td>
+    <td>
+      <select id="edit-category-${id}">
+        <option value="Veg" ${category==='Veg'?'selected':''}>Veg</option>
+        <option value="Non-Veg" ${category==='Non-Veg'?'selected':''}>Non-Veg</option>
+      </select>
+    </td>
+    <td><input type="number" id="edit-stock-${id}" value="${stock}"></td>
+    <td>${available ? 'Yes' : 'No'}</td>
+    <td>
+      <button style="background:#28a745;" onclick="saveMenuItem(${id})">Save</button>
+      <button style="background:#6c757d;" onclick="loadMenu()">Cancel</button>
+    </td>
+  `;
+}
+
+async function saveMenuItem(id) {
+  const formData = new FormData();
+  formData.append('name', document.getElementById(`edit-name-${id}`).value);
+  formData.append('price', document.getElementById(`edit-price-${id}`).value);
+  formData.append('category', document.getElementById(`edit-category-${id}`).value);
+  formData.append('stock', document.getElementById(`edit-stock-${id}`).value);
+  formData.append('available', 1);
+
+  const newImage = document.getElementById(`edit-image-${id}`).files[0];
+  if (newImage) {
+    formData.append('image', newImage);
+  }
+
+  await fetch(`/api/menu/${id}`, {
+    method: 'PUT',
+    body: formData
+  });
+
+  loadMenu();
+}
+
+async function deleteMenuItem(id) {
+  if (!confirm("Are you sure you want to delete this item?")) return;
+  await fetch(`/api/menu/${id}`, { method: 'DELETE' });
+  loadMenu();
+}
+
+async function loadOrders() {
+  try {
+    const res = await fetch('/api/orders');
+    const orders = await res.json();
+    const tbody = document.getElementById('orders-list');
+    tbody.innerHTML = '';
+
+    if (orders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6">No orders found</td></tr>`;
+      return;
+    }
+
+    orders.forEach(order => {
+      const row = document.createElement('tr');
+      let itemsStr = '';
+      try {
+        const parsed = typeof order.items === 'string' ? JSON.parse(order.items.replace(/'/g, '"')) : order.items;
+        if (parsed.items) {
+          itemsStr = parsed.items.map(i => `ID:${i.id} x${i.qty}`).join(', ');
+        } else {
+          itemsStr = JSON.stringify(parsed);
+        }
+      } catch {
+        itemsStr = order.items;
+      }
+
+      order.items.forEach(it => {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>${order.customer_name}</td>
+    <td>${order.customer_email}</td>
+    <td>${it.name || "Unknown"}</td>
+    <td>${it.qty}</td>
+    <td>₹${order.total_price.toFixed(2)}</td>
+    <td>${order.otp}</td>
+    <td>${order.status}</td>
+  `;
+  tbody.appendChild(row);
+});
+
+    });
+  } catch (err) {
+    console.error(err);
+    document.getElementById('orders-list').innerHTML = `<tr><td colspan="6">Error loading orders</td></tr>`;
+  }
+}
+
+
+document.getElementById('add-item-form').addEventListener('submit', addMenuItem);
+
+loadMenu();
+loadOrders();
+</script>
+</body>
+</html>
