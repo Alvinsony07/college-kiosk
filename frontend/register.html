@@ -44,9 +44,107 @@
       margin-top: 10px;
       font-weight: bold;
     }
+    
+    .logout-link {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #004080;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .logout-link:hover {
+      background: #0056b3;
+    }
+    
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    .modal-overlay.show .modal {
+      transform: scale(1);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .modal-message {
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-cancel {
+      background: #f1f5f9;
+      color: #64748b;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn-confirm {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
+
+<a href="#" class="logout-link" id="logoutBtn">Logout</a>
+
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Confirm Logout</div>
+    <div class="modal-message">Are you sure you want to logout? You will be redirected to the login page.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancelLogout">Cancel</button>
+      <button class="btn-confirm" id="confirmLogout">Logout</button>
+    </div>
+  </div>
+</div>
 
 <div class="register-container">
   <h2>Register</h2>
@@ -101,6 +199,47 @@
       msg.textContent = "Server error. Try again.";
     }
   }
+  
+  // ------------------ Logout Functions ------------------
+  function showLogoutModal() {
+    document.getElementById('logoutModal').classList.add('show');
+  }
+
+  function hideLogoutModal() {
+    document.getElementById('logoutModal').classList.remove('show');
+  }
+
+  function performLogout() {
+    hideLogoutModal();
+    
+    // Clear user data
+    localStorage.removeItem('user');
+    localStorage.removeItem('adminSession');
+    localStorage.removeItem('staffSession');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('adminSession');
+    sessionStorage.removeItem('staffSession');
+    
+    // Redirect to login page
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 500);
+  }
+
+  // Logout event listeners
+  document.getElementById('logoutBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    showLogoutModal();
+  });
+  document.getElementById('cancelLogout').addEventListener('click', hideLogoutModal);
+  document.getElementById('confirmLogout').addEventListener('click', performLogout);
+
+  // Close modal when clicking overlay
+  document.getElementById('logoutModal').addEventListener('click', (e) => {
+    if (e.target.id === 'logoutModal') {
+      hideLogoutModal();
+    }
+  });
 </script>
 
 </body>

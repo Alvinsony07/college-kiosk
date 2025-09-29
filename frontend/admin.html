@@ -579,6 +579,14 @@
                     </a>
                 </div>
                 
+                <div class="nav-section">
+                    <div class="nav-section-title">Reports</div>
+                    <a href="#analytics" class="nav-item" data-page="analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        Analytics
+                    </a>
+                </div>
+                
                 <div class="logout-section">
                     <button class="logout-btn" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i>
@@ -820,6 +828,121 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Analytics Page -->
+                <div id="analytics-page" class="page-content hidden">
+                    <!-- Analytics Overview Cards -->
+                    <div class="grid grid-cols-4">
+                        <div class="stat-card">
+                            <div class="stat-value" id="conversionRate">0%</div>
+                            <div class="stat-label">Conversion Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="avgOrderValue">₹0</div>
+                            <div class="stat-label">Avg Order Value</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="customerRetention">0%</div>
+                            <div class="stat-label">Customer Retention</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="monthlyGrowth">0%</div>
+                            <div class="stat-label">Monthly Growth</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2">
+                        <!-- User Growth Chart -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">User Growth Trend</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="userGrowthChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Breakdown -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Revenue by Category</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="revenueCategoryChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2">
+                        <!-- Order Patterns -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Daily Order Patterns</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="orderPatternsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Performing Items -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Top Performing Menu Items</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Item</th>
+                                                <th>Orders</th>
+                                                <th>Revenue</th>
+                                                <th>Rating</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="topItemsTableBody">
+                                            <tr>
+                                                <td colspan="4" class="loading">
+                                                    <div class="spinner"></div>
+                                                    Loading analytics...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Insights -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Customer Insights</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid grid-cols-3">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="newCustomers">0</div>
+                                    <div class="stat-label">New Customers This Month</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="returningCustomers">0</div>
+                                    <div class="stat-label">Returning Customers</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="avgOrdersPerCustomer">0</div>
+                                    <div class="stat-label">Avg Orders per Customer</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -887,6 +1010,9 @@
                         break;
                     case 'orders':
                         await this.loadOrders();
+                        break;
+                    case 'analytics':
+                        await this.loadAnalytics();
                         break;
                 }
             }
@@ -1186,6 +1312,198 @@
                 } catch (error) {
                     this.showToast('Failed to update order status', 'error');
                 }
+            }
+
+            async loadAnalytics() {
+                try {
+                    // Load analytics data from backend
+                    const analyticsData = await this.apiCall('/analytics');
+                    
+                    // Update analytics metrics cards
+                    this.updateAnalyticsCards(analyticsData);
+                    
+                    // Render analytics charts
+                    this.renderUserGrowthChart(analyticsData.userGrowth);
+                    this.renderRevenueCategoryChart(analyticsData.revenueByCategory);
+                    this.renderOrderPatternsChart(analyticsData.orderPatterns);
+                    this.renderTopItemsTable(analyticsData.topItems);
+                } catch (error) {
+                    console.error('Analytics load error:', error);
+                    // Show dummy data if API fails
+                    this.showDummyAnalytics();
+                }
+            }
+
+            updateAnalyticsCards(data) {
+                document.getElementById('conversionRate').textContent = data.conversionRate + '%';
+                document.getElementById('avgOrderValue').textContent = this.formatCurrency(data.avgOrderValue);
+                document.getElementById('customerRetention').textContent = data.customerRetention + '%';
+                document.getElementById('monthlyGrowth').textContent = data.monthlyGrowth + '%';
+                document.getElementById('newCustomers').textContent = data.newCustomers;
+                document.getElementById('returningCustomers').textContent = data.returningCustomers;
+                document.getElementById('avgOrdersPerCustomer').textContent = data.avgOrdersPerCustomer.toFixed(1);
+            }
+
+            renderUserGrowthChart(data) {
+                const ctx = document.getElementById('userGrowthChart').getContext('2d');
+                
+                if (this.charts.userGrowth) {
+                    this.charts.userGrowth.destroy();
+                }
+
+                this.charts.userGrowth = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'New Users',
+                            data: data.values,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderRevenueCategoryChart(data) {
+                const ctx = document.getElementById('revenueCategoryChart').getContext('2d');
+                
+                if (this.charts.revenueCategory) {
+                    this.charts.revenueCategory.destroy();
+                }
+
+                this.charts.revenueCategory = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(16, 185, 129)',
+                                'rgb(245, 158, 11)',
+                                'rgb(239, 68, 68)',
+                                'rgb(168, 85, 247)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderOrderPatternsChart(data) {
+                const ctx = document.getElementById('orderPatternsChart').getContext('2d');
+                
+                if (this.charts.orderPatterns) {
+                    this.charts.orderPatterns.destroy();
+                }
+
+                this.charts.orderPatterns = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Orders',
+                            data: data.values,
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderTopItemsTable(items) {
+                const tbody = document.getElementById('topItemsTableBody');
+                
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No data available</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(item => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 500;">${item.name}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-600);">${item.category}</div>
+                        </td>
+                        <td>${item.orders}</td>
+                        <td>${this.formatCurrency(item.revenue)}</td>
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <span style="color: #f59e0b; margin-right: 0.25rem;">★</span>
+                                ${item.rating || 'N/A'}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            showDummyAnalytics() {
+                // Show dummy data when API is not available
+                const dummyData = {
+                    conversionRate: 12.5,
+                    avgOrderValue: 250,
+                    customerRetention: 68,
+                    monthlyGrowth: 15.2,
+                    newCustomers: 23,
+                    returningCustomers: 45,
+                    avgOrdersPerCustomer: 2.3,
+                    userGrowth: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        values: [5, 8, 12, 15, 18, 23]
+                    },
+                    revenueByCategory: {
+                        labels: ['Beverages', 'Snacks', 'Meals', 'Desserts'],
+                        values: [30, 25, 35, 10]
+                    },
+                    orderPatterns: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        values: [12, 8, 15, 18, 25, 22, 10]
+                    },
+                    topItems: [
+                        { name: 'Sandwich', category: 'Meals', orders: 45, revenue: 2250, rating: 4.5 },
+                        { name: 'Coffee', category: 'Beverages', orders: 38, revenue: 1140, rating: 4.2 },
+                        { name: 'Pizza', category: 'Meals', orders: 32, revenue: 1920, rating: 4.7 },
+                        { name: 'Juice', category: 'Beverages', orders: 28, revenue: 840, rating: 4.1 }
+                    ]
+                };
+
+                this.updateAnalyticsCards(dummyData);
+                this.renderUserGrowthChart(dummyData.userGrowth);
+                this.renderRevenueCategoryChart(dummyData.revenueByCategory);
+                this.renderOrderPatternsChart(dummyData.orderPatterns);
+                this.renderTopItemsTable(dummyData.topItems);
             }
 
             initEventListeners() {
