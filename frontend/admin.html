@@ -24,8 +24,58 @@
             --gray-900: #0f172a;
             --white: #ffffff;
             --border: #e2e8f0;
+            /* surfaces */
+            --app-bg: var(--gray-50);
+            --surface: var(--white);
+            --surface-2: var(--gray-100);
+            --text: var(--gray-800);
+            --text-strong: var(--gray-900);
+            --text-muted: var(--gray-600);
+            /* charts */
+            --chart-blue: #3b82f6;
+            --chart-cyan: #06b6d4;
+            --chart-orange: #fb923c;
+            --chart-pink: #f43f5e;
+            --chart-yellow: #f59e0b;
+            --chart-green: #10b981;
+            --chart-grid: #e5e7eb;
+            --chart-tick: #64748b;
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        body.theme-dark {
+            --primary: #4f9eff;
+            --primary-dark: #367fe0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #22d3ee;
+            --gray-50: #0f172a;
+            --gray-100: #111827;
+            --gray-200: #1f2937;
+            --gray-600: #94a3b8;
+            --gray-700: #9ca3af;
+            --gray-800: #cbd5e1;
+            --gray-900: #e5e7eb;
+            --white: #0b1220;
+            --border: #243042;
+            --app-bg: #0b1220;
+            --surface: #0f172a;
+            --surface-2: #111827;
+            --text: #e2e8f0;
+            --text-strong: #f8fafc;
+            --text-muted: #94a3b8;
+            --chart-blue: #2ea7ff;
+            --chart-cyan: #00e5ff;
+            --chart-orange: #ff8a4c;
+            --chart-pink: #ff4d6d;
+            --chart-yellow: #ffb020;
+            --chart-green: #22c55e;
+            --chart-grid: #1f2a3a;
+            --chart-tick: #9aa6b2;
+            --shadow: 0 2px 8px rgba(0,0,0,0.4);
+            --shadow-lg: 0 16px 32px rgba(0,0,0,0.45);
         }
 
         * {
@@ -36,8 +86,8 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--gray-800);
+            background: var(--app-bg);
+            color: var(--text);
             line-height: 1.6;
             min-height: 100vh;
         }
@@ -49,7 +99,7 @@
 
         .sidebar {
             width: 280px;
-            background: var(--white);
+            background: var(--surface);
             box-shadow: var(--shadow-lg);
             position: fixed;
             height: 100vh;
@@ -91,14 +141,14 @@
         .nav-item {
             display: block;
             padding: 0.75rem 2rem;
-            color: var(--gray-700);
+            color: var(--text-muted);
             text-decoration: none;
             transition: all 0.2s ease;
             border-left: 3px solid transparent;
         }
 
         .nav-item:hover {
-            background: var(--gray-50);
+            background: var(--surface-2);
             color: var(--primary);
         }
 
@@ -116,12 +166,12 @@
         .main-content {
             margin-left: 280px;
             flex: 1;
-            background: var(--gray-50);
+            background: var(--app-bg);
             min-height: 100vh;
         }
 
         .topbar {
-            background: var(--white);
+            background: var(--surface);
             padding: 1rem 2rem;
             box-shadow: var(--shadow);
             display: flex;
@@ -135,7 +185,7 @@
         .page-title {
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--gray-900);
+            color: var(--text-strong);
         }
 
         .topbar-actions {
@@ -168,7 +218,7 @@
 
         .btn-outline {
             background: transparent;
-            color: var(--gray-600);
+            color: var(--text-muted);
             border: 1px solid var(--border);
         }
 
@@ -181,7 +231,7 @@
         }
 
         .card {
-            background: var(--white);
+            background: var(--surface);
             border-radius: 1rem;
             box-shadow: var(--shadow);
             overflow: hidden;
@@ -199,7 +249,7 @@
         .card-title {
             font-size: 1.125rem;
             font-weight: 600;
-            color: var(--gray-900);
+            color: var(--text-strong);
         }
 
         .card-body {
@@ -217,7 +267,7 @@
         .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
         .stat-card {
-            background: var(--white);
+            background: var(--surface);
             padding: 1.5rem;
             border-radius: 1rem;
             box-shadow: var(--shadow);
@@ -238,12 +288,12 @@
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--gray-900);
+            color: var(--text-strong);
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: var(--gray-600);
+            color: var(--text-muted);
             font-size: 0.875rem;
             font-weight: 500;
         }
@@ -504,10 +554,116 @@
             background: #dc2626;
         }
 
+        /* Mobile responsive styles */
+        .mobile-menu-btn {
+            display: none !important;
+        }
+
+        .notification-center {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 10001;
+            overflow-y: auto;
+        }
+
+        .notification-center.show {
+            right: 0;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .notification-list {
+            padding: 1rem;
+        }
+
+        .notification-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .notification-item.unread {
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid var(--primary);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
         @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: inline-flex !important;
+            }
+
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                z-index: 10000;
             }
 
             .sidebar.open {
@@ -525,12 +681,79 @@
             .grid-cols-3, .grid-cols-2 {
                 grid-template-columns: repeat(1, minmax(0, 1fr));
             }
+
+            .topbar-actions {
+                gap: 0.5rem;
+            }
+
+            .topbar-actions .btn {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            .notification-center {
+                width: 100vw;
+                right: -100vw;
+            }
+
+            .card {
+                margin: 0.5rem;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-cols-4, .grid-cols-3, .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .page-title {
+                font-size: 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
     <div id="toast" class="toast">
         <div id="toast-message"></div>
+    </div>
+
+    <!-- Notification Center -->
+    <div id="notificationCenter" class="notification-center hidden">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button id="closeNotifications" class="btn btn-outline"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="notificationList" class="notification-list">
+            <!-- Notifications will be populated here -->
+        </div>
+    </div>
+
+    <!-- Bulk Action Modal -->
+    <div id="bulkActionModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-title">Bulk Action</div>
+            <div class="modal-message" id="bulkActionMessage"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelBulkAction">Cancel</button>
+                <button class="btn-confirm" id="confirmBulkAction">Confirm</button>
+            </div>
+        </div>
     </div>
 
     <!-- Logout Confirmation Modal -->
@@ -598,8 +821,20 @@
 
         <main class="main-content">
             <header class="topbar">
-                <div class="page-title" id="pageTitle">Dashboard</div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn btn-outline mobile-menu-btn" id="mobileMenuBtn" style="display: none;">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title" id="pageTitle">Dashboard</div>
+                </div>
                 <div class="topbar-actions">
+                    <button class="btn btn-outline" id="themeToggleBtn" title="Toggle theme">
+                        <i class="fas fa-moon" id="themeToggleIcon"></i>
+                    </button>
+                    <button class="btn btn-outline" id="notificationBtn" onclick="toggleNotificationCenter()" style="position: relative; cursor: pointer; z-index: 1000;">
+                        <i class="fas fa-bell"></i>
+                        <span id="notificationBadge" class="badge" style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">0</span>
+                    </button>
                     <button class="btn btn-outline" id="refreshBtn">
                         <i class="fas fa-sync-alt"></i>
                         Refresh
@@ -693,13 +928,17 @@
                             <h3 class="card-title">User Management</h3>
                         </div>
                         <div class="card-body">
+                            <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <input type="text" id="userSearch" class="form-input" placeholder="Search users by email, role, or status..." style="max-width: 300px;">
+                                <button class="btn btn-outline" id="exportUsersBtn" onclick="exportToCSV('users')"><i class="fas fa-file-csv"></i> Export CSV</button>
+                            </div>
                             <div class="table-container">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Email</th>
-                                            <th>Role</th>
-                                            <th>Status</th>
+                                            <th id="sortEmail" style="cursor:pointer;" onclick="sortUsers('email')">Email <i class="fas fa-sort"></i></th>
+                                            <th id="sortRole" style="cursor:pointer;" onclick="sortUsers('role')">Role <i class="fas fa-sort"></i></th>
+                                            <th id="sortStatus" style="cursor:pointer;" onclick="sortUsers('status')">Status <i class="fas fa-sort"></i></th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -769,14 +1008,23 @@
                             <h3 class="card-title">Menu Items</h3>
                         </div>
                         <div class="card-body">
+                            <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <input type="text" id="menuSearch" class="form-input" placeholder="Search menu items..." style="max-width: 300px;">
+                                <select id="categoryFilter" class="form-select" style="max-width: 150px;">
+                                    <option value="">All Categories</option>
+                                </select>
+                                <button class="btn btn-outline" id="exportMenuBtn" onclick="exportToCSV('menu')"><i class="fas fa-file-csv"></i> Export CSV</button>
+                                <button class="btn btn-outline" id="bulkDeleteMenuBtn" style="background: var(--danger); color: white;" disabled onclick="bulkDeleteMenu()"><i class="fas fa-trash"></i> Delete Selected</button>
+                            </div>
                             <div class="table-container">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Item</th>
-                                            <th>Category</th>
-                                            <th>Price</th>
-                                            <th>Stock</th>
+                                            <th><input type="checkbox" id="selectAllMenu" onchange="toggleSelectAllMenu(this.checked)"></th>
+                                            <th id="sortMenuName" style="cursor:pointer;" onclick="sortMenu('name')">Item <i class="fas fa-sort"></i></th>
+                                            <th id="sortMenuCategory" style="cursor:pointer;" onclick="sortMenu('category')">Category <i class="fas fa-sort"></i></th>
+                                            <th id="sortMenuPrice" style="cursor:pointer;" onclick="sortMenu('price')">Price <i class="fas fa-sort"></i></th>
+                                            <th id="sortMenuStock" style="cursor:pointer;" onclick="sortMenu('stock')">Stock <i class="fas fa-sort"></i></th>
                                             <th>Available</th>
                                             <th>Actions</th>
                                         </tr>
@@ -802,16 +1050,31 @@
                             <h3 class="card-title">Order Management</h3>
                         </div>
                         <div class="card-body">
+                            <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                                <input type="text" id="orderSearch" class="form-input" placeholder="Search orders..." style="max-width: 300px;">
+                                <select id="statusFilter" class="form-select" style="max-width: 150px;">
+                                    <option value="">All Status</option>
+                                    <option value="Order Received">Order Received</option>
+                                    <option value="Preparing">Preparing</option>
+                                    <option value="Ready for Pickup">Ready for Pickup</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                                <input type="date" id="dateFilter" class="form-input" style="max-width: 200px;">
+                                <button class="btn btn-outline" id="exportOrdersBtn" onclick="exportToCSV('orders')"><i class="fas fa-file-csv"></i> Export CSV</button>
+                                <button class="btn btn-primary" id="bulkStatusBtn" disabled onclick="bulkUpdateStatus()"><i class="fas fa-edit"></i> Bulk Update Status</button>
+                            </div>
                             <div class="table-container">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Order ID</th>
-                                            <th>Customer</th>
+                                            <th><input type="checkbox" id="selectAllOrders" onchange="toggleSelectAllOrders(this.checked)"></th>
+                                            <th id="sortOrderId" style="cursor:pointer;" onclick="sortOrders('id')">Order ID <i class="fas fa-sort"></i></th>
+                                            <th id="sortOrderCustomer" style="cursor:pointer;" onclick="sortOrders('customer_name')">Customer <i class="fas fa-sort"></i></th>
                                             <th>Items</th>
-                                            <th>Total</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
+                                            <th id="sortOrderTotal" style="cursor:pointer;" onclick="sortOrders('total_price')">Total <i class="fas fa-sort"></i></th>
+                                            <th id="sortOrderStatus" style="cursor:pointer;" onclick="sortOrders('status')">Status <i class="fas fa-sort"></i></th>
+                                            <th id="sortOrderDate" style="cursor:pointer;" onclick="sortOrders('created_at')">Date <i class="fas fa-sort"></i></th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -959,7 +1222,58 @@
             async init() {
                 this.initNavigation();
                 this.initEventListeners();
+                this.initTheme();
+                this.initNotifications();
                 await this.loadDashboard();
+            }
+
+            initTheme() {
+                const saved = localStorage.getItem('ck_theme') || 'light';
+                if (saved === 'dark') document.body.classList.add('theme-dark');
+                this.updateThemeIcon();
+                const btn = document.getElementById('themeToggleBtn');
+                if (btn) btn.addEventListener('click', () => this.toggleTheme());
+            }
+
+            toggleTheme() {
+                document.body.classList.toggle('theme-dark');
+                const isDark = document.body.classList.contains('theme-dark');
+                localStorage.setItem('ck_theme', isDark ? 'dark' : 'light');
+                this.updateThemeIcon();
+                // Re-render charts to pick up new colors
+                if (this.currentPage === 'dashboard') {
+                    this.renderCharts();
+                } else if (this.currentPage === 'analytics') {
+                    if (this.analyticsData) {
+                        this.renderUserGrowthChart(this.analyticsData.userGrowth);
+                        this.renderRevenueCategoryChart(this.analyticsData.revenueByCategory);
+                        this.renderOrderPatternsChart(this.analyticsData.orderPatterns);
+                    } else {
+                        this.loadAnalytics();
+                    }
+                }
+            }
+
+            updateThemeIcon() {
+                const icon = document.getElementById('themeToggleIcon');
+                if (!icon) return;
+                const isDark = document.body.classList.contains('theme-dark');
+                icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+
+            initNotifications() {
+                // Initialize notifications array
+                if (!this.notifications) {
+                    this.notifications = [];
+                }
+                
+                // Add some sample notifications if none exist
+                if (this.notifications.length === 0) {
+                    this.addNotification('Welcome', 'Welcome to College Kiosk Admin Dashboard!', 'info');
+                    this.addNotification('System Status', 'All systems are running normally', 'success');
+                }
+                
+                this.updateNotificationBadge();
             }
 
             initNavigation() {
@@ -1065,8 +1379,8 @@
             }
 
             renderOrderStatusChart() {
-                const ctx = document.getElementById('orderStatusChart');
-                if (!ctx) return;
+                const canvas = document.getElementById('orderStatusChart');
+                if (!canvas) return;
 
                 const { orders } = this.data;
                 const statusCounts = orders.reduce((acc, order) => {
@@ -1076,25 +1390,64 @@
 
                 if (this.charts.orderStatus) this.charts.orderStatus.destroy();
 
-                this.charts.orderStatus = new Chart(ctx, {
-                    type: 'doughnut',
+                const styles = getComputedStyle(document.body);
+                const gridClr = styles.getPropertyValue('--chart-grid').trim();
+                const txtClr = styles.getPropertyValue('--text-muted').trim();
+                const cBlue = styles.getPropertyValue('--chart-blue').trim();
+                const cGreen = styles.getPropertyValue('--chart-green').trim();
+                const cYellow = styles.getPropertyValue('--chart-yellow').trim();
+                const cPink = styles.getPropertyValue('--chart-pink').trim();
+
+                const g = canvas.getContext('2d');
+                const colors = [cBlue, cGreen, cYellow, cPink];
+                const makeGrad = (hex) => {
+                    const grad = g.createLinearGradient(0, 0, 0, canvas.height || 300);
+                    grad.addColorStop(0, this.hexToRgba(hex, 0.9));
+                    grad.addColorStop(1, this.hexToRgba(hex, 0.2));
+                    return grad;
+                };
+                const gradients = colors.map(makeGrad);
+
+                const labels = Object.keys(statusCounts);
+                const values = Object.values(statusCounts);
+
+                this.charts.orderStatus = new Chart(canvas, {
+                    type: 'bar',
                     data: {
-                        labels: Object.keys(statusCounts),
+                        labels,
                         datasets: [{
-                            data: Object.values(statusCounts),
-                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+                            label: 'Orders',
+                            data: values,
+                            backgroundColor: labels.map((_, i) => gradients[i % gradients.length]),
+                            borderColor: labels.map((_, i) => colors[i % colors.length]),
+                            borderWidth: 1,
+                            borderRadius: 6
                         }]
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: txtClr } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridClr },
+                                ticks: { color: txtClr }
+                            },
+                            x: {
+                                grid: { color: gridClr },
+                                ticks: { color: txtClr }
+                            }
+                        }
                     }
                 });
             }
 
             renderRevenueTrendChart() {
-                const ctx = document.getElementById('revenueTrendChart');
-                if (!ctx) return;
+                const canvas = document.getElementById('revenueTrendChart');
+                if (!canvas) return;
 
                 const { orders } = this.data;
                 const last7Days = [];
@@ -1114,25 +1467,83 @@
 
                 if (this.charts.revenueTrend) this.charts.revenueTrend.destroy();
 
-                this.charts.revenueTrend = new Chart(ctx, {
-                    type: 'line',
+                const styles = getComputedStyle(document.body);
+                const cBlue = styles.getPropertyValue('--chart-blue').trim();
+                const cCyan = styles.getPropertyValue('--chart-cyan').trim();
+                const gridClr = styles.getPropertyValue('--chart-grid').trim();
+                const txtClr = styles.getPropertyValue('--text-muted').trim();
+
+                // Build visits (order count) per day for a second dataset
+                const visits = [];
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toDateString();
+                    const count = this.data.orders.filter(order => new Date(order.created_at || Date.now()).toDateString() === dateStr).length;
+                    visits.push(count);
+                }
+
+                const g = canvas.getContext('2d');
+                const makeGrad = (hex) => {
+                    const grad = g.createLinearGradient(0, 0, 0, canvas.height || 300);
+                    grad.addColorStop(0, this.hexToRgba(hex, 0.3));
+                    grad.addColorStop(1, this.hexToRgba(hex, 0.05));
+                    return grad;
+                };
+                const revenueGrad = makeGrad(cBlue);
+                const visitsGrad = makeGrad(cCyan);
+
+                this.charts.revenueTrend = new Chart(canvas, {
                     data: {
                         labels: last7Days,
-                        datasets: [{
-                            label: 'Revenue',
-                            data: revenues,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            fill: true
-                        }]
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Revenue',
+                                data: revenues,
+                                yAxisID: 'y',
+                                borderColor: cBlue,
+                                backgroundColor: revenueGrad,
+                                fill: true,
+                                tension: 0.35
+                            },
+                            {
+                                type: 'bar',
+                                label: 'Visits',
+                                data: visits,
+                                yAxisID: 'y2',
+                                backgroundColor: visitsGrad,
+                                borderColor: cCyan,
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: txtClr } }
+                        },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                ticks: { callback: (value) => '₹' + value }
+                                position: 'left',
+                                grid: { color: gridClr },
+                                ticks: {
+                                    color: txtClr,
+                                    callback: (value) => '₹' + value
+                                }
+                            },
+                            y2: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: { display: false },
+                                ticks: { color: txtClr }
+                            },
+                            x: {
+                                grid: { color: gridClr },
+                                ticks: { color: txtClr }
                             }
                         }
                     }
@@ -1173,7 +1584,27 @@
 
             renderUsersTable() {
                 const tbody = document.getElementById('usersTableBody');
-                const { users } = this.data;
+                let users = this.data.users || [];
+
+                // Filter
+                const search = (document.getElementById('userSearch')?.value || '').toLowerCase();
+                if (search) {
+                    users = users.filter(u =>
+                        (u.email || '').toLowerCase().includes(search) ||
+                        (u.role || '').toLowerCase().includes(search) ||
+                        (u.status || '').toLowerCase().includes(search)
+                    );
+                }
+
+                // Sort
+                if (this.userSort) {
+                    const { key, asc } = this.userSort;
+                    users = users.slice().sort((a, b) => {
+                        if ((a[key] || '') < (b[key] || '')) return asc ? -1 : 1;
+                        if ((a[key] || '') > (b[key] || '')) return asc ? 1 : -1;
+                        return 0;
+                    });
+                }
 
                 if (users.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No users found</td></tr>';
@@ -1190,6 +1621,279 @@
                         </td>
                     </tr>
                 `).join('');
+            }
+            initEventListeners() {
+                // Mobile menu toggle
+                const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+                const sidebar = document.querySelector('.sidebar');
+                if (mobileMenuBtn && sidebar) {
+                    mobileMenuBtn.addEventListener('click', () => {
+                        sidebar.classList.toggle('open');
+                    });
+                }
+
+                // Notification center
+                const notificationBtn = document.getElementById('notificationBtn');
+                const notificationCenter = document.getElementById('notificationCenter');
+                const closeNotifications = document.getElementById('closeNotifications');
+                
+                if (notificationBtn && notificationCenter) {
+                    notificationBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Toggle notification center visibility
+                        const isHidden = notificationCenter.classList.contains('hidden');
+                        if (isHidden) {
+                            notificationCenter.classList.remove('hidden');
+                            notificationCenter.classList.add('show');
+                        } else {
+                            notificationCenter.classList.add('hidden');
+                            notificationCenter.classList.remove('show');
+                        }
+                        
+                        // Load notifications when opening
+                        if (isHidden) {
+                            this.loadNotifications();
+                        }
+                    });
+                }
+                
+                if (closeNotifications && notificationCenter) {
+                    closeNotifications.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        notificationCenter.classList.add('hidden');
+                        notificationCenter.classList.remove('show');
+                    });
+                }
+
+                // Close notification center when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (notificationCenter && !notificationCenter.contains(e.target) && !notificationBtn.contains(e.target)) {
+                        notificationCenter.classList.add('hidden');
+                        notificationCenter.classList.remove('show');
+                    }
+                });
+
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.loadPageData(this.currentPage);
+                    this.showToast('Data refreshed');
+                });
+
+                // Users functionality
+                this.setupUserEventListeners();
+                
+                // Menu functionality  
+                this.setupMenuEventListeners();
+                
+                // Orders functionality
+                this.setupOrderEventListeners();
+
+                // Menu form AJAX submission
+                const menuForm = document.getElementById('menuForm');
+                if (menuForm) {
+                    menuForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.addMenuItem(new FormData(menuForm));
+                    });
+                }
+
+                // Logout functionality
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.showLogoutModal();
+                });
+
+                document.getElementById('cancelLogout').addEventListener('click', () => {
+                    this.hideLogoutModal();
+                });
+
+                document.getElementById('confirmLogout').addEventListener('click', () => {
+                    this.performLogout();
+                });
+
+                // Close modal when clicking overlay
+                document.getElementById('logoutModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'logoutModal') {
+                        this.hideLogoutModal();
+                    }
+                });
+            }
+
+            setupUserEventListeners() {
+                // Users search
+                const userSearch = document.getElementById('userSearch');
+                if (userSearch) {
+                    userSearch.addEventListener('input', () => this.renderUsersTable());
+                }
+
+                // Users sorting
+                ['sortEmail', 'sortRole', 'sortStatus'].forEach(id => {
+                    const th = document.getElementById(id);
+                    if (th) {
+                        th.addEventListener('click', () => {
+                            const key = id.replace('sort', '').toLowerCase();
+                            this.toggleSort('user', key);
+                            this.renderUsersTable();
+                        });
+                    }
+                });
+
+                // Export users CSV
+                const exportBtn = document.getElementById('exportUsersBtn');
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', () => this.exportToCSV('users'));
+                }
+            }
+
+            setupMenuEventListeners() {
+                // Menu search and filters
+                const menuSearch = document.getElementById('menuSearch');
+                const categoryFilter = document.getElementById('categoryFilter');
+                
+                if (menuSearch) {
+                    menuSearch.addEventListener('input', () => this.renderMenuTable());
+                }
+                
+                if (categoryFilter) {
+                    categoryFilter.addEventListener('change', () => this.renderMenuTable());
+                }
+
+                // Menu sorting
+                ['sortMenuName', 'sortMenuCategory', 'sortMenuPrice', 'sortMenuStock'].forEach(id => {
+                    const th = document.getElementById(id);
+                    if (th) {
+                        th.addEventListener('click', () => {
+                            const key = id.replace('sortMenu', '').toLowerCase();
+                            const keyMap = { name: 'name', category: 'category', price: 'price', stock: 'stock' };
+                            this.toggleSort('menu', keyMap[key]);
+                            this.renderMenuTable();
+                        });
+                    }
+                });
+
+                // Select all menu checkbox
+                const selectAllMenu = document.getElementById('selectAllMenu');
+                if (selectAllMenu) {
+                    selectAllMenu.addEventListener('change', (e) => {
+                        document.querySelectorAll('.menu-checkbox').forEach(cb => {
+                            cb.checked = e.target.checked;
+                        });
+                        this.updateBulkMenuButtons();
+                    });
+                }
+
+                // Menu bulk actions
+                const exportMenuBtn = document.getElementById('exportMenuBtn');
+                const bulkDeleteMenuBtn = document.getElementById('bulkDeleteMenuBtn');
+                
+                if (exportMenuBtn) {
+                    exportMenuBtn.addEventListener('click', () => this.exportToCSV('menu'));
+                }
+                
+                if (bulkDeleteMenuBtn) {
+                    bulkDeleteMenuBtn.addEventListener('click', () => this.bulkDeleteMenu());
+                }
+            }
+
+            setupOrderEventListeners() {
+                // Orders search and filters
+                const orderSearch = document.getElementById('orderSearch');
+                const statusFilter = document.getElementById('statusFilter');
+                const dateFilter = document.getElementById('dateFilter');
+                
+                if (orderSearch) {
+                    orderSearch.addEventListener('input', () => this.renderOrdersTable());
+                }
+                
+                if (statusFilter) {
+                    statusFilter.addEventListener('change', () => this.renderOrdersTable());
+                }
+                
+                if (dateFilter) {
+                    dateFilter.addEventListener('change', () => this.renderOrdersTable());
+                }
+
+                // Orders sorting
+                ['sortOrderId', 'sortOrderCustomer', 'sortOrderTotal', 'sortOrderStatus', 'sortOrderDate'].forEach(id => {
+                    const th = document.getElementById(id);
+                    if (th) {
+                        th.addEventListener('click', () => {
+                            const key = id.replace('sortOrder', '').toLowerCase();
+                            const keyMap = { 
+                                id: 'id', 
+                                customer: 'customer_name', 
+                                total: 'total_price', 
+                                status: 'status', 
+                                date: 'created_at' 
+                            };
+                            this.toggleSort('order', keyMap[key]);
+                            this.renderOrdersTable();
+                        });
+                    }
+                });
+
+                // Select all orders checkbox
+                const selectAllOrders = document.getElementById('selectAllOrders');
+                if (selectAllOrders) {
+                    selectAllOrders.addEventListener('change', (e) => {
+                        document.querySelectorAll('.order-checkbox').forEach(cb => {
+                            cb.checked = e.target.checked;
+                        });
+                        this.updateBulkOrderButtons();
+                    });
+                }
+
+                // Orders bulk actions
+                const exportOrdersBtn = document.getElementById('exportOrdersBtn');
+                const bulkStatusBtn = document.getElementById('bulkStatusBtn');
+                
+                if (exportOrdersBtn) {
+                    exportOrdersBtn.addEventListener('click', () => this.exportToCSV('orders'));
+                }
+                
+                if (bulkStatusBtn) {
+                    bulkStatusBtn.addEventListener('click', () => this.bulkUpdateStatus());
+                }
+            }
+
+            showSection(section) {
+                // Hide all sections
+                const sections = document.querySelectorAll('.main-content > div[id$="Section"]');
+                sections.forEach(s => s.style.display = 'none');
+                
+                // Show selected section
+                const sectionElement = document.getElementById(section + 'Section');
+                if (sectionElement) {
+                    sectionElement.style.display = 'block';
+                }
+                
+                // Update active sidebar item
+                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                document.querySelector(`.sidebar a[onclick*="${section}"]`)?.classList.add('active');
+                
+                this.currentSection = section;
+                
+                // Load data and setup event listeners based on section
+                switch(section) {
+                    case 'dashboard':
+                        this.loadDashboard();
+                        break;
+                    case 'users':
+                        this.loadUsers();
+                        setTimeout(() => this.setupUserEventListeners(), 100);
+                        break;
+                    case 'menu':
+                        this.loadMenu();
+                        setTimeout(() => this.setupMenuEventListeners(), 100);
+                        break;
+                    case 'orders':
+                        this.loadOrders();
+                        setTimeout(() => this.setupOrderEventListeners(), 100);
+                        break;
+                    case 'analytics':
+                        this.loadAnalytics();
+                        break;
+                }
             }
 
             async deleteUser(email) {
@@ -1217,15 +1921,50 @@
 
             renderMenuTable() {
                 const tbody = document.getElementById('menuTableBody');
-                const { menu } = this.data;
+                let menu = this.data.menu || [];
+
+                // Update category filter
+                this.updateCategoryFilter(menu);
+
+                // Apply filters
+                const search = (document.getElementById('menuSearch')?.value || '').toLowerCase();
+                const categoryFilter = document.getElementById('categoryFilter')?.value || '';
+                
+                if (search) {
+                    menu = menu.filter(item => 
+                        (item.name || '').toLowerCase().includes(search) ||
+                        (item.category || '').toLowerCase().includes(search)
+                    );
+                }
+                
+                if (categoryFilter) {
+                    menu = menu.filter(item => item.category === categoryFilter);
+                }
+
+                // Apply sorting
+                if (this.menuSort) {
+                    const { key, asc } = this.menuSort;
+                    menu = menu.slice().sort((a, b) => {
+                        let aVal = a[key] || '';
+                        let bVal = b[key] || '';
+                        if (key === 'price' || key === 'stock') {
+                            aVal = Number(aVal) || 0;
+                            bVal = Number(bVal) || 0;
+                        }
+                        if (aVal < bVal) return asc ? -1 : 1;
+                        if (aVal > bVal) return asc ? 1 : -1;
+                        return 0;
+                    });
+                }
 
                 if (menu.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No menu items found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No menu items found</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = menu.map(item => `
                     <tr>
+                        <td><input type="checkbox" class="menu-checkbox" value="${item.id}" onchange="updateBulkMenuButtons()"></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                 ${item.image ? `<img src="/static/images/${item.image}" alt="${item.name}" style="width: 40px; height: 40px; border-radius: 0.5rem; object-fit: cover;">` : ''}
@@ -1244,6 +1983,8 @@
                         </td>
                     </tr>
                 `).join('');
+                
+                this.updateBulkMenuButtons();
             }
 
             async deleteMenuItem(id) {
@@ -1268,15 +2009,59 @@
 
             renderOrdersTable() {
                 const tbody = document.getElementById('ordersTableBody');
-                const { orders } = this.data;
+                let orders = this.data.orders || [];
+
+                // Apply filters
+                const search = (document.getElementById('orderSearch')?.value || '').toLowerCase();
+                const statusFilter = document.getElementById('statusFilter')?.value || '';
+                const dateFilter = document.getElementById('dateFilter')?.value || '';
+                
+                if (search) {
+                    orders = orders.filter(order => 
+                        (order.customer_name || '').toLowerCase().includes(search) ||
+                        (order.customer_email || '').toLowerCase().includes(search) ||
+                        (order.id || '').toString().includes(search)
+                    );
+                }
+                
+                if (statusFilter) {
+                    orders = orders.filter(order => order.status === statusFilter);
+                }
+                
+                if (dateFilter) {
+                    orders = orders.filter(order => {
+                        const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+                        return orderDate === dateFilter;
+                    });
+                }
+
+                // Apply sorting
+                if (this.orderSort) {
+                    const { key, asc } = this.orderSort;
+                    orders = orders.slice().sort((a, b) => {
+                        let aVal = a[key] || '';
+                        let bVal = b[key] || '';
+                        if (key === 'total_price') {
+                            aVal = Number(aVal) || 0;
+                            bVal = Number(bVal) || 0;
+                        } else if (key === 'created_at') {
+                            aVal = new Date(aVal || 0);
+                            bVal = new Date(bVal || 0);
+                        }
+                        if (aVal < bVal) return asc ? -1 : 1;
+                        if (aVal > bVal) return asc ? 1 : -1;
+                        return 0;
+                    });
+                }
 
                 if (orders.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No orders found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No orders found</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = orders.map(order => `
                     <tr>
+                        <td><input type="checkbox" class="order-checkbox" value="${order.id}" onchange="updateBulkOrderButtons()"></td>
                         <td>#${order.id}</td>
                         <td>
                             <div style="font-weight: 500;">${order.customer_name || 'N/A'}</div>
@@ -1299,6 +2084,8 @@
                         </td>
                     </tr>
                 `).join('');
+                
+                this.updateBulkOrderButtons();
             }
 
             async updateOrderStatus(orderId, status) {
@@ -1318,6 +2105,7 @@
                 try {
                     // Load analytics data from backend
                     const analyticsData = await this.apiCall('/analytics');
+                    this.analyticsData = analyticsData;
                     
                     // Update analytics metrics cards
                     this.updateAnalyticsCards(analyticsData);
@@ -1351,6 +2139,11 @@
                     this.charts.userGrowth.destroy();
                 }
 
+                const styles = getComputedStyle(document.body);
+                const cBlue = styles.getPropertyValue('--chart-blue').trim();
+                const gridClr = styles.getPropertyValue('--chart-grid').trim();
+                const txtClr = styles.getPropertyValue('--text-muted').trim();
+
                 this.charts.userGrowth = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -1358,9 +2151,9 @@
                         datasets: [{
                             label: 'New Users',
                             data: data.values,
-                            borderColor: 'rgb(59, 130, 246)',
+                            borderColor: cBlue,
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.4,
+                            tension: 0.35,
                             fill: true
                         }]
                     },
@@ -1370,8 +2163,16 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                ticks: { stepSize: 1 }
+                                ticks: { stepSize: 1, color: txtClr },
+                                grid: { color: gridClr }
+                            },
+                            x: {
+                                ticks: { color: txtClr },
+                                grid: { color: gridClr }
                             }
+                        },
+                        plugins: {
+                            legend: { labels: { color: txtClr } }
                         }
                     }
                 });
@@ -1384,19 +2185,21 @@
                     this.charts.revenueCategory.destroy();
                 }
 
+                const styles = getComputedStyle(document.body);
+                const cBlue = styles.getPropertyValue('--chart-blue').trim();
+                const cGreen = styles.getPropertyValue('--chart-green').trim();
+                const cYellow = styles.getPropertyValue('--chart-yellow').trim();
+                const cPink = styles.getPropertyValue('--chart-pink').trim();
+                const txtClr = styles.getPropertyValue('--text-muted').trim();
+
                 this.charts.revenueCategory = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: data.labels,
                         datasets: [{
                             data: data.values,
-                            backgroundColor: [
-                                'rgb(59, 130, 246)',
-                                'rgb(16, 185, 129)',
-                                'rgb(245, 158, 11)',
-                                'rgb(239, 68, 68)',
-                                'rgb(168, 85, 247)'
-                            ]
+                            backgroundColor: [cBlue, cGreen, cYellow, cPink],
+                            borderWidth: 0
                         }]
                     },
                     options: {
@@ -1404,7 +2207,8 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                position: 'bottom',
+                                labels: { color: txtClr }
                             }
                         }
                     }
@@ -1418,6 +2222,11 @@
                     this.charts.orderPatterns.destroy();
                 }
 
+                const styles = getComputedStyle(document.body);
+                const cBlue = styles.getPropertyValue('--chart-blue').trim();
+                const gridClr = styles.getPropertyValue('--chart-grid').trim();
+                const txtClr = styles.getPropertyValue('--text-muted').trim();
+
                 this.charts.orderPatterns = new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -1425,8 +2234,8 @@
                         datasets: [{
                             label: 'Orders',
                             data: data.values,
-                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: cBlue,
+                            borderColor: cBlue,
                             borderWidth: 1
                         }]
                     },
@@ -1436,8 +2245,16 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                ticks: { stepSize: 1 }
+                                ticks: { stepSize: 1, color: txtClr },
+                                grid: { color: gridClr }
+                            },
+                            x: {
+                                ticks: { color: txtClr },
+                                grid: { color: gridClr }
                             }
+                        },
+                        plugins: {
+                            legend: { labels: { color: txtClr } }
                         }
                     }
                 });
@@ -1506,40 +2323,339 @@
                 this.renderTopItemsTable(dummyData.topItems);
             }
 
-            initEventListeners() {
-                document.getElementById('refreshBtn').addEventListener('click', () => {
-                    this.loadPageData(this.currentPage);
-                    this.showToast('Data refreshed');
-                });
+            // Utility Methods
+            toggleSort(type, key) {
+                const sortProperty = `${type}Sort`;
+                if (!this[sortProperty] || this[sortProperty].key !== key) {
+                    this[sortProperty] = { key, asc: true };
+                } else {
+                    this[sortProperty].asc = !this[sortProperty].asc;
+                }
+            }
 
-                const menuForm = document.getElementById('menuForm');
-                if (menuForm) {
-                    menuForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        await this.addMenuItem(new FormData(menuForm));
-                    });
+            updateCategoryFilter(menu) {
+                const categoryFilter = document.getElementById('categoryFilter');
+                if (!categoryFilter) return;
+                
+                const categories = [...new Set(menu.map(item => item.category).filter(c => c))];
+                const currentValue = categoryFilter.value;
+                
+                categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+                    categories.map(cat => `<option value="${cat}" ${cat === currentValue ? 'selected' : ''}>${cat}</option>`).join('');
+            }
+
+            updateBulkMenuButtons() {
+                const selectedItems = document.querySelectorAll('.menu-checkbox:checked');
+                const bulkDeleteBtn = document.getElementById('bulkDeleteMenuBtn');
+                
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.disabled = selectedItems.length === 0;
+                }
+            }
+
+            updateBulkOrderButtons() {
+                const selectedOrders = document.querySelectorAll('.order-checkbox:checked');
+                const bulkStatusBtn = document.getElementById('bulkStatusBtn');
+                
+                if (bulkStatusBtn) {
+                    bulkStatusBtn.disabled = selectedOrders.length === 0;
+                }
+            }
+
+            async bulkDeleteMenu() {
+                const selectedItems = Array.from(document.querySelectorAll('.menu-checkbox:checked')).map(cb => cb.value);
+                if (selectedItems.length === 0) return;
+                
+                if (!confirm(`Delete ${selectedItems.length} selected menu items?`)) return;
+                
+                try {
+                    await Promise.all(selectedItems.map(id => this.apiCall(`/menu/${id}`, { method: 'DELETE' })));
+                    this.showToast(`${selectedItems.length} menu items deleted successfully`);
+                    await this.loadMenu();
+                    this.addNotification('Bulk Delete', `Deleted ${selectedItems.length} menu items`, 'success');
+                } catch (error) {
+                    this.showToast('Failed to delete menu items', 'error');
+                }
+            }
+
+            async bulkUpdateStatus() {
+                const selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
+                if (selectedOrders.length === 0) return;
+                
+                const status = prompt('Enter new status for selected orders:', 'Preparing');
+                if (!status) return;
+                
+                try {
+                    await Promise.all(selectedOrders.map(id => 
+                        this.apiCall(`/orders/${id}/status`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ status })
+                        })
+                    ));
+                    this.showToast(`${selectedOrders.length} orders updated successfully`);
+                    await this.loadOrders();
+                    this.addNotification('Bulk Update', `Updated ${selectedOrders.length} orders to ${status}`, 'success');
+                } catch (error) {
+                    this.showToast('Failed to update orders', 'error');
+                }
+            }
+
+            exportToCSV(type) {
+                let data, filename, headers;
+                
+                switch(type) {
+                    case 'users':
+                        data = this.data.users || [];
+                        headers = ['Email', 'Role', 'Status'];
+                        filename = 'college_kiosk_users.csv';
+                        data = data.map(u => [
+                            this.escapeCSVField(u.email || ''),
+                            this.escapeCSVField(u.role || ''),
+                            this.escapeCSVField(u.status || '')
+                        ]);
+                        break;
+                    case 'menu':
+                        data = this.data.menu || [];
+                        headers = ['ID', 'Name', 'Category', 'Price', 'Stock', 'Available'];
+                        filename = 'college_kiosk_menu.csv';
+                        data = data.map(m => [
+                            this.escapeCSVField(m.id || ''),
+                            this.escapeCSVField(m.name || ''),
+                            this.escapeCSVField(m.category || ''),
+                            this.escapeCSVField((m.price || 0).toString()),
+                            this.escapeCSVField((m.stock || 0).toString()),
+                            this.escapeCSVField(m.available ? 'Yes' : 'No')
+                        ]);
+                        break;
+                    case 'orders':
+                        data = this.data.orders || [];
+                        headers = ['Order ID', 'Customer Name', 'Customer Email', 'Items', 'Total Amount', 'Status', 'Order Date'];
+                        filename = 'college_kiosk_orders.csv';
+                        data = data.map(o => [
+                            this.escapeCSVField(o.id || ''),
+                            this.escapeCSVField(o.customer_name || ''),
+                            this.escapeCSVField(o.customer_email || ''),
+                            this.escapeCSVField(this.formatOrderItems(o.items || [])),
+                            this.escapeCSVField('₹' + (o.total_price || 0).toFixed(2)),
+                            this.escapeCSVField(o.status || ''),
+                            this.escapeCSVField(this.formatDate(o.created_at))
+                        ]);
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Add metadata header
+                const now = new Date();
+                const exportInfo = [
+                    `# College Kiosk ${type.toUpperCase()} Export`,
+                    `# Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+                    `# Total Records: ${data.length}`,
+                    '#',
+                    '' // Empty line before headers
+                ];
+                
+                // Create proper CSV content with BOM for Excel compatibility
+                const csvContent = [...exportInfo, headers, ...data]
+                    .map(row => Array.isArray(row) ? row.join(',') : row)
+                    .join('\r\n');
+                
+                const bom = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+                const blob = new Blob([bom + csvContent], { 
+                    type: 'text/csv;charset=utf-8;' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.addNotification('Export', `${type} data exported to ${filename}`, 'success');
+                this.showToast(`Exported ${data.length} ${type} records to ${filename}`, 'success');
+            }
+
+            escapeCSVField(field) {
+                if (field === null || field === undefined) {
+                    return '';
+                }
+                
+                const stringField = field.toString();
+                
+                // If field contains comma, newline, or quote, wrap in quotes and escape internal quotes
+                if (stringField.includes(',') || stringField.includes('\n') || stringField.includes('\r') || stringField.includes('"')) {
+                    return '"' + stringField.replace(/"/g, '""') + '"';
+                }
+                
+                return stringField;
+            }
+
+            formatOrderItems(items) {
+                if (!items || !Array.isArray(items)) {
+                    return 'No items';
+                }
+                
+                return items.map(item => `${item.name} x${item.quantity}`).join('; ');
+            }
+
+            // Notification System
+            addNotification(title, message, type = 'info') {
+                const notification = {
+                    id: Date.now(),
+                    title,
+                    message,
+                    type,
+                    timestamp: new Date(),
+                    unread: true
+                };
+                
+                if (!this.notifications) this.notifications = [];
+                this.notifications.unshift(notification);
+                
+                // Keep only last 50 notifications
+                if (this.notifications.length > 50) {
+                    this.notifications = this.notifications.slice(0, 50);
+                }
+                
+                this.updateNotificationBadge();
+            }
+
+            updateNotificationBadge() {
+                const badge = document.getElementById('notificationBadge');
+                if (!badge) return;
+                
+                const unreadCount = (this.notifications || []).filter(n => n.unread).length;
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            loadNotifications() {
+                const notificationList = document.getElementById('notificationList');
+                if (!notificationList) return;
+                
+                if (!this.notifications || this.notifications.length === 0) {
+                    notificationList.innerHTML = '<div style="text-align: center; color: var(--gray-600); padding: 2rem;">No notifications</div>';
+                    return;
+                }
+                
+                notificationList.innerHTML = this.notifications.map(notification => `
+                    <div class="notification-item ${notification.unread ? 'unread' : ''}" data-id="${notification.id}">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--gray-900);">${notification.title}</div>
+                                <div style="font-size: 0.875rem; color: var(--gray-600); margin: 0.25rem 0;">${notification.message}</div>
+                                <div style="font-size: 0.75rem; color: var(--gray-500);">${this.formatRelativeTime(notification.timestamp)}</div>
+                            </div>
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--${notification.type === 'success' ? 'success' : notification.type === 'error' ? 'danger' : 'info'}); ${notification.unread ? '' : 'opacity: 0.3;'}"></div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Mark notifications as read after viewing
+                setTimeout(() => {
+                    this.notifications.forEach(n => n.unread = false);
+                    this.updateNotificationBadge();
+                }, 1000);
+            }
+
+            formatRelativeTime(date) {
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(minutes / 60);
+                const days = Math.floor(hours / 24);
+                
+                if (days > 0) return `${days}d ago`;
+                if (hours > 0) return `${hours}h ago`;
+                if (minutes > 0) return `${minutes}m ago`;
+                return 'Just now';
+            }
+
+            // Mobile Features
+            toggleMobileMenu() {
+                const sidebar = document.querySelector('.sidebar');
+                const backdrop = document.querySelector('.mobile-backdrop');
+                
+                if (sidebar && backdrop) {
+                    const isOpen = sidebar.classList.contains('mobile-open');
+                    
+                    if (isOpen) {
+                        sidebar.classList.remove('mobile-open');
+                        backdrop.classList.remove('active');
+                    } else {
+                        sidebar.classList.add('mobile-open');
+                        backdrop.classList.add('active');
+                    }
+                }
+            }
+
+            closeMobileMenu() {
+                const sidebar = document.querySelector('.sidebar');
+                const backdrop = document.querySelector('.mobile-backdrop');
+                
+                if (sidebar && backdrop) {
+                    sidebar.classList.remove('mobile-open');
+                    backdrop.classList.remove('active');
+                }
+            }
+
+            initMobileFeatures() {
+                // Add mobile backdrop
+                if (!document.querySelector('.mobile-backdrop')) {
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'mobile-backdrop';
+                    backdrop.onclick = () => this.closeMobileMenu();
+                    document.body.appendChild(backdrop);
                 }
 
-                // Logout functionality
-                document.getElementById('logoutBtn').addEventListener('click', () => {
-                    this.showLogoutModal();
-                });
-
-                document.getElementById('cancelLogout').addEventListener('click', () => {
-                    this.hideLogoutModal();
-                });
-
-                document.getElementById('confirmLogout').addEventListener('click', () => {
-                    this.performLogout();
-                });
-
-                // Close modal when clicking overlay
-                document.getElementById('logoutModal').addEventListener('click', (e) => {
-                    if (e.target.id === 'logoutModal') {
-                        this.hideLogoutModal();
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768) {
+                        this.closeMobileMenu();
                     }
                 });
+
+                // Close mobile menu when clicking sidebar links
+                document.querySelectorAll('.sidebar a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 768) {
+                            this.closeMobileMenu();
+                        }
+                    });
+                });
             }
+
+            // Auto-refresh data every 30 seconds
+            startAutoRefresh() {
+                setInterval(() => {
+                    if (this.currentSection) {
+                        switch(this.currentSection) {
+                            case 'users':
+                                this.loadUsers();
+                                break;
+                            case 'menu':
+                                this.loadMenu();
+                                break;
+                            case 'orders':
+                                this.loadOrders();
+                                break;
+                            case 'analytics':
+                                this.loadAnalytics();
+                                break;
+                        }
+                    }
+                }, 30000); // 30 seconds
+            }
+
+
 
             showLogoutModal() {
                 const modal = document.getElementById('logoutModal');
@@ -1566,6 +2682,16 @@
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 1000);
+            }
+
+            hexToRgba(hex, alpha = 1) {
+                const h = hex.replace('#', '');
+                const hw = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+                const bigint = parseInt(hw, 16);
+                const r = (bigint >> 16) & 255;
+                const g = (bigint >> 8) & 255;
+                const b = bigint & 255;
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
             }
 
             async addMenuItem(formData) {
@@ -1617,11 +2743,98 @@
                     toast.classList.remove('show');
                 }, 3000);
             }
+
+            // Sort methods
+            sortUsers(key) {
+                this.toggleSort('user', key);
+                this.renderUsersTable();
+            }
+
+            sortMenu(key) {
+                this.toggleSort('menu', key);
+                this.renderMenuTable();
+            }
+
+            sortOrders(key) {
+                this.toggleSort('order', key);
+                this.renderOrdersTable();
+            }
+
+            // Filter methods  
+            filterUsers() {
+                this.renderUsersTable();
+            }
+
+            filterMenu() {
+                this.renderMenuTable();
+            }
+
+            filterOrders() {
+                this.renderOrdersTable();
+            }
+
+            // Select all methods
+            toggleSelectAllMenu(selectAll) {
+                document.querySelectorAll('.menu-checkbox').forEach(cb => {
+                    cb.checked = selectAll;
+                });
+                this.updateBulkMenuButtons();
+            }
+
+            toggleSelectAllOrders(selectAll) {
+                document.querySelectorAll('.order-checkbox').forEach(cb => {
+                    cb.checked = selectAll;
+                });
+                this.updateBulkOrderButtons();
+            }
         }
 
         let app;
         document.addEventListener('DOMContentLoaded', () => {
             app = new AdminApp();
+            
+            // Initialize mobile features
+            app.initMobileFeatures();
+            
+            // Start auto-refresh
+            app.startAutoRefresh();
+
+            // Global functions for HTML events
+            window.toggleMobileMenu = () => app.toggleMobileMenu();
+            window.closeMobileMenu = () => app.closeMobileMenu();
+            window.showSection = (section) => app.showSection(section);
+            window.filterUsers = () => app.filterUsers();
+            window.filterMenu = () => app.filterMenu();
+            window.filterOrders = () => app.filterOrders();
+            window.sortUsers = (key) => app.sortUsers(key);
+            window.sortMenu = (key) => app.sortMenu(key);
+            window.sortOrders = (key) => app.sortOrders(key);
+            window.bulkDeleteMenu = () => app.bulkDeleteMenu();
+            window.bulkUpdateStatus = () => app.bulkUpdateStatus();
+            window.exportToCSV = (type) => app.exportToCSV(type);
+            window.toggleSelectAllMenu = (selectAll) => app.toggleSelectAllMenu(selectAll);
+            window.toggleSelectAllOrders = (selectAll) => app.toggleSelectAllOrders(selectAll);
+            window.updateBulkMenuButtons = () => app.updateBulkMenuButtons();
+            window.updateBulkOrderButtons = () => app.updateBulkOrderButtons();
+            window.loadNotifications = () => app.loadNotifications();
+            window.toggleNotificationCenter = () => {
+                console.log('Notification button clicked!');
+                const notificationCenter = document.getElementById('notificationCenter');
+                const isHidden = notificationCenter.classList.contains('hidden');
+                
+                console.log('Notification center is hidden:', isHidden);
+                
+                if (isHidden) {
+                    notificationCenter.classList.remove('hidden');
+                    notificationCenter.classList.add('show');
+                    app.loadNotifications();
+                    console.log('Notification center opened');
+                } else {
+                    notificationCenter.classList.add('hidden');
+                    notificationCenter.classList.remove('show');
+                    console.log('Notification center closed');
+                }
+            };
             
             setInterval(() => {
                 if (app.currentPage === 'dashboard') {
