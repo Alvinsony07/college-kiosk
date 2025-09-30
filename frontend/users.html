@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Customer – College Kiosk</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --brand: #004080;
@@ -125,28 +126,131 @@
 
     /* Menu grid */
     .menu-grid {
-      display: grid; gap: 14px;
-      grid-template-columns: repeat( auto-fill, minmax(220px, 1fr) );
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    
+    @media (max-width: 1200px) {
+      .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
     }
     .item {
-      display:flex; flex-direction: column; gap:10px; padding: 12px; border:1px solid #e5e7eb; border-radius: 10px;
-      transition: box-shadow .2s ease, transform .05s ease;
+      display:flex; flex-direction: column; gap:10px; padding: 0; border:1px solid #e5e7eb; border-radius: 12px;
+      transition: all .3s ease;
       background: #fff;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .item:hover { box-shadow: 0 8px 22px rgba(0,0,0,.07); transform: translateY(-1px); }
+    .item:hover { 
+      box-shadow: 0 4px 16px rgba(0,0,0,.12); 
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
     .thumb {
-      width: 100%; height: 140px; object-fit: cover; border-radius: 8px; background:#f3f4f6;
+      width: 100%; height: 140px; object-fit: cover; background:#f3f4f6;
+    }
+    .item-content {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     .row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .name { font-weight: 600; font-size: 15px; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .price { font-weight: 700; }
-    .stock-chip {
-      font-size: 12px; padding: 3px 8px; border-radius: 999px; background: #eef2ff; color:#3730a3;
+    .name { font-weight: 600; font-size: 14px; line-height: 1.3; color: #0f172a; }
+    .muted { color: var(--muted); font-size: 11px; }
+    .price { font-weight: 700; font-size: 16px; color: var(--brand); }
+    .category-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-    .qty-wrap { display:flex; align-items:center; gap:6px; }
+    .category-badge {
+      font-size: 9px; 
+      padding: 3px 8px; 
+      border-radius: 10px; 
+      background: var(--success); 
+      color: white;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .category-badge.bev {
+      background: var(--info);
+    }
+    .category-badge.shake {
+      background: var(--warning);
+    }
+    .stock-chip {
+      font-size: 10px; padding: 3px 8px; border-radius: 10px; background: #eef2ff; color:#3730a3;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .deliverable-chip {
+      font-size: 9px; 
+      padding: 3px 6px; 
+      border-radius: 6px; 
+      background: #f0f9ff; 
+      color: #0369a1;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .qty-wrap { 
+      display:flex; 
+      align-items:center; 
+      gap:6px; 
+      background: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 10px;
+    }
+    .qty-wrap label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+    }
     input[type="number"] {
-      width: 68px; padding:6px 8px; border:1px solid #e5e7eb; border-radius: 8px; font: inherit;
+      width: 60px; padding:6px 8px; border:1px solid #e5e7eb; border-radius: 6px; font: inherit;
+      text-align: center;
+      font-size: 12px;
+    }
+    .btn-add {
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+    .btn-add:hover:not(:disabled) {
+      background: #003d7a;
+      transform: translateY(-1px);
+    }
+    .btn-add:disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
     }
     button {
       border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600;
@@ -301,6 +405,14 @@
 
     function formatCurrency(n) { return Number(n).toFixed(2); }
 
+    function getCategoryClass(category) {
+      const cat = (category || '').toLowerCase();
+      if (cat.includes('veg') || cat.includes('food')) return 'veg';
+      if (cat.includes('bev') || cat.includes('drink') || cat.includes('tea') || cat.includes('coffee')) return 'bev';
+      if (cat.includes('shake') || cat.includes('smoothie')) return 'shake';
+      return 'veg'; // default
+    }
+
     function renderUserBadge() {
       const user = getUser();
       const badge = document.getElementById('userBadge');
@@ -321,22 +433,33 @@
         const card = document.createElement('div');
         card.className = 'item';
         const imgSrc = m.image ? `/static/images/${m.image}` : '';
+        const categoryClass = getCategoryClass(m.category);
+        
         card.innerHTML = `
           <img class="thumb" src="${imgSrc}" alt="${m.name}" onerror="this.src='';this.style.background='#eef2ff'">
-          <div class="row">
-            <div class="name">${m.name}</div>
-            <div class="price">₹${formatCurrency(m.price)}</div>
-          </div>
-          <div class="row">
-            <div class="muted">${m.category || ''} ${m.deliverable ? '(Delivery Available)' : ''}</div>
-            <div class="stock-chip">${m.stock} in stock</div>
-          </div>
-          <div class="row">
-            <div class="qty-wrap">
-              <label class="muted" for="qty-${m.id}">Qty</label>
-              <input type="number" id="qty-${m.id}" min="1" max="${m.stock}" value="1">
+          <div class="item-content">
+            <div class="row">
+              <div class="name">${m.name}</div>
+              <div class="price">₹${formatCurrency(m.price)}</div>
             </div>
-            <button class="btn-add" ${Number(m.stock) <= 0 ? 'disabled' : ''} onclick="addToCart(${m.id})">Add</button>
+            <div class="category-info">
+              <span class="category-badge ${categoryClass}">${m.category || 'Food'}</span>
+              <div class="stock-chip">
+                <i class="fas fa-box" style="font-size: 10px;"></i>
+                ${m.stock} left
+              </div>
+              ${m.deliverable ? '<div class="deliverable-chip"><i class="fas fa-truck" style="font-size: 10px;"></i> Deliverable</div>' : ''}
+            </div>
+            <div class="row">
+              <div class="qty-wrap">
+                <label for="qty-${m.id}">Qty</label>
+                <input type="number" id="qty-${m.id}" min="1" max="${m.stock}" value="1">
+              </div>
+              <button class="btn-add" ${Number(m.stock) <= 0 ? 'disabled' : ''} onclick="addToCart(${m.id})">
+                <i class="fas fa-plus"></i>
+                Add to Cart
+              </button>
+            </div>
           </div>
         `;
         grid.appendChild(card);

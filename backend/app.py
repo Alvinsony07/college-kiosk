@@ -134,10 +134,6 @@ def register():
 def serve_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-@app.route('/frontend/<path:filename>')
-def serve_frontend_files(filename):
-    return send_from_directory(FRONTEND_DIR, filename)
-
 # ---------------------- Auth APIs ---------------------- #
 @app.route('/api/register', methods=['POST'])
 def register_user():
