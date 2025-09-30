@@ -119,14 +119,248 @@ body.theme-dark {
     
     --text: #e2e8f0;
     --text-strong: #f8fafc;
-    --text-muted: #9ca3af;
-    --text-light: #6b7280;
+    --text-muted: #94a3b8;
+    --text-light: #64748b;
     
     --app-bg: #0b1220;
     
     --shadow: 0 2px 4px rgba(0,0,0,0.3);
     --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
     --shadow-hover: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Enhanced Dark Theme Text Improvements */
+body.theme-dark .text-muted {
+    color: var(--text-muted) !important;
+    opacity: 0.9;
+}
+
+body.theme-dark .table td,
+body.theme-dark .table th {
+    color: var(--text);
+    border-color: var(--border);
+}
+
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+    background-color: var(--surface-2);
+    border-color: var(--primary);
+    color: var(--text);
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+}
+
+body.theme-dark .form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+body.theme-dark .dropdown-menu {
+    background-color: var(--surface-2);
+    border-color: var(--border);
+}
+
+body.theme-dark .dropdown-item {
+    color: var(--text);
+}
+
+body.theme-dark .dropdown-item:hover,
+body.theme-dark .dropdown-item:focus {
+    background-color: var(--surface-hover);
+    color: var(--text-strong);
+}
+
+body.theme-dark .modal {
+    background-color: var(--surface);
+    color: var(--text);
+}
+
+body.theme-dark .modal-header {
+    border-bottom-color: var(--border);
+}
+
+body.theme-dark .modal-footer {
+    border-top-color: var(--border);
+}
+
+body.theme-dark .status-badge {
+    color: white;
+    font-weight: 500;
+}
+
+body.theme-dark .customer-email,
+body.theme-dark .item-category {
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark .kpi-label {
+    color: var(--text-muted);
+}
+
+body.theme-dark .kpi-value {
+    color: var(--text-strong);
+}
+
+/* Enhanced Dark Theme Button Styling */
+body.theme-dark .btn-outline {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+body.theme-dark .btn-outline:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+body.theme-dark .btn-outline:not(:disabled) {
+    opacity: 1;
+    cursor: pointer;
+}
+
+/* Chart Download Buttons */
+body.theme-dark .chart-controls .btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+body.theme-dark .chart-controls .btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Improve text readability */
+body.theme-dark .chart-title,
+body.theme-dark .card-title,
+body.theme-dark .page-title {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+body.theme-dark .loading-state span {
+    color: var(--text-muted);
+}
+
+body.theme-dark .data-table th {
+    color: var(--text-strong);
+    background: var(--surface-2);
+}
+
+body.theme-dark .data-table td {
+    color: var(--text);
+}
+
+/* Empty Chart States */
+.empty-chart-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--text-muted);
+    min-height: 200px;
+}
+
+.empty-chart-state i {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.empty-chart-state p {
+    font-size: var(--font-size-lg);
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    color: var(--text);
+}
+
+.empty-chart-state small {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+body.theme-dark .empty-chart-state {
+    color: var(--text-muted);
+}
+
+body.theme-dark .empty-chart-state p {
+    color: var(--text);
+}
+
+body.theme-dark .empty-chart-state small {
+    color: var(--text-muted);
+}
+
+/* Recent Orders Styling */
+.recent-order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-light);
+    transition: var(--transition-fast);
+}
+
+.recent-order-item:hover {
+    background: var(--surface-hover);
+}
+
+.recent-order-item:last-child {
+    border-bottom: none;
+}
+
+.order-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.order-id {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: var(--font-size-sm);
+}
+
+.order-customer {
+    color: var(--text);
+    font-size: var(--font-size-sm);
+}
+
+.order-total {
+    color: var(--text-strong);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+}
+
+.order-status {
+    flex-shrink: 0;
+}
+
+body.theme-dark .recent-order-item {
+    border-bottom-color: var(--border);
+}
+
+body.theme-dark .recent-order-item:hover {
+    background: var(--surface-hover);
+}
+
+body.theme-dark .order-customer {
+    color: var(--text);
+}
+
+body.theme-dark .order-total {
+    color: var(--text-strong);
 }
 
 /* Base Styles */
@@ -1124,6 +1358,144 @@ body {
         transform: translateY(0);
         opacity: 1;
     }
+}
+
+/* Notification Center */
+.notification-center {
+    position: fixed;
+    top: var(--topbar-height);
+    right: 0;
+    width: 400px;
+    max-height: calc(100vh - var(--topbar-height));
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    z-index: 1050;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.notification-center.hidden {
+    transform: translateX(100%);
+}
+
+.notification-header {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-2);
+}
+
+.notification-header h3 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--font-size-lg);
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--spacing-sm);
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary);
+    transition: var(--transition-fast);
+}
+
+.notification-item:hover {
+    background: var(--surface-hover);
+}
+
+.notification-item.warning {
+    border-left-color: var(--warning);
+}
+
+.notification-item.danger {
+    border-left-color: var(--danger);
+}
+
+.notification-item.success {
+    border-left-color: var(--success);
+}
+
+.notification-item.info {
+    border-left-color: var(--info);
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: white;
+    flex-shrink: 0;
+}
+
+.notification-item.warning .notification-icon {
+    background: var(--warning);
+}
+
+.notification-item.danger .notification-icon {
+    background: var(--danger);
+}
+
+.notification-item.success .notification-icon {
+    background: var(--success);
+}
+
+.notification-item.info .notification-icon {
+    background: var(--info);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: var(--spacing-xs);
+}
+
+.notification-message {
+    color: var(--text);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.notification-time {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.notification-action {
+    margin-left: var(--spacing-sm);
+}
+
+.no-notifications {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-muted);
+}
+
+.no-notifications i {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
 }
 
 /* Toast Notifications */

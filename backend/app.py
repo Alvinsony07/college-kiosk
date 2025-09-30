@@ -408,9 +408,18 @@ def delete_menu_item(item_id):
 # ---------------------- Orders APIs ---------------------- #
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
+    limit = request.args.get('limit', type=int)
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, customer_name, customer_email, items, total_price, otp, status FROM orders ORDER BY id DESC")
+    
+    query = "SELECT id, customer_name, customer_email, items, total_price, otp, status, created_at FROM orders ORDER BY id DESC"
+    if limit:
+        query += " LIMIT ?"
+        cursor.execute(query, (limit,))
+    else:
+        cursor.execute(query)
+    
     rows = cursor.fetchall()
     conn.close()
 
@@ -448,6 +457,7 @@ def get_orders():
             "total_price": r[4],
             "otp": r[5],
             "status": r[6],
+            "created_at": r[7] if len(r) > 7 else None,
             "delivery_mode": order_data.get("delivery_mode", "pickup"),
             "department": order_data.get("department"),
             "classroom": order_data.get("classroom"),
@@ -1584,6 +1594,104 @@ def get_dashboard_stats():
             ]
         }
     }), 200
+
+# ---------------------- Bulk Operations API ---------------------- #
+@app.route('/api/orders/bulk-update', methods=['POST'])
+def bulk_update_orders():
+    try:
+        data = request.get_json()
+        order_ids = data.get('order_ids', [])
+        status = data.get('status')
+        
+        if not order_ids or not status:
+            return jsonify({'error': 'Missing order_ids or status'}), 400
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Update orders
+        placeholders = ','.join(['?' for _ in order_ids])
+        cursor.execute(f"""
+            UPDATE orders 
+            SET status = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id IN ({placeholders})
+        """, [status] + order_ids)
+        
+        updated_count = cursor.rowcount
+        
+        # Log the bulk update action
+        cursor.execute("""
+            INSERT INTO audit_logs (admin_email, action, target, details)
+            VALUES (?, ?, ?, ?)
+        """, ('admin', 'BULK_UPDATE_ORDERS', f"{updated_count} orders", f"Status changed to {status}"))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'message': f'{updated_count} orders updated successfully',
+            'updated_count': updated_count
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ---------------------- Notifications API ---------------------- #
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        notifications = []
+        
+        # Check for pending user approvals
+        cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'pending'")
+        pending_users = cursor.fetchone()[0]
+        if pending_users > 0:
+            notifications.append({
+                'id': 'pending_users',
+                'type': 'warning',
+                'title': 'Pending User Approvals',
+                'message': f'{pending_users} users waiting for approval',
+                'timestamp': datetime.now().isoformat(),
+                'action': 'view_users',
+                'actionText': 'Review'
+            })
+        
+        # Check for low stock items
+        cursor.execute("SELECT COUNT(*) FROM menu WHERE stock < 5 AND available = 1")
+        low_stock = cursor.fetchone()[0]
+        if low_stock > 0:
+            notifications.append({
+                'id': 'low_stock',
+                'type': 'warning',
+                'title': 'Low Stock Alert',
+                'message': f'{low_stock} items running low on stock',
+                'timestamp': datetime.now().isoformat(),
+                'action': 'view_menu',
+                'actionText': 'Restock'
+            })
+        
+        # Check for active orders
+        cursor.execute("SELECT COUNT(*) FROM orders WHERE status NOT IN ('Completed', 'Cancelled')")
+        active_orders = cursor.fetchone()[0]
+        if active_orders > 0:
+            notifications.append({
+                'id': 'active_orders',
+                'type': 'info',
+                'title': 'Active Orders',
+                'message': f'{active_orders} orders need attention',
+                'timestamp': datetime.now().isoformat(),
+                'action': 'view_orders',
+                'actionText': 'Manage'
+            })
+        
+        conn.close()
+        return jsonify(notifications), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ---------------------- Run Server ---------------------- #
 if __name__ == '__main__':
