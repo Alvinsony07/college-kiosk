@@ -1,0 +1,11 @@
+User ID,Name,Email,Role,Status,Created At
+1,Admin User,kioskadmin@saintgits.org,admin,approved,2024-01-01 00:00:00
+2,John Doe,john.doe@saintgits.org,user,approved,2024-01-10 14:30:00
+3,Jane Smith,jane.smith@saintgits.org,user,approved,2024-01-12 09:15:00
+4,Mike Johnson,mike.j@saintgits.org,user,approved,2024-01-13 16:45:00
+5,Sarah Wilson,sarah.w@saintgits.org,user,pending,2024-01-15 11:20:00
+6,David Brown,david.b@saintgits.org,user,approved,2024-01-14 08:30:00
+7,Lisa Garcia,lisa.g@saintgits.org,staff,approved,2024-01-11 13:00:00
+8,Tom Anderson,tom.a@saintgits.org,user,pending,2024-01-15 14:15:00
+9,Emma Thompson,emma.t@saintgits.org,user,approved,2024-01-13 10:30:00
+10,Robert Davis,robert.d@saintgits.org,staff,approved,2024-01-12 15:45:00
