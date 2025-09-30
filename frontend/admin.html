@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - College Canteen</title>
-    <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/frontend/admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -48,6 +48,44 @@
                     <span class="nav-text">Orders</span>
                 </a>
                 <a href="#" data-page="menu" class="nav-item">
+                    <span class="nav-icon">🍽️</span>
+                    <span class="nav-text">Menu</span>
+                </a>
+                <a href="#" data-page="users" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Users</span>
+                </a>
+                <a href="#" onclick="handleLogout()" class="nav-item logout">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="polling-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pollingToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="polling-label">Auto-refresh</span>
+                    </div>
+                    <span id="lastRefresh" class="last-refresh"></span>
+                    <span id="adminEmail" class="admin-email"></span>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div id="pageContent" class="page-content"></div>
+        </main>
+    </div>
                     <span class="nav-icon">🍔</span>
                     <span class="nav-text">Menu</span>
                 </a>
