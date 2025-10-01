@@ -149,7 +149,7 @@
 <div class="register-container">
   <h2>Register</h2>
   <input type="text" id="name" placeholder="Full Name" required />
-  <input type="email" id="email" placeholder="Email (@saintgits.org)" required />
+  <input type="email" id="email" placeholder="Email" required />
   <input type="password" id="password" placeholder="Password" required />
   <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
   <button onclick="register()">Register</button>
@@ -166,8 +166,8 @@
 
     msg.style.color = "red";
 
-    if (!email.endsWith("@saintgits.org")) {
-      msg.textContent = "Only @saintgits.org emails allowed.";
+    if (!email.includes('@') || email.length < 5) {
+      msg.textContent = "Please enter a valid email address.";
       return;
     }
 
