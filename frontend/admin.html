@@ -9,96 +9,100 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #ff5722;
-            --primary-dark: #e64a19;
-            --primary-light: #ff8a65;
-            --success: #4caf50;
-            --warning: #ff9800;
-            --danger: #f44336;
-            --info: #2196f3;
-            --gray-50: #fafafa;
-            --gray-100: #f5f5f5;
-            --gray-200: #eeeeee;
-            --gray-300: #e0e0e0;
-            --gray-400: #bdbdbd;
-            --gray-500: #9e9e9e;
-            --gray-600: #757575;
-            --gray-700: #616161;
-            --gray-800: #424242;
-            --gray-900: #212121;
-            --white: #ffffff;
-            --border: #e0e0e0;
-            /* surfaces */
-            --app-bg: #fafafa;
-            --surface: var(--white);
-            --surface-2: #f8f8f8;
-            --surface-hover: #f5f5f5;
-            --text: #333333;
-            --text-strong: #212121;
-            --text-muted: #757575;
-            --text-light: #9e9e9e;
-            /* Swiggy-specific colors */
-            --swiggy-orange: #ff5722;
-            --swiggy-orange-light: #ffccbc;
-            --swiggy-orange-dark: #d84315;
-            --swiggy-green: #4caf50;
-            --swiggy-red: #f44336;
-            /* charts */
-            --chart-orange: #ff5722;
-            --chart-green: #4caf50;
-            --chart-blue: #2196f3;
-            --chart-yellow: #ff9800;
-            --chart-red: #f44336;
-            --chart-purple: #9c27b0;
-            --chart-grid: #f0f0f0;
-            --chart-tick: #757575;
-            --shadow: 0 2px 4px rgba(0,0,0,0.1);
-            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
-            --shadow-hover: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        body.theme-dark {
-            --primary: #ff6b35;
-            --primary-dark: #e64a19;
-            --primary-light: #ff8a65;
-            --success: #4caf50;
-            --warning: #ff9800;
-            --danger: #f44336;
-            --info: #2196f3;
-            --gray-50: #0f172a;
-            --gray-100: #111827;
-            --gray-200: #1f2937;
-            --gray-300: #374151;
+            --primary: #ff7849;
+            --primary-dark: #e85d2a;
+            --primary-light: #ff9368;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --info: #2563eb;
+            --gray-50: #1a1d23;
+            --gray-100: #1e2329;
+            --gray-200: #252931;
+            --gray-300: #2d323a;
             --gray-400: #4b5563;
             --gray-500: #6b7280;
             --gray-600: #9ca3af;
             --gray-700: #d1d5db;
             --gray-800: #e5e7eb;
             --gray-900: #f3f4f6;
-            --white: #0b1220;
-            --border: #374151;
-            --app-bg: #0b1220;
-            --surface: #0f172a;
-            --surface-2: #111827;
-            --surface-hover: #1f2937;
+            --white: #ffffff;
+            --border: #2d323a;
+            /* surfaces */
+            --app-bg: #1a1d23;
+            --surface: #1e2329;
+            --surface-2: #252931;
+            --surface-hover: #2d323a;
             --text: #e2e8f0;
             --text-strong: #f8fafc;
             --text-muted: #9ca3af;
             --text-light: #6b7280;
-            /* Swiggy-specific colors for dark theme */
-            --swiggy-orange: #ff6b35;
-            --swiggy-orange-light: #ff8a65;
-            --swiggy-orange-dark: #e64a19;
-            --swiggy-green: #4caf50;
-            --swiggy-red: #f44336;
+            /* Rocker dashboard colors */
+            --rocker-orange: #ff7849;
+            --rocker-orange-light: #ff9368;
+            --rocker-orange-dark: #e85d2a;
+            --rocker-green: #16a34a;
+            --rocker-red: #dc2626;
             /* charts */
-            --chart-orange: #ff6b35;
-            --chart-green: #4caf50;
-            --chart-blue: #2196f3;
-            --chart-yellow: #ff9800;
-            --chart-red: #f44336;
+            --chart-orange: #ff7849;
+            --chart-green: #16a34a;
+            --chart-blue: #2563eb;
+            --chart-yellow: #f59e0b;
+            --chart-red: #dc2626;
+            --chart-pink: #ec4899;
             --chart-purple: #9c27b0;
-            --chart-grid: #1f2937;
+            --chart-cyan: #06b6d4;
+            --chart-grid: #2d323a;
+            --chart-tick: #9ca3af;
+            --shadow: 0 2px 8px rgba(0,0,0,0.4);
+            --shadow-lg: 0 16px 32px rgba(0,0,0,0.45);
+            --shadow-hover: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        body.theme-dark {
+            --primary: #ff7849;
+            --primary-dark: #e85d2a;
+            --primary-light: #ff9368;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --info: #2563eb;
+            --gray-50: #1a1d23;
+            --gray-100: #1e2329;
+            --gray-200: #252931;
+            --gray-300: #2d323a;
+            --gray-400: #4b5563;
+            --gray-500: #6b7280;
+            --gray-600: #9ca3af;
+            --gray-700: #d1d5db;
+            --gray-800: #e5e7eb;
+            --gray-900: #f3f4f6;
+            --white: #1a1d23;
+            --border: #2d323a;
+            --app-bg: #1a1d23;
+            --surface: #1e2329;
+            --surface-2: #252931;
+            --surface-hover: #2d323a;
+            --text: #e2e8f0;
+            --text-strong: #f8fafc;
+            --text-muted: #9ca3af;
+            --text-light: #6b7280;
+            /* Rocker dashboard colors for dark theme */
+            --rocker-orange: #ff7849;
+            --rocker-orange-light: #ff9368;
+            --rocker-orange-dark: #e85d2a;
+            --rocker-green: #16a34a;
+            --rocker-red: #dc2626;
+            /* charts */
+            --chart-orange: #ff7849;
+            --chart-green: #16a34a;
+            --chart-blue: #2563eb;
+            --chart-yellow: #f59e0b;
+            --chart-red: #dc2626;
+            --chart-pink: #ec4899;
+            --chart-purple: #9c27b0;
+            --chart-cyan: #06b6d4;
+            --chart-grid: #2d323a;
             --chart-tick: #9ca3af;
             --shadow: 0 2px 8px rgba(0,0,0,0.4);
             --shadow-lg: 0 16px 32px rgba(0,0,0,0.45);
@@ -149,7 +153,7 @@
             gap: 0.75rem;
             font-size: 1.625rem;
             font-weight: 800;
-            color: var(--swiggy-orange);
+            color: var(--rocker-orange);
             letter-spacing: -0.025em;
         }
 
@@ -183,14 +187,14 @@
 
         .nav-item:hover {
             background: var(--surface-hover);
-            color: var(--swiggy-orange);
+            color: var(--rocker-orange);
             transform: translateX(2px);
         }
 
         .nav-item.active {
             background: linear-gradient(90deg, rgba(255, 87, 34, 0.08) 0%, transparent 100%);
-            color: var(--swiggy-orange);
-            border-left-color: var(--swiggy-orange);
+            color: var(--rocker-orange);
+            border-left-color: var(--rocker-orange);
             font-weight: 600;
         }
 
@@ -231,7 +235,7 @@
         .topbar-clock .clock-time {
             font-size: 1.0625rem;
             font-weight: 700;
-            color: var(--swiggy-orange);
+            color: var(--rocker-orange);
             letter-spacing: -0.025em;
         }
 
@@ -273,29 +277,29 @@
         }
 
         .btn-primary {
-            background: var(--swiggy-orange);
+            background: var(--rocker-orange);
             color: #ffffff;
             box-shadow: 0 2px 4px rgba(255, 87, 34, 0.2);
-            border: 1px solid var(--swiggy-orange);
+            border: 1px solid var(--rocker-orange);
             font-weight: 600;
         }
 
         .btn-primary:hover {
-            background: var(--swiggy-orange-dark);
+            background: var(--rocker-orange-dark);
             box-shadow: 0 4px 8px rgba(255, 87, 34, 0.3);
             transform: translateY(-1px);
-            border-color: var(--swiggy-orange-dark);
+            border-color: var(--rocker-orange-dark);
         }
 
         body.theme-dark .btn-primary {
-            background: var(--swiggy-orange);
+            background: var(--rocker-orange);
             color: #ffffff;
-            border-color: var(--swiggy-orange);
+            border-color: var(--rocker-orange);
         }
 
         body.theme-dark .btn-primary:hover {
-            background: var(--swiggy-orange-light);
-            border-color: var(--swiggy-orange-light);
+            background: var(--rocker-orange-light);
+            border-color: var(--rocker-orange-light);
         }
 
         .server-status {
@@ -415,8 +419,8 @@
 
         .btn-outline:hover {
             background: var(--surface-hover);
-            border-color: var(--swiggy-orange);
-            color: var(--swiggy-orange);
+            border-color: var(--rocker-orange);
+            color: var(--rocker-orange);
             transform: translateY(-1px);
         }
 
@@ -428,8 +432,8 @@
 
         body.theme-dark .btn-outline:hover {
             background: var(--surface-hover);
-            border-color: var(--swiggy-orange);
-            color: var(--swiggy-orange);
+            border-color: var(--rocker-orange);
+            color: var(--rocker-orange);
         }
 
         .table-actions {
@@ -454,8 +458,8 @@
         }
 
         .table-actions .btn-outline:hover {
-            background: var(--swiggy-orange);
-            border-color: var(--swiggy-orange);
+            background: var(--rocker-orange);
+            border-color: var(--rocker-orange);
             color: #ffffff;
         }
 
@@ -466,8 +470,8 @@
         }
 
         body.theme-dark .table-actions .btn-outline:hover {
-            background: var(--swiggy-orange);
-            border-color: var(--swiggy-orange);
+            background: var(--rocker-orange);
+            border-color: var(--rocker-orange);
             color: #ffffff;
         }
 
@@ -547,7 +551,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--swiggy-orange), var(--swiggy-orange-light));
+            background: linear-gradient(90deg, var(--rocker-orange), var(--rocker-orange-light));
         }
 
         .stat-value {
@@ -670,7 +674,7 @@
 
         .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: var(--swiggy-orange);
+            border-color: var(--rocker-orange);
             box-shadow: 0 0 0 4px rgba(255, 87, 34, 0.1);
             transform: translateY(-1px);
         }
@@ -692,7 +696,7 @@
             width: 2rem;
             height: 2rem;
             border: 2px solid var(--gray-300);
-            border-top: 2px solid var(--swiggy-orange);
+            border-top: 2px solid var(--rocker-orange);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 0.5rem;
@@ -863,7 +867,7 @@
         }
 
         .edit-menu-preview:hover {
-            border-color: var(--swiggy-orange);
+            border-color: var(--rocker-orange);
         }
 
         .edit-menu-preview img {
@@ -910,9 +914,9 @@
         }
 
         .btn-confirm {
-            background: var(--swiggy-orange);
+            background: var(--rocker-orange);
             color: #ffffff;
-            border: 1px solid var(--swiggy-orange);
+            border: 1px solid var(--rocker-orange);
             padding: 0.875rem 1.75rem;
             border-radius: 12px;
             cursor: pointer;
@@ -922,21 +926,21 @@
         }
 
         .btn-confirm:hover {
-            background: var(--swiggy-orange-dark);
+            background: var(--rocker-orange-dark);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
-            border-color: var(--swiggy-orange-dark);
+            border-color: var(--rocker-orange-dark);
         }
 
         body.theme-dark .btn-confirm {
-            background: var(--swiggy-orange);
+            background: var(--rocker-orange);
             color: #ffffff;
-            border-color: var(--swiggy-orange);
+            border-color: var(--rocker-orange);
         }
 
         body.theme-dark .btn-confirm:hover {
-            background: var(--swiggy-orange-light);
-            border-color: var(--swiggy-orange-light);
+            background: var(--rocker-orange-light);
+            border-color: var(--rocker-orange-light);
         }
 
         /* Mobile responsive styles */
@@ -989,7 +993,7 @@
 
         .notification-item.unread {
             background: rgba(255, 87, 34, 0.04);
-            border-left: 3px solid var(--swiggy-orange);
+            border-left: 3px solid var(--rocker-orange);
         }
 
         .bulk-actions {
