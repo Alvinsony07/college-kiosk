@@ -75,19 +75,19 @@
                 
                 <div class="nav-section">
                     <div class="nav-section-title">Analytics</div>
-                    <a href="#reports" class="nav-item" data-page="reports">
-                        <i class="fas fa-chart-bar"></i>
+                    <a href="#reports" class="nav-item" data-page="reports" role="button" aria-pressed="false" aria-label="Reports and analytics">
+                        <i class="fas fa-chart-bar" aria-hidden="true"></i>
                         <span>Reports</span>
                     </a>
-                    <a href="#audit-logs" class="nav-item" data-page="audit-logs">
-                        <i class="fas fa-history"></i>
+                    <a href="#audit-logs" class="nav-item" data-page="audit-logs" role="button" aria-pressed="false" aria-label="Audit logs">
+                        <i class="fas fa-history" aria-hidden="true"></i>
                         <span>Audit Logs</span>
                     </a>
                 </div>
                 
                 <div class="logout-section">
-                    <button class="logout-btn" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button class="logout-btn" id="logoutBtn" aria-label="Logout from admin panel">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                         <span>Logout</span>
                     </button>
                 </div>
@@ -114,13 +114,13 @@
                     
                     <!-- Action Buttons -->
                     <div class="topbar-actions">
-                        <button class="btn btn-outline" id="themeToggleBtn" title="Toggle theme">
-                            <i class="fas fa-moon" id="themeToggleIcon"></i>
+                        <button class="btn btn-outline" id="themeToggleBtn" aria-label="Toggle between light and dark theme">
+                            <i class="fas fa-moon" id="themeToggleIcon" aria-hidden="true"></i>
                         </button>
                         
-                        <button class="btn btn-outline notification-btn" id="notificationBtn" title="Notifications">
-                            <i class="fas fa-bell"></i>
-                            <span id="notificationBadge" class="notification-badge">0</span>
+                        <button class="btn btn-outline notification-btn" id="notificationBtn" aria-label="View notifications" aria-expanded="false">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            <span id="notificationBadge" class="notification-badge" aria-label="Notification count">0</span>
                         </button>
                         
                         <button class="btn btn-outline" id="refreshBtn" title="Refresh Data">

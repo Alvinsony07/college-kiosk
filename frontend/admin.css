@@ -1867,18 +1867,100 @@ body.theme-dark .notification-icon.danger {
     
     .table-container {
         font-size: var(--font-size-sm);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table {
+        min-width: 600px; /* Ensure table doesn't get too cramped */
     }
     
     .data-table th,
     .data-table td {
         padding: var(--spacing-sm);
+        white-space: nowrap;
     }
     
     .action-buttons {
         flex-direction: column;
+        gap: var(--spacing-xs);
     }
     
     .menu-card-actions {
         flex-wrap: wrap;
+        gap: var(--spacing-xs);
     }
+    
+    .menu-card-actions .btn {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .modal {
+        margin: var(--spacing-sm);
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+    
+    .page-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filters-row .form-group {
+        margin-bottom: var(--spacing-sm);
+    }
+}
+
+/* Additional improvements for status indicators */
+.status-dot.warning {
+    background: var(--warning);
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+}
+
+/* Improve bulk action buttons */
+.bulk-actions {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: var(--spacing-md);
+    z-index: 10;
+    display: none;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.bulk-actions.show {
+    display: flex;
+}
+
+.selected-count {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Loading states */
+.loading-skeleton {
+    background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
