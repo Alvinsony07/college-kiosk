@@ -454,55 +454,116 @@ def delete_menu_item(item_id):
     return jsonify({'message': 'Menu item deleted successfully'}), 200
 
 # ---------------------- Orders APIs ---------------------- #
+def _build_order_payload(row, menu_lookup):
+    (
+        order_id,
+        customer_name,
+        customer_email,
+        raw_items,
+        total_price,
+        status,
+        otp,
+        created_at,
+        updated_at
+    ) = row
+
+    try:
+        order_blob = ast.literal_eval(raw_items) if isinstance(raw_items, str) else (raw_items or {})
+        if not isinstance(order_blob, dict):
+            order_blob = {"items": []}
+    except (ValueError, SyntaxError):
+        order_blob = {"items": []}
+
+    items_payload = []
+    for item in order_blob.get("items", []) or []:
+        item_id = item.get('id')
+        menu_item = menu_lookup.get(item_id, {})
+        item_name = item.get('name') or menu_item.get('name') or f"Item #{item_id}" if item_id else "Unknown"
+        unit_price = item.get('price', menu_item.get('price'))
+        quantity = item.get('qty') or item.get('quantity') or 0
+        subtotal = unit_price * quantity if isinstance(unit_price, (int, float)) else None
+        items_payload.append({
+            "id": item_id,
+            "name": item_name,
+            "qty": quantity,
+            "price": unit_price,
+            "subtotal": subtotal
+        })
+
+    return {
+        "id": order_id,
+        "customer_name": customer_name,
+        "customer_email": customer_email,
+        "items": items_payload,
+        "total_price": total_price,
+        "otp": otp,
+        "status": status,
+        "delivery_mode": order_blob.get("delivery_mode", "pickup"),
+        "department": order_blob.get("department"),
+        "classroom": order_blob.get("classroom"),
+        "block": order_blob.get("block"),
+        "expected_time": order_blob.get("expected_time"),
+        "created_at": created_at,
+        "updated_at": updated_at
+    }
+
+
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, customer_name, customer_email, items, total_price, otp, status FROM orders ORDER BY id DESC")
+    limit = request.args.get('limit', type=int)
+
+    base_query = (
+        """
+        SELECT id, customer_name, customer_email, items, total_price, status, otp,
+               created_at, updated_at
+        FROM orders
+        ORDER BY id DESC
+        """
+    )
+
+    if limit and limit > 0:
+        cursor.execute(f"{base_query} LIMIT ?", (limit,))
+    else:
+        cursor.execute(base_query)
+
     rows = cursor.fetchall()
+
+    cursor.execute("SELECT id, name, price FROM menu")
+    menu_lookup = {row[0]: {'name': row[1], 'price': row[2]} for row in cursor.fetchall()}
+
+    orders = [_build_order_payload(row, menu_lookup) for row in rows]
+
     conn.close()
-
-    orders = []
-    for r in rows:
-        # Parse items safely
-        try:
-            order_data = ast.literal_eval(r[3]) if isinstance(r[3], str) else (r[3] or {})
-        except (ValueError, SyntaxError):
-            order_data = {"items": []}
-
-        detailed_items = []
-        for i in order_data.get("items", []):
-            try:
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("SELECT name FROM menu WHERE id=?", (i["id"],))
-                m = cur.fetchone()
-                conn.close()
-                item_name = m[0] if m else f"ID:{i['id']}"
-            except Exception:
-                item_name = f"ID:{i['id']}"
-
-            detailed_items.append({
-                "id": i["id"],
-                "name": item_name,
-                "qty": i["qty"]
-            })
-
-        orders.append({
-            "id": r[0],
-            "customer_name": r[1],
-            "customer_email": r[2],
-            "items": detailed_items,   # ✅ always array with name+qty
-            "total_price": r[4],
-            "otp": r[5],
-            "status": r[6],
-            "delivery_mode": order_data.get("delivery_mode", "pickup"),
-            "department": order_data.get("department"),
-            "classroom": order_data.get("classroom"),
-            "block": order_data.get("block"),
-            "expected_time": order_data.get("expected_time")
-        })
     return jsonify(orders)
+
+
+@app.route('/api/orders/<int:order_id>', methods=['GET'])
+def get_order(order_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT id, customer_name, customer_email, items, total_price, status, otp,
+               created_at, updated_at
+        FROM orders
+        WHERE id = ?
+        """,
+        (order_id,)
+    )
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({'error': 'Order not found'}), 404
+
+    cursor.execute("SELECT id, name, price FROM menu")
+    menu_lookup = {r[0]: {'name': r[1], 'price': r[2]} for r in cursor.fetchall()}
+    order = _build_order_payload(row, menu_lookup)
+
+    conn.close()
+    return jsonify(order)
 
 @app.route('/api/orders', methods=['POST'])
 def create_order():

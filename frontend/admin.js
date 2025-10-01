@@ -22,6 +22,7 @@ class EnhancedAdminApp {
         this.lowStockThreshold = 5;
         this.selectedItems = new Set();
         this.currentReportData = null;
+    this.lastChartData = null;
         
         this.init();
     }
@@ -398,6 +399,62 @@ class EnhancedAdminApp {
 
         // Update badges in sidebar
         this.updateSidebarBadges(kpi);
+        this.updateInsightsPanel(kpi);
+    }
+
+    updateInsightsPanel(kpi = {}) {
+        const list = document.getElementById('insightsList');
+        const updatedAt = document.getElementById('insightsUpdatedAt');
+        if (!list) return;
+
+        const totalOrders = kpi.total_orders || 0;
+        const totalRevenue = kpi.total_revenue || 0;
+        const avgOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
+
+        const insights = [
+            {
+                icon: 'fa-indian-rupee-sign',
+                title: 'Average Order Value',
+                detail: totalOrders ? `₹${avgOrderValue.toFixed(2)} per order` : 'No orders recorded yet',
+                meta: `${totalOrders} orders counted this term`
+            },
+            {
+                icon: 'fa-clock',
+                title: 'Orders In Progress',
+                detail: `${kpi.active_orders || 0} active orders awaiting fulfilment`,
+                meta: kpi.active_orders ? 'Keep the kitchen in sync with updates' : 'Great job! Everything is completed'
+            },
+            {
+                icon: 'fa-box-open',
+                title: 'Inventory Watchlist',
+                detail: `${kpi.low_stock_items || 0} menu items need restocking soon`,
+                meta: kpi.low_stock_items ? 'Review stock levels under Menu > Inventory' : 'Inventory levels look healthy'
+            },
+            {
+                icon: 'fa-user-check',
+                title: 'User Approvals',
+                detail: `${kpi.pending_approvals || 0} registrations pending review`,
+                meta: 'Approve or reject requests from the Users page'
+            }
+        ];
+
+        list.innerHTML = insights.map(item => `
+            <li class="insight-item">
+                <div class="insight-icon">
+                    <i class="fas ${item.icon}"></i>
+                </div>
+                <div class="insight-content">
+                    <div class="insight-title">${item.title}</div>
+                    <div class="insight-detail">${item.detail}</div>
+                    <div class="insight-meta">${item.meta}</div>
+                </div>
+            </li>
+        `).join('');
+
+        if (updatedAt) {
+            const now = new Date();
+            updatedAt.textContent = `Updated ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
     }
 
     updateSidebarBadges(kpi) {
@@ -421,6 +478,11 @@ class EnhancedAdminApp {
     }
 
     updateCharts(chartData) {
+        if (!chartData) {
+            return;
+        }
+
+        this.lastChartData = chartData;
         // Sales Trend Chart
         this.createSalesTrendChart(chartData.sales_trend);
         
@@ -433,6 +495,12 @@ class EnhancedAdminApp {
         // Category Sales Chart (if available)
         if (chartData.category_sales) {
             this.createCategorySalesChart(chartData.category_sales);
+        }
+    }
+
+    refreshChartsTheme() {
+        if (this.lastChartData) {
+            this.updateCharts(this.lastChartData);
         }
     }
 
@@ -491,10 +559,91 @@ class EnhancedAdminApp {
         }).join('');
     }
 
+    getChartTheme() {
+        const styles = getComputedStyle(document.documentElement);
+        const getVar = (name, fallback) => {
+            const value = styles.getPropertyValue(name);
+            return value ? value.trim() : fallback;
+        };
+
+        return {
+            accent1: getVar('--chart-accent-1', '#2563eb'),
+            accent2: getVar('--chart-accent-2', '#9333ea'),
+            accent3: getVar('--chart-accent-3', '#16a34a'),
+            accent4: getVar('--chart-accent-4', '#f97316'),
+            neutral: getVar('--chart-neutral', '#64748b'),
+            grid: getVar('--chart-grid', 'rgba(148, 163, 184, 0.25)'),
+            tooltipBg: getVar('--chart-tooltip-bg', 'rgba(255, 255, 255, 0.95)'),
+            tooltipText: getVar('--chart-tooltip-text', '#1f2937'),
+            tooltipSubtle: getVar('--chart-tooltip-subtle', '#475569'),
+            text: getVar('--text', '#1f2937'),
+            textMuted: getVar('--text-muted', '#64748b'),
+            surface: getVar('--surface', '#ffffff')
+        };
+    }
+
+    hexToRgba(hex, alpha = 1) {
+        if (!hex) return `rgba(0,0,0,${alpha})`;
+        let normalized = hex.replace('#', '');
+        if (normalized.length === 3) {
+            normalized = normalized.split('').map(char => char + char).join('');
+        }
+        const bigint = parseInt(normalized, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    adjustColor(hex, amount) {
+        if (!hex) return hex;
+        let normalized = hex.replace('#', '');
+        if (normalized.length === 3) {
+            normalized = normalized.split('').map(char => char + char).join('');
+        }
+        const num = parseInt(normalized, 16);
+        let r = (num >> 16) + amount;
+        let g = ((num >> 8) & 0x00FF) + amount;
+        let b = (num & 0x0000FF) + amount;
+
+        r = Math.min(255, Math.max(0, r));
+        g = Math.min(255, Math.max(0, g));
+        b = Math.min(255, Math.max(0, b));
+
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    }
+
+    createChartGradient(ctx, color) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height || 360);
+        gradient.addColorStop(0, this.hexToRgba(color, 0.35));
+        gradient.addColorStop(1, this.hexToRgba(color, 0.05));
+        return gradient;
+    }
+
+    generateChartPalette(count) {
+        const theme = this.getChartTheme();
+        const base = [theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.neutral];
+        const palette = [];
+
+        for (let i = 0; i < count; i++) {
+            const color = base[i % base.length];
+            const variant = i < base.length ? color : this.adjustColor(color, (i - base.length + 1) * 12);
+            palette.push(variant);
+        }
+
+        return palette;
+    }
+
     createSalesTrendChart(salesData) {
-        const ctx = document.getElementById('salesTrendChart');
-        if (!ctx) {
+        const canvas = document.getElementById('salesTrendChart');
+        if (!canvas) {
             console.warn('Sales trend chart canvas not found');
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.warn('Unable to get 2D context for sales chart');
             return;
         }
 
@@ -511,14 +660,9 @@ class EnhancedAdminApp {
         const orders = salesData.map(item => item.orders);
         const revenue = salesData.map(item => item.revenue);
 
-        // Create gradient backgrounds
-        const ordersGradient = ctx.createLinearGradient(0, 0, 0, 400);
-        ordersGradient.addColorStop(0, 'rgba(255, 87, 34, 0.3)');
-        ordersGradient.addColorStop(1, 'rgba(255, 87, 34, 0.05)');
-
-        const revenueGradient = ctx.createLinearGradient(0, 0, 0, 400);
-        revenueGradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
-        revenueGradient.addColorStop(1, 'rgba(76, 175, 80, 0.05)');
+        const chartTheme = this.getChartTheme();
+        const ordersGradient = this.createChartGradient(ctx, chartTheme.accent1);
+        const revenueGradient = this.createChartGradient(ctx, chartTheme.accent3);
 
         this.charts.salesTrend = new Chart(ctx, {
             type: 'line',
@@ -528,13 +672,13 @@ class EnhancedAdminApp {
                     {
                         label: 'Orders',
                         data: orders,
-                        borderColor: '#FF5722',
+                        borderColor: chartTheme.accent1,
                         backgroundColor: ordersGradient,
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#FF5722',
-                        pointBorderColor: '#ffffff',
+                        pointBackgroundColor: chartTheme.accent1,
+                        pointBorderColor: chartTheme.surface,
                         pointBorderWidth: 2,
                         pointRadius: 5,
                         pointHoverRadius: 7,
@@ -543,13 +687,13 @@ class EnhancedAdminApp {
                     {
                         label: 'Revenue (₹)',
                         data: revenue,
-                        borderColor: '#4CAF50',
+                        borderColor: chartTheme.accent3,
                         backgroundColor: revenueGradient,
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#4CAF50',
-                        pointBorderColor: '#ffffff',
+                        pointBackgroundColor: chartTheme.accent3,
+                        pointBorderColor: chartTheme.surface,
                         pointBorderWidth: 2,
                         pointRadius: 5,
                         pointHoverRadius: 7,
@@ -572,14 +716,14 @@ class EnhancedAdminApp {
                             usePointStyle: true,
                             pointStyle: 'circle',
                             padding: 20,
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+                            color: chartTheme.text
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        titleColor: '#333',
-                        bodyColor: '#666',
-                        borderColor: '#ddd',
+                        backgroundColor: chartTheme.tooltipBg,
+                        titleColor: chartTheme.tooltipText,
+                        bodyColor: chartTheme.tooltipSubtle,
+                        borderColor: this.hexToRgba(chartTheme.tooltipText, 0.08),
                         borderWidth: 1,
                         cornerRadius: 8
                     }
@@ -587,11 +731,11 @@ class EnhancedAdminApp {
                 scales: {
                     x: {
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.1)',
+                            color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
+                            color: chartTheme.textMuted
                         }
                     },
                     y: {
@@ -599,11 +743,11 @@ class EnhancedAdminApp {
                         display: true,
                         position: 'left',
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.1)',
+                            color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
+                            color: chartTheme.textMuted
                         }
                     },
                     y1: {
@@ -612,11 +756,11 @@ class EnhancedAdminApp {
                         position: 'right',
                         grid: {
                             drawOnChartArea: false,
-                            color: 'rgba(0, 0, 0, 0.1)',
+                            color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
+                            color: chartTheme.textMuted
                         }
                     },
                 }
@@ -625,8 +769,14 @@ class EnhancedAdminApp {
     }
 
     createOrderStatusChart(statusData) {
-        const ctx = document.getElementById('orderStatusChart');
-        if (!ctx) return;
+        const canvas = document.getElementById('orderStatusChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.warn('Unable to get context for order status chart');
+            return;
+        }
 
         if (this.charts.orderStatus) {
             this.charts.orderStatus.destroy();
@@ -634,27 +784,10 @@ class EnhancedAdminApp {
 
         const labels = Object.keys(statusData);
         const data = Object.values(statusData);
-        
-        // Modern vibrant color palette
-        const colors = [
-            '#FF6B35', // Order Received - Vibrant Orange
-            '#4ECDC4', // Preparing - Teal
-            '#45B7D1', // Ready for Pickup - Sky Blue
-            '#96CEB4', // Completed - Mint Green
-            '#FFEAA7', // Cancelled - Soft Yellow
-            '#DDA0DD', // Additional - Plum
-            '#98D8C8'  // Additional - Seafoam
-        ];
 
-        const hoverColors = [
-            '#FF5722', // Darker on hover
-            '#26D0CE',
-            '#2E86AB',
-            '#78C2AD',
-            '#FDCB6E',
-            '#C49ACD',
-            '#7FCDCD'
-        ];
+        const chartTheme = this.getChartTheme();
+        const palette = this.generateChartPalette(labels.length);
+        const hoverPalette = palette.map(color => this.adjustColor(color, -18));
 
         this.charts.orderStatus = new Chart(ctx, {
             type: 'doughnut',
@@ -662,10 +795,10 @@ class EnhancedAdminApp {
                 labels: labels,
                 datasets: [{
                     data: data,
-                    backgroundColor: colors.slice(0, labels.length),
-                    hoverBackgroundColor: hoverColors.slice(0, labels.length),
+                    backgroundColor: palette,
+                    hoverBackgroundColor: hoverPalette,
                     borderWidth: 3,
-                    borderColor: '#ffffff',
+                    borderColor: chartTheme.surface,
                     hoverBorderWidth: 4,
                     cutout: '65%',
                     borderRadius: 6,
@@ -682,7 +815,7 @@ class EnhancedAdminApp {
                             usePointStyle: true,
                             pointStyle: 'rectRounded',
                             padding: 15,
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text'),
+                            color: chartTheme.text,
                             font: {
                                 size: 12,
                                 weight: '500'
@@ -690,10 +823,10 @@ class EnhancedAdminApp {
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        titleColor: '#333',
-                        bodyColor: '#666',
-                        borderColor: '#ddd',
+                        backgroundColor: chartTheme.tooltipBg,
+                        titleColor: chartTheme.tooltipText,
+                        bodyColor: chartTheme.tooltipSubtle,
+                        borderColor: this.hexToRgba(chartTheme.tooltipText, 0.08),
                         borderWidth: 1,
                         cornerRadius: 8,
                         displayColors: true,
@@ -718,8 +851,14 @@ class EnhancedAdminApp {
     }
 
     createTopItemsChart(topItems) {
-        const ctx = document.getElementById('topItemsChart');
-        if (!ctx) return;
+        const canvas = document.getElementById('topItemsChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.warn('Unable to get context for top items chart');
+            return;
+        }
 
         if (this.charts.topItems) {
             this.charts.topItems.destroy();
@@ -728,22 +867,10 @@ class EnhancedAdminApp {
         const labels = topItems.map(item => item.name);
         const data = topItems.map(item => item.orders);
 
-        // Create gradient for bars
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, '#FF6B35');
-        gradient.addColorStop(0.5, '#FF8A65');
-        gradient.addColorStop(1, '#FFAB91');
-
-        // Generate different colors for each bar
-        const backgroundColors = data.map((_, index) => {
-            const hue = (index * 360 / data.length + 30) % 360;
-            return `hsla(${hue}, 70%, 60%, 0.8)`;
-        });
-
-        const borderColors = data.map((_, index) => {
-            const hue = (index * 360 / data.length + 30) % 360;
-            return `hsla(${hue}, 70%, 50%, 1)`;
-        });
+        const chartTheme = this.getChartTheme();
+        const backgroundColors = this.generateChartPalette(labels.length);
+        const borderColors = backgroundColors.map(color => this.adjustColor(color, -20));
+        const hoverColors = backgroundColors.map(color => this.adjustColor(color, -10));
 
         this.charts.topItems = new Chart(ctx, {
             type: 'bar',
@@ -757,7 +884,7 @@ class EnhancedAdminApp {
                     borderWidth: 2,
                     borderRadius: 6,
                     borderSkipped: false,
-                    hoverBackgroundColor: backgroundColors.map(color => color.replace('0.8', '1')),
+                    hoverBackgroundColor: hoverColors,
                     hoverBorderWidth: 3
                 }]
             },
@@ -770,18 +897,18 @@ class EnhancedAdminApp {
                             display: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted'),
+                            color: chartTheme.textMuted,
                             maxRotation: 45
                         }
                     },
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.1)',
+                            color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
+                            color: chartTheme.textMuted
                         }
                     }
                 },
@@ -790,10 +917,10 @@ class EnhancedAdminApp {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        titleColor: '#333',
-                        bodyColor: '#666',
-                        borderColor: '#ddd',
+                        backgroundColor: chartTheme.tooltipBg,
+                        titleColor: chartTheme.tooltipText,
+                        bodyColor: chartTheme.tooltipSubtle,
+                        borderColor: this.hexToRgba(chartTheme.tooltipText, 0.08),
                         borderWidth: 1,
                         cornerRadius: 8,
                         displayColors: true
@@ -808,9 +935,15 @@ class EnhancedAdminApp {
     }
 
     createCategorySalesChart(categoryData) {
-        const ctx = document.getElementById('categorySalesChart');
-        if (!ctx) {
+        const canvas = document.getElementById('categorySalesChart');
+        if (!canvas) {
             console.warn('Category sales chart canvas not found');
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.warn('Unable to get context for category sales chart');
             return;
         }
 
@@ -825,17 +958,11 @@ class EnhancedAdminApp {
 
         const labels = Object.keys(categoryData);
         const data = Object.values(categoryData);
-        
-        // Generate vibrant colors for categories
-        const backgroundColors = labels.map((_, index) => {
-            const hue = (index * 360 / labels.length + 45) % 360;
-            return `hsla(${hue}, 70%, 65%, 0.8)`;
-        });
 
-        const borderColors = labels.map((_, index) => {
-            const hue = (index * 360 / labels.length + 45) % 360;
-            return `hsla(${hue}, 70%, 55%, 1)`;
-        });
+        const chartTheme = this.getChartTheme();
+        const backgroundColors = this.generateChartPalette(labels.length);
+        const borderColors = backgroundColors.map(color => this.adjustColor(color, -20));
+        const hoverColors = backgroundColors.map(color => this.adjustColor(color, -10));
 
         this.charts.categorySales = new Chart(ctx, {
             type: 'bar',
@@ -849,7 +976,7 @@ class EnhancedAdminApp {
                     borderWidth: 2,
                     borderRadius: 6,
                     borderSkipped: false,
-                    hoverBackgroundColor: backgroundColors.map(color => color.replace('0.8', '1')),
+                    hoverBackgroundColor: hoverColors,
                     hoverBorderWidth: 3
                 }]
             },
@@ -862,17 +989,17 @@ class EnhancedAdminApp {
                             display: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
+                            color: chartTheme.textMuted
                         }
                     },
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.1)',
+                            color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
+                            color: chartTheme.textMuted
                         }
                     }
                 },
@@ -881,10 +1008,10 @@ class EnhancedAdminApp {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        titleColor: '#333',
-                        bodyColor: '#666',
-                        borderColor: '#ddd',
+                        backgroundColor: chartTheme.tooltipBg,
+                        titleColor: chartTheme.tooltipText,
+                        bodyColor: chartTheme.tooltipSubtle,
+                        borderColor: this.hexToRgba(chartTheme.tooltipText, 0.08),
                         borderWidth: 1,
                         cornerRadius: 8,
                         displayColors: true
@@ -979,13 +1106,45 @@ class EnhancedAdminApp {
         this.updateSelectAllState('orders');
     }
 
-    parseOrderItems(itemsString) {
-        try {
-            const parsed = JSON.parse(itemsString);
-            return parsed.items || [];
-        } catch {
+    parseOrderItems(rawItems) {
+        if (!rawItems) {
             return [];
         }
+
+        let items = [];
+
+        if (Array.isArray(rawItems)) {
+            items = rawItems;
+        } else if (typeof rawItems === 'string') {
+            try {
+                const parsed = JSON.parse(rawItems);
+                items = Array.isArray(parsed) ? parsed : parsed.items || [];
+            } catch (error) {
+                console.warn('Failed to parse order items string:', error);
+                items = [];
+            }
+        } else if (typeof rawItems === 'object') {
+            items = rawItems.items || [];
+        }
+
+        if (!Array.isArray(items)) {
+            return [];
+        }
+
+        return items.map(item => {
+            const quantity = item.quantity ?? item.qty ?? item.count ?? 0;
+            const price = item.price ?? item.cost ?? null;
+            const safePrice = typeof price === 'number' ? price : null;
+            const subtotal = item.subtotal ?? (safePrice !== null ? safePrice * quantity : null);
+
+            return {
+                id: item.id ?? item.item_id ?? null,
+                name: item.name ?? `Item ${item.id ?? ''}`.trim(),
+                quantity,
+                price: safePrice,
+                subtotal
+            };
+        });
     }
 
     getStatusClass(status) {
@@ -2159,6 +2318,47 @@ class EnhancedAdminApp {
             icon.className = 'fas fa-moon';
             localStorage.setItem('theme', 'light');
         }
+
+        this.refreshChartsTheme();
+    }
+
+    formatDateTime(value) {
+        if (!value) return 'N/A';
+        const date = value instanceof Date ? value : new Date(value);
+        return Number.isNaN(date.getTime()) ? 'N/A' : date.toLocaleString();
+    }
+
+    buildDeliveryMeta(order) {
+        if (!order) return '';
+        const deliveryMode = order.delivery_mode || 'pickup';
+        const isDelivery = deliveryMode === 'delivery';
+
+        if (!isDelivery) {
+            return `
+                <div class="detail-item">
+                    <strong>Fulfilment:</strong> Pickup
+                </div>
+            `;
+        }
+
+        const metaLines = [
+            `<div class="detail-item"><strong>Fulfilment:</strong> Delivery</div>`
+        ];
+
+        if (order.block) {
+            metaLines.push(`<div class="detail-item"><strong>Block:</strong> ${order.block}</div>`);
+        }
+        if (order.department) {
+            metaLines.push(`<div class="detail-item"><strong>Department:</strong> ${order.department}</div>`);
+        }
+        if (order.classroom) {
+            metaLines.push(`<div class="detail-item"><strong>Classroom:</strong> ${order.classroom}</div>`);
+        }
+        if (order.expected_time) {
+            metaLines.push(`<div class="detail-item"><strong>Expected:</strong> ${this.formatDateTime(order.expected_time)}</div>`);
+        }
+
+        return metaLines.join('');
     }
 
     handleLogout() {
@@ -2278,74 +2478,87 @@ class EnhancedAdminApp {
             const response = await fetch(`/api/orders/${orderId}`);
             const order = await response.json();
 
-            if (response.ok) {
-                const items = this.parseOrderItems(order.items);
-                
-                this.showModal(`
-                    <div class="modal-header">
-                        <h3><i class="fas fa-shopping-cart"></i> Order Details #${order.id}</h3>
-                        <button class="btn btn-ghost" onclick="adminApp.hideModal()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="order-details-grid">
-                            <div class="detail-section">
-                                <h4>Customer Information</h4>
-                                <div class="detail-item">
-                                    <strong>Name:</strong> ${order.customer_name}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Email:</strong> ${order.customer_email}
-                                </div>
+            if (!response.ok) {
+                this.showToast(order?.error || 'Failed to load order details', 'error');
+                return;
+            }
+
+            const items = this.parseOrderItems(order.items);
+            const createdAt = this.formatDateTime(order.created_at);
+            const updatedAt = this.formatDateTime(order.updated_at);
+            const deliveryMeta = this.buildDeliveryMeta(order);
+
+            this.showModal(`
+                <div class="modal-header">
+                    <h3><i class="fas fa-shopping-cart"></i> Order Details #${order.id}</h3>
+                    <button class="btn btn-ghost" onclick="adminApp.hideModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="order-details-grid">
+                        <div class="detail-section">
+                            <h4>Customer Information</h4>
+                            <div class="detail-item">
+                                <strong>Name:</strong> ${order.customer_name || 'Unknown'}
                             </div>
-                            
-                            <div class="detail-section">
-                                <h4>Order Information</h4>
-                                <div class="detail-item">
-                                    <strong>Status:</strong> 
-                                    <span class="status-badge ${this.getStatusClass(order.status)}">${order.status}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Total:</strong> ₹${order.total_price}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>OTP:</strong> ${order.otp || 'N/A'}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Created:</strong> ${new Date(order.created_at).toLocaleString()}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Updated:</strong> ${new Date(order.updated_at).toLocaleString()}
-                                </div>
+                            <div class="detail-item">
+                                <strong>Email:</strong> ${order.customer_email || 'N/A'}
                             </div>
+                            ${deliveryMeta}
                         </div>
                         
                         <div class="detail-section">
-                            <h4>Order Items</h4>
-                            <div class="order-items-list">
-                                ${items.map(item => `
-                                    <div class="order-item">
-                                        <div class="item-info">
-                                            <strong>${item.name}</strong>
-                                            <span class="item-quantity">Qty: ${item.quantity}</span>
-                                        </div>
-                                        <div class="item-price">₹${item.price}</div>
-                                    </div>
-                                `).join('')}
+                            <h4>Order Information</h4>
+                            <div class="detail-item">
+                                <strong>Status:</strong> 
+                                <span class="status-badge ${this.getStatusClass(order.status)}">${order.status}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Total:</strong> ₹${Number(order.total_price || 0).toFixed(2)}
+                            </div>
+                            <div class="detail-item">
+                                <strong>OTP:</strong> ${order.otp || 'N/A'}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Created:</strong> ${createdAt}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Updated:</strong> ${updatedAt}
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" onclick="adminApp.updateOrderStatus(${orderId})">
-                            <i class="fas fa-edit"></i> Update Status
-                        </button>
-                        <button class="btn btn-outline" onclick="adminApp.hideModal()">Close</button>
+                    
+                    <div class="detail-section">
+                        <h4>Order Items</h4>
+                        <div class="order-items-list">
+                            ${items.length === 0 ? `
+                                <div class="empty-state compact">
+                                    <i class="fas fa-utensils"></i>
+                                    <p>No items recorded</p>
+                                </div>
+                            ` : items.map(item => `
+                                <div class="order-item">
+                                    <div class="item-info">
+                                        <strong>${item.name}</strong>
+                                        <span class="item-quantity">Qty: ${item.quantity}</span>
+                                    </div>
+                                    <div class="item-price">
+                                        ${item.price !== null ? `₹${item.price.toFixed(2)}` : '—'}
+                                        ${item.subtotal !== null ? `<span class="item-subtotal">Subtotal: ₹${item.subtotal.toFixed(2)}</span>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                `);
-            } else {
-                this.showToast('Failed to load order details', 'error');
-            }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="adminApp.updateOrderStatus(${orderId})">
+                        <i class="fas fa-edit"></i> Update Status
+                    </button>
+                    <button class="btn btn-outline" onclick="adminApp.hideModal()">Close</button>
+                </div>
+            `);
         } catch (error) {
             console.error('Error loading order details:', error);
             this.showToast('Error loading order details', 'error');

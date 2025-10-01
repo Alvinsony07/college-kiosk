@@ -270,10 +270,10 @@
                     </div>
 
                     <!-- Recent Activity -->
-                    <div class="activity-section">
-                        <div class="card">
+                    <div class="activity-grid">
+                        <div class="card recent-orders-card">
                             <div class="card-header">
-                                <h3 class="card-title">Recent Orders</h3>
+                                <h3 class="card-title"><i class="fas fa-receipt"></i> Recent Orders</h3>
                                 <button class="btn btn-outline" onclick="navigateToPage('orders')">
                                     View All <i class="fas fa-arrow-right"></i>
                                 </button>
@@ -285,6 +285,26 @@
                                         <span>Loading recent orders...</span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="card insights-card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-lightbulb"></i> Operational Insights</h3>
+                                <span class="card-subtitle" id="insightsUpdatedAt">Updating…</span>
+                            </div>
+                            <div class="card-body">
+                                <ul class="insights-list" id="insightsList">
+                                    <li class="insight-item">
+                                        <div class="insight-icon">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </div>
+                                        <div class="insight-content">
+                                            <div class="insight-title">Loading insights…</div>
+                                            <div class="insight-meta">Please wait a moment</div>
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
