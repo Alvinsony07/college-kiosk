@@ -1,0 +1,16 @@
+Item ID,Name,Price,Category,Image,Available,Stock,Deliverable
+1,Chicken Sandwich,75.00,Sandwiches,chicken_sandwich.jpg,Yes,15,Yes
+2,Veg Sandwich,50.00,Sandwiches,veg_sandwich.jpg,Yes,8,Yes
+3,Vada Pav,30.00,Snacks,vada_pav.jpg,Yes,25,No
+4,Samosa,20.00,Snacks,samosa.jpg,Yes,12,No
+5,Masala Dosa,60.00,South Indian,masala_dosa.jpg,Yes,10,No
+6,Idli Sambar,45.00,South Indian,idli_sambar.jpg,Yes,20,No
+7,Chicken Biryani,120.00,Rice,chicken_biryani.jpg,Yes,8,Yes
+8,Veg Biryani,90.00,Rice,veg_biryani.jpg,Yes,5,Yes
+9,Filter Coffee,25.00,Beverages,filter_coffee.jpg,Yes,30,No
+10,Masala Tea,15.00,Beverages,masala_tea.jpg,Yes,40,No
+11,Fresh Lime Juice,35.00,Beverages,lime_juice.jpg,Yes,3,No
+12,Chocolate Shake,55.00,Beverages,chocolate_shake.jpg,No,0,No
+13,Pani Puri,25.00,Snacks,pani_puri.jpg,Yes,18,No
+14,Chole Bhature,85.00,North Indian,chole_bhature.jpg,Yes,7,No
+15,Rajma Rice,70.00,North Indian,rajma_rice.jpg,Yes,4,Yes
