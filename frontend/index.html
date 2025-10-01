@@ -393,14 +393,14 @@
         <div class="card-content">
           <header class="card-header">
             <h2>Welcome back</h2>
-            <p>Sign in with your <strong>@saintgits.org</strong> email to access your personalised dashboard.</p>
+            <p>Sign in with your <strong>college email</strong> to access your personalised dashboard.</p>
           </header>
 
           <form id="loginForm" novalidate>
             <div class="input-group">
-              <label for="email">College email <span style="color:var(--muted-300);">@saintgits.org</span></label>
+              <label for="email">College email</label>
               <div class="input-wrapper">
-                <input type="email" id="email" name="email" placeholder="you@saintgits.org" autocomplete="email" required />
+                <input type="email" id="email" name="email" placeholder="admin@college.edu" autocomplete="email" required />
               </div>
             </div>
 
@@ -489,8 +489,8 @@
         return;
       }
 
-      if (!email.toLowerCase().endsWith('@saintgits.org')) {
-        setMessage('Only @saintgits.org email addresses are allowed.');
+      if (!email.includes('@') || email.length < 5) {
+        setMessage('Please enter a valid email address.');
         emailInput.focus();
         return;
       }
@@ -507,7 +507,13 @@
 
         const data = await res.json();
         if (res.ok) {
-          localStorage.setItem('userRole', data.role);
+          // Store user data and token
+          const userRole = data.user ? data.user.role : data.role;
+          localStorage.setItem('userRole', userRole);
+          localStorage.setItem('userName', data.user ? data.user.name : '');
+          localStorage.setItem('userEmail', data.user ? data.user.email : '');
+          localStorage.setItem('authToken', data.token || '');
+          
           if (document.getElementById('rememberMe').checked) {
             localStorage.setItem('rememberedEmail', email);
           } else {
@@ -517,11 +523,11 @@
           setMessage('Login successful! Redirecting…', 'success');
 
           setTimeout(() => {
-            if (data.role === 'admin') {
+            if (userRole === 'admin') {
               window.location.href = '/admin';
-            } else if (data.role === 'staff') {
+            } else if (userRole === 'staff') {
               window.location.href = '/staff';
-            } else if (data.role === 'user') {
+            } else if (userRole === 'user') {
               window.location.href = '/users';
             } else {
               setMessage('Unknown role returned. Please contact an administrator.');
