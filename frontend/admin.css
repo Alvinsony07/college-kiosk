@@ -56,6 +56,17 @@
     
     /* Background */
     --app-bg: #fafafa;
+
+    /* Chart Palette */
+    --chart-accent-1: #2563eb;
+    --chart-accent-2: #9333ea;
+    --chart-accent-3: #16a34a;
+    --chart-accent-4: #f97316;
+    --chart-neutral: #64748b;
+    --chart-grid: rgba(148, 163, 184, 0.25);
+    --chart-tooltip-bg: rgba(255, 255, 255, 0.95);
+    --chart-tooltip-text: #1f2937;
+    --chart-tooltip-subtle: #475569;
     
     /* Shadows */
     --shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -123,6 +134,17 @@ body.theme-dark {
     --text-light: #6b7280;
     
     --app-bg: #0b1220;
+
+    /* Chart Palette */
+    --chart-accent-1: #60a5fa;
+    --chart-accent-2: #c084fc;
+    --chart-accent-3: #34d399;
+    --chart-accent-4: #fbbf24;
+    --chart-neutral: #94a3b8;
+    --chart-grid: rgba(148, 163, 184, 0.2);
+    --chart-tooltip-bg: rgba(15, 23, 42, 0.92);
+    --chart-tooltip-text: #e2e8f0;
+    --chart-tooltip-subtle: #cbd5f5;
     
     --shadow: 0 2px 4px rgba(0,0,0,0.3);
     --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
@@ -540,6 +562,61 @@ body {
     margin-bottom: var(--spacing-xl);
 }
 
+.card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.card-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+}
+
+.card-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-strong);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.card-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card-body {
+    padding: var(--spacing-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+body.theme-dark .card,
+body.theme-dark .chart-card {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(148, 163, 184, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-dark .card-header,
+body.theme-dark .chart-header {
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
 .chart-card {
     background: var(--surface);
     border-radius: var(--radius-lg);
@@ -575,6 +652,85 @@ body {
 .chart-container {
     position: relative;
     height: 100%;
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.insights-card .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.insights-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    border: 1px solid var(--border-light);
+    transition: var(--transition-fast);
+}
+
+.insight-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.insight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--chart-accent-1);
+    font-size: var(--font-size-lg);
+}
+
+.insight-content {
+    flex: 1;
+}
+
+.insight-detail {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.insight-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.insight-meta {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+body.theme-dark .insight-item {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+body.theme-dark .insight-icon {
+    background: rgba(96, 165, 250, 0.2);
 }
 
 /* Filters Section */
@@ -687,6 +843,19 @@ body {
 
 .data-table tr:hover {
     background: var(--surface-hover);
+}
+
+body.theme-dark .data-table th {
+    background: rgba(148, 163, 184, 0.08);
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+body.theme-dark .data-table td {
+    border-bottom-color: rgba(148, 163, 184, 0.1);
+}
+
+body.theme-dark .data-table tr:hover {
+    background: rgba(148, 163, 184, 0.05);
 }
 
 .data-table tr:last-child td {
@@ -1014,8 +1183,28 @@ body {
     box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
 }
 
+body.theme-dark .form-input:focus,
+body.theme-dark .form-select:focus,
+body.theme-dark .form-textarea:focus {
+    border-color: var(--chart-accent-1);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
 .form-input::placeholder {
     color: var(--text-light);
+}
+
+body.theme-dark .form-input,
+body.theme-dark .form-select,
+body.theme-dark .form-textarea {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: var(--text);
+}
+
+body.theme-dark .form-input::placeholder,
+body.theme-dark .form-textarea::placeholder {
+    color: rgba(148, 163, 184, 0.6);
 }
 
 /* Buttons */
@@ -1095,6 +1284,17 @@ body {
     background: var(--surface-hover);
     border-color: var(--primary);
     color: var(--primary);
+}
+
+body.theme-dark .btn-outline {
+    border-color: rgba(148, 163, 184, 0.35);
+    color: var(--text);
+}
+
+body.theme-dark .btn-outline:hover:not(:disabled) {
+    background: rgba(148, 163, 184, 0.12);
+    border-color: var(--chart-accent-1);
+    color: var(--chart-accent-1);
 }
 
 .btn-sm {
@@ -1652,6 +1852,12 @@ body.theme-dark .notification-icon.danger {
     text-align: center;
 }
 
+.empty-state.compact {
+    padding: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
 .empty-state i {
     font-size: var(--font-size-3xl);
     opacity: 0.5;
@@ -1769,6 +1975,10 @@ body.theme-dark .notification-icon.danger {
     
     .kpi-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .activity-grid {
+        grid-template-columns: 1fr;
     }
 }
 
