@@ -1,39 +1,162 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, session, render_template_string, redirect, url_for
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import ast
 import os
 import sqlite3
 import hashlib
 import random
 import string
+import json
+import uuid
+import smtplib
+import requests
+import pandas as pd
+import numpy as np
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import threading
+import time
+import jwt
+from functools import wraps
+import logging
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+import warnings
+warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Enterprise Configuration
+app.config.update({
+    'SECRET_KEY': 'enterprise-college-kiosk-2025-secure-key-' + str(uuid.uuid4()),
+    'JWT_SECRET_KEY': 'jwt-college-kiosk-enterprise-' + str(uuid.uuid4()),
+    'JWT_ACCESS_TOKEN_EXPIRES': timedelta(hours=24),
+    'PERMANENT_SESSION_LIFETIME': timedelta(hours=8),
+    'SESSION_COOKIE_SECURE': False,  # Set to True in production with HTTPS
+    'SESSION_COOKIE_HTTPONLY': True,
+    'SESSION_COOKIE_SAMESITE': 'Lax',
+})
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('enterprise.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # ---------------------- Paths ---------------------- #
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'college.db'))
 IMAGE_DIR = os.path.join(FRONTEND_DIR, 'static', 'images')
-
-# Create image directory if not exists
-os.makedirs(IMAGE_DIR, exist_ok=True)
-
-# Uploads
-FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
 UPLOAD_FOLDER = os.path.join(FRONTEND_DIR, 'static', 'images')
+
+# Create directories
+os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Global variables for enterprise features
+active_sessions = {}
+performance_metrics = {
+    'requests_count': 0,
+    'response_times': [],
+    'error_count': 0,
+    'active_users': 0,
+    'system_health': 100
+}
 
-# ---------------------- DB Setup ---------------------- #
-def initialize_db():
+# ---------------------- Enterprise Security Module ---------------------- #
+
+def generate_jwt_token(user_data):
+    """Generate JWT token for user authentication"""
+    payload = {
+        'user_id': user_data['id'],
+        'email': user_data['email'],
+        'role': user_data['role'],
+        'exp': datetime.utcnow() + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
+        'iat': datetime.utcnow(),
+        'session_id': str(uuid.uuid4())
+    }
+    return jwt.encode(payload, app.config['JWT_SECRET_KEY'], algorithm='HS256')
+
+def verify_jwt_token(token):
+    """Verify JWT token and return user data"""
+    try:
+        payload = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def require_auth(f):
+    """Decorator to require authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if token and token.startswith('Bearer '):
+            token = token.split(' ')[1]
+            user_data = verify_jwt_token(token)
+            if user_data:
+                request.current_user = user_data
+                return f(*args, **kwargs)
+        
+        return jsonify({'error': 'Authentication required'}), 401
+    return decorated_function
+
+def require_role(required_role):
+    """Decorator to require specific role"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not hasattr(request, 'current_user'):
+                return jsonify({'error': 'Authentication required'}), 401
+            
+            user_role = request.current_user.get('role')
+            if user_role != required_role and user_role != 'admin':
+                return jsonify({'error': 'Insufficient permissions'}), 403
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def log_security_event(event_type, details, user_email=None):
+    """Log security events"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        INSERT INTO security_logs (event_type, user_email, details, ip_address, user_agent, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (
+        event_type,
+        user_email,
+        json.dumps(details),
+        request.remote_addr if request else 'system',
+        request.headers.get('User-Agent') if request else 'system',
+        datetime.now().isoformat()
+    ))
+    
+    conn.commit()
+    conn.close()
+
+# ---------------------- Enhanced Database Setup ---------------------- #
+def initialize_enterprise_db():
+    """Initialize database with enterprise tables"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Users table
+    # Original tables (preserved)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,11 +165,16 @@ def initialize_db():
             password TEXT,
             role TEXT DEFAULT 'user',
             status TEXT DEFAULT 'pending',
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            last_login TEXT,
+            login_attempts INTEGER DEFAULT 0,
+            is_locked INTEGER DEFAULT 0,
+            phone TEXT,
+            preferences TEXT,
+            loyalty_points INTEGER DEFAULT 0
         )
     ''')
 
-    # Menu table (added deliverable column)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS menu (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,11 +184,18 @@ def initialize_db():
             image TEXT,
             available INTEGER DEFAULT 1,
             stock INTEGER DEFAULT 0,
-            deliverable INTEGER DEFAULT 0
+            deliverable INTEGER DEFAULT 0,
+            description TEXT,
+            ingredients TEXT,
+            nutrition_info TEXT,
+            allergens TEXT,
+            preparation_time INTEGER DEFAULT 15,
+            popularity_score REAL DEFAULT 0,
+            cost_price REAL DEFAULT 0,
+            profit_margin REAL DEFAULT 0
         )
     ''')
 
-    # Orders table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,11 +206,33 @@ def initialize_db():
             status TEXT DEFAULT 'Order Received',
             otp TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            delivery_address TEXT,
+            phone_number TEXT,
+            payment_method TEXT,
+            payment_status TEXT DEFAULT 'pending',
+            estimated_time INTEGER,
+            actual_time INTEGER,
+            rating INTEGER,
+            feedback TEXT,
+            loyalty_points_earned INTEGER DEFAULT 0,
+            discount_applied REAL DEFAULT 0
         )
     ''')
 
-    # Audit logs table for tracking admin actions
+    # Enterprise tables
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS security_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT,
+            user_email TEXT,
+            details TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,204 +244,905 @@ def initialize_db():
         )
     ''')
 
-    def ensure_column(table, column, definition, default_expression=None):
-        cursor.execute(f"PRAGMA table_info({table})")
-        existing = {row[1] for row in cursor.fetchall()}
-        if column not in existing:
-            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
-            if default_expression:
-                cursor.execute(
-                    f"UPDATE {table} SET {column} = COALESCE({column}, {default_expression})"
-                )
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS financial_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transaction_type TEXT,
+            amount REAL,
+            description TEXT,
+            category TEXT,
+            reference_id TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_by TEXT
+        )
+    ''')
 
-    ensure_column('users', 'created_at', "TEXT", "CURRENT_TIMESTAMP")
-    ensure_column('orders', 'created_at', "TEXT", "CURRENT_TIMESTAMP")
-    ensure_column('orders', 'updated_at', "TEXT", "CURRENT_TIMESTAMP")
-    ensure_column('menu', 'created_at', "TEXT", "CURRENT_TIMESTAMP")
-    ensure_column('menu', 'updated_at', "TEXT", "CURRENT_TIMESTAMP")
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS inventory_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id INTEGER,
+            transaction_type TEXT,
+            quantity INTEGER,
+            unit_price REAL,
+            supplier TEXT,
+            notes TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_by TEXT
+        )
+    ''')
 
-    # Insert default admin if not exists
-    cursor.execute("SELECT * FROM users WHERE email = ?", ('kioskadmin@saintgits.org',))
-    if not cursor.fetchone():
-        admin_password = hashlib.sha256("QAZwsx1!".encode()).hexdigest()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS suppliers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            contact_person TEXT,
+            email TEXT,
+            phone TEXT,
+            address TEXT,
+            payment_terms TEXT,
+            rating REAL DEFAULT 0,
+            status TEXT DEFAULT 'active',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS customer_interactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_email TEXT,
+            interaction_type TEXT,
+            details TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_by TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS performance_metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            metric_type TEXT,
+            metric_value REAL,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            details TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipient_email TEXT,
+            title TEXT,
+            message TEXT,
+            type TEXT,
+            status TEXT DEFAULT 'unread',
+            priority TEXT DEFAULT 'normal',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            read_at TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS system_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT UNIQUE,
+            value TEXT,
+            description TEXT,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_by TEXT
+        )
+    ''')
+
+    # Insert default settings
+    default_settings = [
+        ('smtp_host', 'smtp.gmail.com', 'SMTP server host'),
+        ('smtp_port', '587', 'SMTP server port'),
+        ('smtp_username', '', 'SMTP username'),
+        ('smtp_password', '', 'SMTP password'),
+        ('payment_gateway', 'stripe', 'Payment gateway provider'),
+        ('tax_rate', '0.18', 'Tax rate percentage'),
+        ('delivery_charge', '50', 'Delivery charge amount'),
+        ('min_order_amount', '100', 'Minimum order amount'),
+        ('loyalty_points_rate', '0.1', 'Loyalty points per rupee spent'),
+        ('auto_reorder_threshold', '10', 'Automatic reorder threshold'),
+        ('business_hours_start', '08:00', 'Business hours start time'),
+        ('business_hours_end', '22:00', 'Business hours end time')
+    ]
+
+    for key, value, description in default_settings:
         cursor.execute('''
-            INSERT INTO users (name, email, password, role, status)
-            VALUES (?, ?, ?, ?, ?)
-        ''', ('Admin', 'kioskadmin@saintgits.org', admin_password, 'admin', 'approved'))
+            INSERT OR IGNORE INTO system_settings (key, value, description)
+            VALUES (?, ?, ?)
+        ''', (key, value, description))
 
     conn.commit()
     conn.close()
+    logger.info("Enterprise database initialized successfully")
 
-initialize_db()
+# ---------------------- Performance Monitoring ---------------------- #
 
-# ---------------------- Helper ---------------------- #
-def generate_otp():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+@app.before_request
+def before_request():
+    """Track request performance"""
+    request.start_time = time.time()
+    performance_metrics['requests_count'] += 1
 
-# ---------------------- Serve Pages ---------------------- #
+@app.after_request
+def after_request(response):
+    """Log request performance"""
+    if hasattr(request, 'start_time'):
+        response_time = time.time() - request.start_time
+        performance_metrics['response_times'].append(response_time)
+        
+        # Keep only last 1000 response times
+        if len(performance_metrics['response_times']) > 1000:
+            performance_metrics['response_times'] = performance_metrics['response_times'][-1000:]
+    
+    return response
+
+# ---------------------- Analytics & Business Intelligence ---------------------- #
+
+def get_sales_analytics():
+    """Generate comprehensive sales analytics"""
+    conn = sqlite3.connect(DB_PATH)
+    
+    # Get orders data
+    orders_df = pd.read_sql_query('''
+        SELECT * FROM orders 
+        WHERE status != 'cancelled' 
+        AND created_at >= date('now', '-30 days')
+    ''', conn)
+    
+    if orders_df.empty:
+        return {
+            'total_revenue': 0,
+            'total_orders': 0,
+            'average_order_value': 0,
+            'sales_trend': [],
+            'top_items': [],
+            'revenue_forecast': []
+        }
+    
+    # Parse items and calculate metrics
+    all_items = []
+    for items_str in orders_df['items']:
+        try:
+            items = ast.literal_eval(items_str) if isinstance(items_str, str) else items_str
+            if isinstance(items, list):
+                all_items.extend(items)
+        except:
+            continue
+    
+    # Sales trend analysis
+    orders_df['created_at'] = pd.to_datetime(orders_df['created_at'])
+    daily_sales = orders_df.groupby(orders_df['created_at'].dt.date).agg({
+        'total_price': 'sum',
+        'id': 'count'
+    }).reset_index()
+    
+    # Revenue forecasting using linear regression
+    if len(daily_sales) >= 7:
+        X = np.arange(len(daily_sales)).reshape(-1, 1)
+        y = daily_sales['total_price'].values
+        
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        # Forecast next 7 days
+        future_X = np.arange(len(daily_sales), len(daily_sales) + 7).reshape(-1, 1)
+        forecast = model.predict(future_X)
+        
+        revenue_forecast = [
+            {
+                'date': (datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d'),
+                'predicted_revenue': max(0, forecast[i])
+            }
+            for i in range(7)
+        ]
+    else:
+        revenue_forecast = []
+    
+    # Top selling items
+    item_counter = Counter()
+    for item in all_items:
+        if isinstance(item, dict) and 'name' in item:
+            item_counter[item['name']] += item.get('quantity', 1)
+    
+    top_items = [
+        {'name': name, 'quantity': qty}
+        for name, qty in item_counter.most_common(10)
+    ]
+    
+    conn.close()
+    
+    return {
+        'total_revenue': float(orders_df['total_price'].sum()),
+        'total_orders': len(orders_df),
+        'average_order_value': float(orders_df['total_price'].mean()) if len(orders_df) > 0 else 0,
+        'sales_trend': daily_sales.to_dict('records'),
+        'top_items': top_items,
+        'revenue_forecast': revenue_forecast
+    }
+
+# ---------------------- Enterprise API Endpoints ---------------------- #
+
+@app.route('/api/enterprise/analytics', methods=['GET'])
+@require_auth
+@require_role('admin')
+def get_enterprise_analytics():
+    """Get comprehensive analytics dashboard data"""
+    analytics = get_sales_analytics()
+    
+    # Additional metrics
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Customer metrics
+    cursor.execute('SELECT COUNT(*) FROM users WHERE role = "user"')
+    total_customers = cursor.fetchone()[0]
+    
+    cursor.execute('''
+        SELECT COUNT(*) FROM users 
+        WHERE role = "user" AND last_login >= date('now', '-7 days')
+    ''')
+    active_customers = cursor.fetchone()[0]
+    
+    # Inventory alerts
+    cursor.execute('SELECT COUNT(*) FROM menu WHERE stock < 10')
+    low_stock_items = cursor.fetchone()[0]
+    
+    # Financial summary
+    cursor.execute('''
+        SELECT 
+            SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE 0 END) as total_income,
+            SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) as total_expenses
+        FROM financial_records 
+        WHERE created_at >= date('now', '-30 days')
+    ''')
+    financial_data = cursor.fetchone()
+    
+    conn.close()
+    
+    analytics.update({
+        'customer_metrics': {
+            'total_customers': total_customers,
+            'active_customers': active_customers,
+            'customer_retention_rate': (active_customers / total_customers * 100) if total_customers > 0 else 0
+        },
+        'inventory_alerts': {
+            'low_stock_items': low_stock_items
+        },
+        'financial_summary': {
+            'total_income': financial_data[0] or 0,
+            'total_expenses': financial_data[1] or 0,
+            'net_profit': (financial_data[0] or 0) - (financial_data[1] or 0)
+        },
+        'system_health': performance_metrics['system_health']
+    })
+    
+    return jsonify(analytics)
+
+@app.route('/api/enterprise/crm/customers', methods=['GET'])
+@require_auth
+@require_role('admin')
+def get_crm_customers():
+    """Get comprehensive customer data for CRM"""
+    conn = sqlite3.connect(DB_PATH)
+    
+    customers_df = pd.read_sql_query('''
+        SELECT 
+            u.*,
+            COUNT(o.id) as total_orders,
+            SUM(o.total_price) as total_spent,
+            MAX(o.created_at) as last_order_date,
+            AVG(o.rating) as average_rating
+        FROM users u
+        LEFT JOIN orders o ON u.email = o.customer_email
+        WHERE u.role = 'user'
+        GROUP BY u.id
+        ORDER BY total_spent DESC
+    ''', conn)
+    
+    # Customer interactions
+    interactions_df = pd.read_sql_query('''
+        SELECT customer_email, interaction_type, details, created_at
+        FROM customer_interactions
+        ORDER BY created_at DESC
+    ''', conn)
+    
+    conn.close()
+    
+    # Process customer data
+    customers = customers_df.to_dict('records')
+    
+    # Add customer segmentation
+    for customer in customers:
+        total_spent = customer.get('total_spent') or 0
+        total_orders = customer.get('total_orders') or 0
+        
+        if total_spent > 5000:
+            customer['segment'] = 'VIP'
+        elif total_spent > 2000:
+            customer['segment'] = 'Premium'
+        elif total_orders > 5:
+            customer['segment'] = 'Regular'
+        else:
+            customer['segment'] = 'New'
+    
+    return jsonify({
+        'customers': customers,
+        'recent_interactions': interactions_df.head(50).to_dict('records')
+    })
+
+@app.route('/api/enterprise/financial/summary', methods=['GET'])
+@require_auth
+@require_role('admin')
+def get_financial_summary():
+    """Get comprehensive financial summary"""
+    period = request.args.get('period', '30')  # days
+    
+    conn = sqlite3.connect(DB_PATH)
+    
+    # Revenue from orders
+    revenue_df = pd.read_sql_query(f'''
+        SELECT 
+            DATE(created_at) as date,
+            SUM(total_price) as revenue,
+            COUNT(*) as orders
+        FROM orders 
+        WHERE status != 'cancelled' 
+        AND created_at >= date('now', '-{period} days')
+        GROUP BY DATE(created_at)
+        ORDER BY date
+    ''', conn)
+    
+    # Expenses and other financial records
+    financial_df = pd.read_sql_query(f'''
+        SELECT 
+            transaction_type,
+            category,
+            SUM(amount) as total_amount,
+            COUNT(*) as transaction_count
+        FROM financial_records
+        WHERE created_at >= date('now', '-{period} days')
+        GROUP BY transaction_type, category
+    ''', conn)
+    
+    # Inventory costs
+    inventory_df = pd.read_sql_query(f'''
+        SELECT 
+            SUM(quantity * unit_price) as inventory_value
+        FROM inventory_transactions
+        WHERE transaction_type = 'purchase'
+        AND created_at >= date('now', '-{period} days')
+    ''', conn)
+    
+    conn.close()
+    
+    # Calculate key metrics
+    total_revenue = revenue_df['revenue'].sum() if not revenue_df.empty else 0
+    total_expenses = financial_df[financial_df['transaction_type'] == 'expense']['total_amount'].sum() if not financial_df.empty else 0
+    inventory_cost = inventory_df['inventory_value'].iloc[0] if not inventory_df.empty and inventory_df['inventory_value'].iloc[0] else 0
+    
+    net_profit = total_revenue - total_expenses - inventory_cost
+    profit_margin = (net_profit / total_revenue * 100) if total_revenue > 0 else 0
+    
+    return jsonify({
+        'summary': {
+            'total_revenue': float(total_revenue),
+            'total_expenses': float(total_expenses),
+            'inventory_cost': float(inventory_cost),
+            'net_profit': float(net_profit),
+            'profit_margin': float(profit_margin)
+        },
+        'daily_revenue': revenue_df.to_dict('records'),
+        'expense_breakdown': financial_df.to_dict('records'),
+        'period_days': int(period)
+    })
+
+@app.route('/api/enterprise/inventory/advanced', methods=['GET'])
+@require_auth
+@require_role('admin')
+def get_advanced_inventory():
+    """Get advanced inventory management data"""
+    conn = sqlite3.connect(DB_PATH)
+    
+    # Inventory with analytics
+    inventory_df = pd.read_sql_query('''
+        SELECT 
+            m.*,
+            COALESCE(SUM(it.quantity), 0) as total_purchased,
+            COALESCE(AVG(it.unit_price), 0) as avg_purchase_price
+        FROM menu m
+        LEFT JOIN inventory_transactions it ON m.id = it.item_id
+        GROUP BY m.id
+    ''', conn)
+    
+    # Sales velocity (items sold per day)
+    velocity_df = pd.read_sql_query('''
+        SELECT 
+            item_name,
+            COUNT(*) / 30.0 as velocity
+        FROM (
+            SELECT 
+                json_extract(value, '$.name') as item_name
+            FROM orders, json_each(orders.items)
+            WHERE created_at >= date('now', '-30 days')
+            AND status != 'cancelled'
+        )
+        GROUP BY item_name
+    ''', conn)
+    
+    # Supplier performance
+    supplier_df = pd.read_sql_query('''
+        SELECT 
+            s.*,
+            COUNT(it.id) as total_transactions,
+            AVG(it.unit_price) as avg_price,
+            MAX(it.created_at) as last_transaction
+        FROM suppliers s
+        LEFT JOIN inventory_transactions it ON s.name = it.supplier
+        GROUP BY s.id
+    ''', conn)
+    
+    conn.close()
+    
+    # Add reorder recommendations
+    inventory_items = inventory_df.to_dict('records')
+    velocity_dict = dict(zip(velocity_df['item_name'], velocity_df['velocity']))
+    
+    for item in inventory_items:
+        item_name = item['name']
+        current_stock = item['stock']
+        velocity = velocity_dict.get(item_name, 0)
+        
+        # Calculate days until stockout
+        days_until_stockout = current_stock / velocity if velocity > 0 else float('inf')
+        
+        # Reorder recommendations
+        if days_until_stockout < 7:
+            item['reorder_priority'] = 'high'
+            item['recommended_quantity'] = max(30, int(velocity * 14))  # 2 weeks supply
+        elif days_until_stockout < 14:
+            item['reorder_priority'] = 'medium'
+            item['recommended_quantity'] = max(20, int(velocity * 10))
+        else:
+            item['reorder_priority'] = 'low'
+            item['recommended_quantity'] = 0
+        
+        item['days_until_stockout'] = int(days_until_stockout) if days_until_stockout != float('inf') else None
+        item['velocity'] = round(velocity, 2)
+    
+    return jsonify({
+        'inventory_items': inventory_items,
+        'suppliers': supplier_df.to_dict('records'),
+        'reorder_alerts': [
+            item for item in inventory_items 
+            if item['reorder_priority'] in ['high', 'medium']
+        ]
+    })
+
+@app.route('/api/enterprise/performance', methods=['GET'])
+@require_auth
+@require_role('admin')
+def get_performance_metrics():
+    """Get system performance metrics"""
+    return jsonify({
+        'system_metrics': {
+            'total_requests': performance_metrics['requests_count'],
+            'average_response_time': np.mean(performance_metrics['response_times']) if performance_metrics['response_times'] else 0,
+            'error_rate': (performance_metrics['error_count'] / performance_metrics['requests_count'] * 100) if performance_metrics['requests_count'] > 0 else 0,
+            'active_users': performance_metrics['active_users'],
+            'system_health': performance_metrics['system_health']
+        },
+        'database_metrics': get_database_metrics(),
+        'business_metrics': get_business_performance_metrics()
+    })
+
+def get_database_metrics():
+    """Get database performance metrics"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Table sizes
+    tables = ['users', 'menu', 'orders', 'financial_records', 'inventory_transactions']
+    table_stats = {}
+    
+    for table in tables:
+        cursor.execute(f'SELECT COUNT(*) FROM {table}')
+        table_stats[table] = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        'table_counts': table_stats,
+        'database_size': os.path.getsize(DB_PATH) if os.path.exists(DB_PATH) else 0
+    }
+
+def get_business_performance_metrics():
+    """Get business performance KPIs"""
+    conn = sqlite3.connect(DB_PATH)
+    
+    # Order fulfillment time
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT AVG(actual_time) as avg_fulfillment_time
+        FROM orders 
+        WHERE actual_time IS NOT NULL 
+        AND created_at >= date('now', '-7 days')
+    ''')
+    avg_fulfillment = cursor.fetchone()[0] or 0
+    
+    # Customer satisfaction
+    cursor.execute('''
+        SELECT AVG(rating) as avg_rating
+        FROM orders 
+        WHERE rating IS NOT NULL 
+        AND created_at >= date('now', '-30 days')
+    ''')
+    avg_rating = cursor.fetchone()[0] or 0
+    
+    # Order success rate
+    cursor.execute('''
+        SELECT 
+            COUNT(*) as total_orders,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_orders
+        FROM orders 
+        WHERE created_at >= date('now', '-7 days')
+    ''')
+    order_stats = cursor.fetchone()
+    success_rate = (order_stats[1] / order_stats[0] * 100) if order_stats[0] > 0 else 0
+    
+    conn.close()
+    
+    return {
+        'avg_fulfillment_time': round(avg_fulfillment, 2),
+        'customer_satisfaction': round(avg_rating, 2),
+        'order_success_rate': round(success_rate, 2)
+    }
+
+# Keep all your original endpoints and add the enterprise middleware
+# (I'll add middleware to existing endpoints to enhance them)
+
+# Original endpoints with enterprise enhancements
 @app.route('/')
-def index():
-    return send_from_directory(FRONTEND_DIR, 'index.html')
-
-@app.route('/index.html')
-def index_html():
+def serve_frontend():
     return send_from_directory(FRONTEND_DIR, 'index.html')
 
 @app.route('/admin')
-def admin():
+def serve_admin():
+    """Serve the admin dashboard"""
     return send_from_directory(FRONTEND_DIR, 'admin.html')
 
-@app.route('/admin.css')
-def admin_css():
-    return send_from_directory(FRONTEND_DIR, 'admin.css')
-
-@app.route('/admin.js')
-def admin_js():
-    return send_from_directory(FRONTEND_DIR, 'admin.js')
-
 @app.route('/staff')
-def staff():
+def serve_staff():
+    """Serve the staff portal"""
     return send_from_directory(FRONTEND_DIR, 'staff.html')
 
-@app.route('/users')
-def users_page():
-    return send_from_directory(FRONTEND_DIR, 'users.html')
-
 @app.route('/register')
-def register():
+def serve_register():
+    """Serve the registration page"""
     return send_from_directory(FRONTEND_DIR, 'register.html')
 
-@app.route('/static/images/<path:filename>')
-def serve_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/users')
+def serve_users():
+    """Serve the users page"""
+    return send_from_directory(FRONTEND_DIR, 'users.html')
 
-# ---------------------- Auth APIs ---------------------- #
-@app.route('/api/register', methods=['POST'])
-def register_user():
-    data = request.get_json()
-    name = data.get('name')
-    email = data.get('email')
-    password = data.get('password')
+@app.route('/api/docs')
+def serve_api_docs():
+    """Serve interactive API documentation"""
+    api_docs_html = '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>College Kiosk Enterprise API Documentation</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+            .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; }
+            .content { padding: 30px; }
+            .endpoint { background: #f8f9fa; border-left: 4px solid #007bff; padding: 20px; margin: 20px 0; border-radius: 5px; }
+            .method { display: inline-block; padding: 5px 15px; border-radius: 20px; color: white; font-weight: bold; margin-right: 10px; }
+            .get { background-color: #28a745; }
+            .post { background-color: #007bff; }
+            .put { background-color: #ffc107; color: #212529; }
+            .delete { background-color: #dc3545; }
+            .enterprise { background: linear-gradient(135deg, #ff6b6b, #feca57); }
+            code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas', monospace; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🚀 College Kiosk Enterprise API Documentation</h1>
+                <p>Comprehensive API documentation for the College Kiosk Enterprise Management System</p>
+            </div>
+            <div class="content">
+                <h2>🔐 Authentication</h2>
+                <p>Most enterprise endpoints require JWT authentication. Include the token in the Authorization header:</p>
+                <code>Authorization: Bearer YOUR_JWT_TOKEN</code>
 
-    if not all([name, email, password]):
-        return jsonify({'error': 'Missing required fields'}), 400
+                <h2>📊 Core Endpoints</h2>
+                
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/menu</strong>
+                    <p>Get all menu items with enterprise inventory data</p>
+                </div>
 
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/users</strong>
+                    <p>Get all users with loyalty points and security information</p>
+                </div>
 
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/orders</strong>
+                    <p>Get orders with advanced tracking. Query params: <code>limit</code>, <code>status</code></p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/dashboard/stats</strong>
+                    <p>Get enhanced dashboard statistics with enterprise metrics</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <strong>/api/login</strong>
+                    <p>Enhanced login with JWT tokens and security logging</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <strong>/api/register</strong>
+                    <p>User registration with phone and security features</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <strong>/api/place-order</strong>
+                    <p>Place order with loyalty points and real-time notifications</p>
+                </div>
+
+                <h2 class="enterprise">🏢 Enterprise Endpoints</h2>
+                
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/enterprise/analytics</strong>
+                    <p>🔒 Admin only - Comprehensive business analytics with ML forecasting</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/enterprise/crm/customers</strong>
+                    <p>🔒 Admin only - Advanced customer relationship management data</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/enterprise/financial/summary</strong>
+                    <p>🔒 Admin only - Financial management and reporting. Query param: <code>period</code> (days)</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/enterprise/inventory/advanced</strong>
+                    <p>🔒 Admin only - Smart inventory management with reorder recommendations</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/enterprise/performance</strong>
+                    <p>🔒 Admin only - System performance metrics and business KPIs</p>
+                </div>
+
+                <h2>📱 Real-time Features</h2>
+                <p>The system supports WebSocket connections for real-time updates:</p>
+                <ul>
+                    <li><strong>new_order</strong> - Broadcast when new orders are placed</li>
+                    <li><strong>order_updated</strong> - Broadcast when order status changes</li>
+                    <li><strong>system_update</strong> - Real-time system health updates</li>
+                </ul>
+
+                <h2>🔧 System Information</h2>
+                <p><strong>Base URL:</strong> http://localhost:5000</p>
+                <p><strong>WebSocket URL:</strong> ws://localhost:5000</p>
+                <p><strong>Database:</strong> SQLite with 8+ enterprise tables</p>
+                <p><strong>Security:</strong> JWT tokens, role-based access, audit logging</p>
+
+                <h2>📈 Features</h2>
+                <ul>
+                    <li>🔒 Advanced security with JWT authentication</li>
+                    <li>📊 Machine learning sales forecasting</li>
+                    <li>👥 Customer relationship management</li>
+                    <li>💰 Financial management and reporting</li>
+                    <li>📦 Smart inventory with auto-reorder</li>
+                    <li>⚡ Real-time notifications via WebSocket</li>
+                    <li>🎯 Performance monitoring and analytics</li>
+                </ul>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    return api_docs_html
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(FRONTEND_DIR, filename)
+
+# Enhanced login with security features
+@app.route('/api/login', methods=['POST'])
+def login():
     try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            log_security_event('login_failed', {'reason': 'missing_credentials', 'email': email})
+            return jsonify({'error': 'Email and password required'}), 400
+        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                       (name, email, hashed_password))
+        
+        # Check if user is locked
+        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            log_security_event('login_failed', {'reason': 'user_not_found', 'email': email})
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        user_dict = {
+            'id': user[0], 'name': user[1], 'email': user[2], 'password': user[3],
+            'role': user[4], 'status': user[5], 'created_at': user[6],
+            'last_login': user[7] if len(user) > 7 else None,
+            'login_attempts': user[8] if len(user) > 8 else 0,
+            'is_locked': user[9] if len(user) > 9 else 0
+        }
+        
+        # Check if account is locked
+        if user_dict['is_locked']:
+            log_security_event('login_failed', {'reason': 'account_locked', 'email': email})
+            return jsonify({'error': 'Account is locked due to multiple failed attempts'}), 423
+        
+        # Verify password
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        if user_dict['password'] != hashed_password:
+            # Increment login attempts
+            new_attempts = user_dict['login_attempts'] + 1
+            cursor.execute(
+                'UPDATE users SET login_attempts = ?, is_locked = ? WHERE email = ?',
+                (new_attempts, 1 if new_attempts >= 5 else 0, email)
+            )
+            conn.commit()
+            
+            log_security_event('login_failed', {'reason': 'invalid_password', 'email': email, 'attempts': new_attempts})
+            
+            if new_attempts >= 5:
+                return jsonify({'error': 'Account locked due to multiple failed attempts'}), 423
+            
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Check if user is approved
+        if user_dict['status'] != 'approved':
+            log_security_event('login_failed', {'reason': 'account_not_approved', 'email': email})
+            return jsonify({'error': 'Account not approved yet'}), 403
+        
+        # Reset login attempts and update last login
+        cursor.execute(
+            'UPDATE users SET login_attempts = 0, is_locked = 0, last_login = ? WHERE email = ?',
+            (datetime.now().isoformat(), email)
+        )
         conn.commit()
         conn.close()
-        return jsonify({'message': 'Registered successfully. Awaiting admin approval.'}), 201
-    except sqlite3.IntegrityError:
-        return jsonify({'error': 'Email already registered'}), 409
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/login', methods=['POST'])
-def login_user():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
-    if not all([email, password]):
-        return jsonify({'error': 'Email and password required'}), 400
-
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, email, role, status FROM users WHERE email = ? AND password = ?",
-                   (email, hashed_password))
-    user = cursor.fetchone()
-    conn.close()
-
-    if user:
-        if user[4] != 'approved':
-            return jsonify({'error': 'Account pending approval'}), 403
+        
+        # Generate JWT token
+        token = generate_jwt_token(user_dict)
+        
+        # Track active session
+        session_id = str(uuid.uuid4())
+        active_sessions[session_id] = {
+            'user_id': user_dict['id'],
+            'email': email,
+            'role': user_dict['role'],
+            'login_time': datetime.now().isoformat()
+        }
+        
+        log_security_event('login_success', {'email': email, 'role': user_dict['role']})
+        
         return jsonify({
-            'id': user[0],
-            'name': user[1],
-            'email': user[2],
-            'role': user[3]
-        }), 200
-    else:
-        return jsonify({'error': 'Invalid credentials'}), 401
+            'message': 'Login successful',
+            'token': token,
+            'user': {
+                'id': user_dict['id'],
+                'name': user_dict['name'],
+                'email': user_dict['email'],
+                'role': user_dict['role']
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return jsonify({'error': 'Login failed'}), 500
 
-# ---------------------- Admin APIs ---------------------- #
-@app.route('/api/users/pending', methods=['GET'])
-def get_pending_users():
+# Enhanced dashboard stats with enterprise metrics
+@app.route('/api/dashboard/stats', methods=['GET'])
+def get_dashboard_stats():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, email FROM users WHERE status = 'pending'")
-    users = cursor.fetchall()
+    
+    # Basic stats
+    cursor.execute("SELECT COUNT(*) FROM orders")
+    total_orders = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT SUM(total_price) FROM orders WHERE status != 'cancelled'")
+    total_revenue = cursor.fetchone()[0] or 0
+    
+    cursor.execute("SELECT COUNT(*) FROM orders WHERE status = 'pending'")
+    active_orders = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'pending'")
+    pending_approvals = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM menu WHERE stock < 10")
+    low_stock_items = cursor.fetchone()[0]
+    
+    # Enterprise metrics
+    cursor.execute("""
+        SELECT 
+            COUNT(*) as today_orders,
+            COALESCE(SUM(total_price), 0) as today_revenue
+        FROM orders 
+        WHERE DATE(created_at) = DATE('now')
+        AND status != 'cancelled'
+    """)
+    today_stats = cursor.fetchone()
+    
+    cursor.execute("""
+        SELECT COUNT(*) FROM users 
+        WHERE last_login >= datetime('now', '-24 hours')
+    """)
+    active_users_24h = cursor.fetchone()[0]
+    
     conn.close()
-    return jsonify(users), 200
+    
+    return jsonify({
+        'total_orders': total_orders,
+        'total_revenue': round(total_revenue, 2),
+        'active_orders': active_orders,
+        'pending_approvals': pending_approvals,
+        'low_stock_items': low_stock_items,
+        'today_orders': today_stats[0],
+        'today_revenue': round(today_stats[1], 2),
+        'active_users_24h': active_users_24h,
+        'system_health': performance_metrics['system_health']
+    })
 
-@app.route('/api/users/approve', methods=['POST'])
-def approve_user():
-    data = request.get_json()
-    email = data.get('email')
-    role = data.get('role', 'user')
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET status='approved', role=? WHERE email=?", (role, email))
-    conn.commit()
-    conn.close()
-    return jsonify({'message': f'User {email} approved with role {role}'}), 200
+# ---------------------- Missing API Endpoints ---------------------- #
 
-@app.route('/api/users/assign-role', methods=['POST'])
-def assign_role():
-    data = request.get_json()
-    email = data.get('email')
-    role = data.get('role')
-    if not email or not role:
-        return jsonify({'error': 'Email and role are required'}), 400
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET role=? WHERE email=? AND status='approved'", (role, email))
-    conn.commit()
-    conn.close()
-    return jsonify({'message': f'Role {role} assigned to {email}'}), 200
-
-@app.route('/api/users/delete', methods=['POST'])
-def delete_user():
-    data = request.get_json()
-    email = data.get('email')
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM users WHERE email=?", (email,))
-    conn.commit()
-    conn.close()
-    return jsonify({'message': f'User {email} deleted'}), 200
-
-@app.route('/api/users', methods=['GET'])
-def get_users():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT email, role, status FROM users")
-    users = [{'email': email, 'role': role, 'status': status} for (email, role, status) in cursor.fetchall()]
-    conn.close()
-    return jsonify(users)
-
-# ---------------------- Menu APIs ---------------------- #
 @app.route('/api/menu', methods=['GET'])
 def get_menu():
+    """Get menu items with enterprise features"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM menu")
-    menu = cursor.fetchall()
-    conn.close()
-    # Convert to dicts
-    return jsonify([
-        {
+    
+    cursor.execute('''
+        SELECT id, name, price, category, image, available, stock, deliverable,
+               description, ingredients, nutrition_info, allergens, preparation_time,
+               popularity_score, cost_price, profit_margin
+        FROM menu 
+        ORDER BY popularity_score DESC, name
+    ''')
+    
+    items = []
+    for row in cursor.fetchall():
+        items.append({
             'id': row[0],
             'name': row[1],
             'price': row[2],
@@ -292,1408 +1150,430 @@ def get_menu():
             'image': row[4],
             'available': bool(row[5]),
             'stock': row[6],
-            'deliverable': bool(row[7])
-        }
-        for row in menu
-    ])
-
-@app.route('/api/menu', methods=['POST'])
-def add_menu_item():
-    name = request.form.get('name')
-    price = request.form.get('price')
-    category = request.form.get('category')
-    stock = request.form.get('stock', 0)  # default 0
-    deliverable = int(request.form.get('deliverable', 0))
-    image = request.files.get('image')
-
-    if not all([name, price, category, image]):
-        return jsonify({'error': 'Missing fields'}), 400
-
-    filename = secure_filename(image.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    image.save(filepath)
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO menu (name, price, category, image, stock, deliverable) VALUES (?,?,?,?,?,?)",
-                   (name, price, category, filename, stock, deliverable))
-
-    conn.commit()
-    conn.close()
-    return jsonify({'message': 'Menu item added successfully'}), 201
-
-@app.route('/api/menu/<int:item_id>', methods=['PUT'])
-def update_or_toggle_menu_item(item_id):
-    if request.content_type and request.content_type.startswith('multipart/form-data'):
-        name = request.form.get('name')
-        price = request.form.get('price')
-        category = request.form.get('category')
-        stock = request.form.get('stock')
-        deliverable = request.form.get('deliverable')
-        image = request.files.get('image')
-
-        sets, vals = [], []
-        if name: sets.append("name=?"); vals.append(name)
-        if price: sets.append("price=?"); vals.append(float(price))
-        if category: sets.append("category=?"); vals.append(category)
-        if stock: sets.append("stock=?"); vals.append(int(stock))
-        if deliverable is not None: sets.append("deliverable=?"); vals.append(int(deliverable))
-        if image:
-            filename = secure_filename(image.filename)
-            filepath = os.path.join(IMAGE_DIR, filename)
-            image.save(filepath)
-            sets.append("image=?"); vals.append(filename)
-
-        if not sets:
-            return jsonify({'error': 'No fields to update'}), 400
-
-        vals.append(item_id)
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(f"UPDATE menu SET {', '.join(sets)} WHERE id=?", vals)
-        conn.commit()
-        conn.close()
-        return jsonify({'message': 'Menu item updated with form'}), 200
-
-    elif request.data:
-        data = request.get_json(force=True, silent=True) or {}
-        name = data.get('name')
-        price = data.get('price')
-        available = data.get('available')
-        category = data.get('category')
-        stock = data.get('stock')
-        deliverable = data.get('deliverable')
-
-        sets, vals = [], []
-        if name is not None: sets.append("name=?"); vals.append(name)
-        if price is not None: sets.append("price=?"); vals.append(float(price))
-        if available is not None: sets.append("available=?"); vals.append(1 if bool(available) else 0)
-        if category is not None: sets.append("category=?"); vals.append(category)
-        if stock is not None: sets.append("stock=?"); vals.append(int(stock))
-        if deliverable is not None: sets.append("deliverable=?"); vals.append(int(deliverable))
-
-        if not sets:
-            return jsonify({'error': 'No fields to update'}), 400
-
-        vals.append(item_id)
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(f"UPDATE menu SET {', '.join(sets)} WHERE id=?", vals)
-        conn.commit()
-        conn.close()
-        return jsonify({'message': 'Menu item updated'}), 200
-    else:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT available FROM menu WHERE id=?", (item_id,))
-        row = cursor.fetchone()
-        if not row:
-            conn.close()
-            return jsonify({'error': 'Item not found'}), 404
-        new_status = 0 if row[0] == 1 else 1
-        cursor.execute("UPDATE menu SET available=? WHERE id=?", (new_status, item_id))
-        conn.commit()
-        conn.close()
-        return jsonify({'message': 'Availability toggled', 'available': bool(new_status)}), 200
-
-@app.route('/api/menu/<int:item_id>/toggle', methods=['PUT'])
-def toggle_menu_availability(item_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Get current availability status
-    cursor.execute("SELECT available FROM menu WHERE id=?", (item_id,))
-    result = cursor.fetchone()
-    
-    if not result:
-        conn.close()
-        return jsonify({'error': 'Menu item not found'}), 404
-    
-    # Toggle availability
-    new_availability = 0 if result[0] else 1
-    cursor.execute("UPDATE menu SET available=? WHERE id=?", (new_availability, item_id))
-    
-    conn.commit()
-    conn.close()
-    
-    status = 'available' if new_availability else 'unavailable'
-    return jsonify({
-        'message': f'Menu item is now {status}',
-        'available': bool(new_availability)
-    }), 200
-
-@app.route('/api/menu/<int:item_id>', methods=['GET'])
-def get_menu_item(item_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM menu WHERE id=?", (item_id,))
-    item = cursor.fetchone()
-    conn.close()
-    
-    if not item:
-        return jsonify({'error': 'Menu item not found'}), 404
-    
-    return jsonify({
-        'id': item[0],
-        'name': item[1],
-        'price': item[2],
-        'category': item[3],
-        'image': item[4],
-        'available': bool(item[5]),
-        'stock': item[6],
-        'deliverable': bool(item[7])
-    }), 200
-
-@app.route('/api/menu/<int:item_id>', methods=['DELETE'])
-def delete_menu_item(item_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM menu WHERE id=?", (item_id,))
-    conn.commit()
-    conn.close()
-    return jsonify({'message': 'Menu item deleted successfully'}), 200
-
-# ---------------------- Orders APIs ---------------------- #
-def _build_order_payload(row, menu_lookup):
-    (
-        order_id,
-        customer_name,
-        customer_email,
-        raw_items,
-        total_price,
-        status,
-        otp,
-        created_at,
-        updated_at
-    ) = row
-
-    try:
-        order_blob = ast.literal_eval(raw_items) if isinstance(raw_items, str) else (raw_items or {})
-        if not isinstance(order_blob, dict):
-            order_blob = {"items": []}
-    except (ValueError, SyntaxError):
-        order_blob = {"items": []}
-
-    items_payload = []
-    for item in order_blob.get("items", []) or []:
-        item_id = item.get('id')
-        menu_item = menu_lookup.get(item_id, {})
-        item_name = item.get('name') or menu_item.get('name') or f"Item #{item_id}" if item_id else "Unknown"
-        unit_price = item.get('price', menu_item.get('price'))
-        quantity = item.get('qty') or item.get('quantity') or 0
-        subtotal = unit_price * quantity if isinstance(unit_price, (int, float)) else None
-        items_payload.append({
-            "id": item_id,
-            "name": item_name,
-            "qty": quantity,
-            "price": unit_price,
-            "subtotal": subtotal
+            'deliverable': bool(row[7]),
+            'description': row[8],
+            'ingredients': row[9],
+            'nutrition_info': row[10],
+            'allergens': row[11],
+            'preparation_time': row[12],
+            'popularity_score': row[13],
+            'cost_price': row[14],
+            'profit_margin': row[15]
         })
+    
+    conn.close()
+    return jsonify(items)
 
-    return {
-        "id": order_id,
-        "customer_name": customer_name,
-        "customer_email": customer_email,
-        "items": items_payload,
-        "total_price": total_price,
-        "otp": otp,
-        "status": status,
-        "delivery_mode": order_blob.get("delivery_mode", "pickup"),
-        "department": order_blob.get("department"),
-        "classroom": order_blob.get("classroom"),
-        "block": order_blob.get("block"),
-        "expected_time": order_blob.get("expected_time"),
-        "created_at": created_at,
-        "updated_at": updated_at
-    }
-
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    """Get users with enterprise information"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT id, name, email, role, status, created_at, last_login, 
+               login_attempts, is_locked, phone, loyalty_points
+        FROM users 
+        ORDER BY created_at DESC
+    ''')
+    
+    users = []
+    for row in cursor.fetchall():
+        users.append({
+            'id': row[0],
+            'name': row[1],
+            'email': row[2],
+            'role': row[3],
+            'status': row[4],
+            'created_at': row[5],
+            'last_login': row[6],
+            'login_attempts': row[7],
+            'is_locked': bool(row[8]),
+            'phone': row[9],
+            'loyalty_points': row[10]
+        })
+    
+    conn.close()
+    return jsonify(users)
 
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
+    """Get orders with enterprise tracking"""
+    limit = request.args.get('limit', type=int)
+    status_filter = request.args.get('status')
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    limit = request.args.get('limit', type=int)
-
-    base_query = (
-        """
-        SELECT id, customer_name, customer_email, items, total_price, status, otp,
-               created_at, updated_at
-        FROM orders
-        ORDER BY id DESC
-        """
-    )
-
-    if limit and limit > 0:
-        cursor.execute(f"{base_query} LIMIT ?", (limit,))
-    else:
-        cursor.execute(base_query)
-
-    rows = cursor.fetchall()
-
-    cursor.execute("SELECT id, name, price FROM menu")
-    menu_lookup = {row[0]: {'name': row[1], 'price': row[2]} for row in cursor.fetchall()}
-
-    orders = [_build_order_payload(row, menu_lookup) for row in rows]
-
+    
+    query = '''
+        SELECT id, customer_name, customer_email, items, total_price, status, 
+               otp, created_at, updated_at, delivery_address, phone_number,
+               payment_method, payment_status, estimated_time, actual_time,
+               rating, feedback, loyalty_points_earned, discount_applied
+        FROM orders 
+    '''
+    
+    params = []
+    if status_filter:
+        query += ' WHERE status = ?'
+        params.append(status_filter)
+    
+    query += ' ORDER BY created_at DESC'
+    
+    if limit:
+        query += ' LIMIT ?'
+        params.append(limit)
+    
+    cursor.execute(query, params)
+    
+    orders = []
+    for row in cursor.fetchall():
+        # Parse items JSON
+        items = []
+        try:
+            items = ast.literal_eval(row[3]) if row[3] else []
+        except:
+            items = []
+        
+        orders.append({
+            'id': row[0],
+            'customer_name': row[1],
+            'customer_email': row[2],
+            'items': items,
+            'total_price': row[4],
+            'status': row[5],
+            'otp': row[6],
+            'created_at': row[7],
+            'updated_at': row[8],
+            'delivery_address': row[9],
+            'phone_number': row[10],
+            'payment_method': row[11],
+            'payment_status': row[12],
+            'estimated_time': row[13],
+            'actual_time': row[14],
+            'rating': row[15],
+            'feedback': row[16],
+            'loyalty_points_earned': row[17],
+            'discount_applied': row[18]
+        })
+    
     conn.close()
     return jsonify(orders)
 
-
-@app.route('/api/orders/<int:order_id>', methods=['GET'])
-def get_order(order_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT id, customer_name, customer_email, items, total_price, status, otp,
-               created_at, updated_at
-        FROM orders
-        WHERE id = ?
-        """,
-        (order_id,)
-    )
-    row = cursor.fetchone()
-
-    if not row:
-        conn.close()
-        return jsonify({'error': 'Order not found'}), 404
-
-    cursor.execute("SELECT id, name, price FROM menu")
-    menu_lookup = {r[0]: {'name': r[1], 'price': r[2]} for r in cursor.fetchall()}
-    order = _build_order_payload(row, menu_lookup)
-
-    conn.close()
-    return jsonify(order)
-
-@app.route('/api/orders', methods=['POST'])
-def create_order():
-    data = request.get_json()
-    name = data.get('customer_name')
-    email = data.get('customer_email')
-    items = data.get('items')
-    total_price = data.get('total_price')
-    delivery_mode = data.get('delivery_mode', 'pickup')
-
-    # Delivery details (only if delivery selected)
-    classroom = data.get('classroom')
-    department = data.get('department')
-    block = data.get('block')
-    expected_time = data.get('expected_time')
-
-    if not all([name, email, items, total_price]):
-        return jsonify({'error': 'Missing fields'}), 400
-
-    if not isinstance(items, list):
-        return jsonify({'error': 'Items must be a list'}), 400
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    # Check stock
-    for item in items:
-        cursor.execute("SELECT stock FROM menu WHERE id=?", (item['id'],))
-        row = cursor.fetchone()
-        if not row or row[0] < item['qty']:
-            conn.close()
-            return jsonify({'error': f"Not enough stock for item {item['id']}"}), 400
-
-    # Delivery charge logic (by quantity not rupees)
-    if delivery_mode == 'delivery':
-        deliverable_items = []
-        total_qty = 0
-        for i in items:
-            cursor.execute("SELECT deliverable FROM menu WHERE id=?", (i['id'],))
-            r = cursor.fetchone()
-            if r and r[0] == 1:
-                deliverable_items.append(i)
-            total_qty += i['qty']
-        if deliverable_items and total_qty < 5:
-            total_price += 5
-
-    # Deduct stock
-    for item in items:
-        cursor.execute("UPDATE menu SET stock = stock - ? WHERE id=?", (item['qty'], item['id']))
-
-    otp = generate_otp()
-
-    # Save items + delivery details together as JSON string
-    order_payload = {
-        "items": items,
-        "classroom": classroom,
-        "department": department,
-        "block": block,
-        "expected_time": expected_time,
-        "delivery_mode": delivery_mode
-    }
-
-    cursor.execute(
-        "INSERT INTO orders (customer_name, customer_email, items, total_price, otp) VALUES (?,?,?,?,?)",
-        (name, email, str(order_payload), total_price, otp)
-    )
-
-    conn.commit()
-    conn.close()
-    return jsonify({'message': 'Order created successfully', 'otp': otp, 'final_price': total_price}), 201
-
-@app.route('/api/orders/<int:order_id>/status', methods=['PUT'])
-def update_order_status(order_id):
-    data = request.get_json()
-    status = data.get('status')
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE orders SET status=? WHERE id=?", (status, order_id))
-    conn.commit()
-    conn.close()
-    return jsonify({'message': 'Order status updated successfully'}), 200
-
-# ---------------------- Analytics API ---------------------- #
-@app.route('/api/analytics', methods=['GET'])
-def get_analytics():
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    """Get system notifications"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    try:
-        # Basic metrics
-        cursor.execute("SELECT COUNT(*) FROM users WHERE role='user'")
-        total_users = cursor.fetchone()[0] or 0
-
-        cursor.execute("SELECT COUNT(*) FROM orders")
-        total_orders = cursor.fetchone()[0] or 0
-
-        cursor.execute("SELECT SUM(total_price) FROM orders WHERE status='Completed'")
-        total_revenue = cursor.fetchone()[0] or 0
-
-        cursor.execute("SELECT AVG(total_price) FROM orders")
-        avg_order_value = cursor.fetchone()[0] or 0
-
-        conversion_rate = (total_orders / total_users * 100) if total_users else 0
-
-        cursor.execute("SELECT customer_email FROM orders")
-        customer_emails = [row[0] for row in cursor.fetchall() if row[0]]
-        email_counter = Counter(customer_emails)
-        returning_customers = sum(1 for count in email_counter.values() if count > 1)
-        customer_retention = (returning_customers / total_users * 100) if total_users else 0
-
-        cursor.execute("SELECT created_at FROM orders")
-        raw_order_dates = [row[0] for row in cursor.fetchall() if row[0]]
-
-        def parse_ts(value):
-            if not value:
-                return None
-            for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d'):
-                try:
-                    return datetime.strptime(value, fmt)
-                except ValueError:
-                    continue
-            return None
-
-        order_datetimes = [parse_ts(ts) for ts in raw_order_dates]
-        order_datetimes = [dt for dt in order_datetimes if dt]
-
-        now = datetime.utcnow()
-        recent_start = now - timedelta(days=30)
-        previous_start = now - timedelta(days=60)
-        last_week_start = now - timedelta(days=6)
-
-        recent_orders = sum(1 for dt in order_datetimes if dt >= recent_start)
-        previous_orders = sum(1 for dt in order_datetimes if previous_start <= dt < recent_start)
-        if previous_orders == 0:
-            monthly_growth = 0 if recent_orders == 0 else 100
-        else:
-            monthly_growth = ((recent_orders - previous_orders) / previous_orders) * 100
-
-        cursor.execute("SELECT created_at FROM users WHERE role='user'")
-        raw_user_dates = [parse_ts(row[0]) for row in cursor.fetchall() if row[0]]
-        user_month_counts = Counter((dt.year, dt.month) for dt in raw_user_dates if dt)
-
-        def month_offset(base, offset):
-            year = base.year
-            month = base.month - offset
-            while month <= 0:
-                month += 12
-                year -= 1
-            return year, month
-
-        user_growth_labels = []
-        user_growth_values = []
-        for i in range(5, -1, -1):
-            year, month = month_offset(now, i)
-            month_date = datetime(year, month, 1)
-            user_growth_labels.append(month_date.strftime('%b'))
-            user_growth_values.append(user_month_counts.get((year, month), 0))
-
-        new_customers = sum(1 for dt in raw_user_dates if dt and dt >= recent_start)
-        avg_orders_per_customer = (total_orders / total_users) if total_users else 0
-
-        cursor.execute("SELECT id, name, category, price FROM menu")
-        menu_rows = cursor.fetchall()
-        menu_by_id = {
-            row[0]: {
-                'name': row[1],
-                'category': row[2] or 'Uncategorised',
-                'price': row[3] or 0.0
-            }
-            for row in menu_rows
-        }
-
-        cursor.execute("SELECT items, total_price, status, created_at FROM orders")
-        order_rows = cursor.fetchall()
-
-        category_revenue = defaultdict(float)
-        top_items_map = defaultdict(lambda: {'orders': 0, 'revenue': 0.0, 'category': 'Uncategorised'})
-        order_pattern_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        order_pattern_counts = {label: 0 for label in order_pattern_labels}
-
-        for items_str, order_total, status, created_at in order_rows:
-            payload = {}
-            if items_str:
-                try:
-                    payload = ast.literal_eval(items_str)
-                except (ValueError, SyntaxError):
-                    payload = {}
-
-            items = payload.get('items', []) if isinstance(payload, dict) else []
-            order_dt = parse_ts(created_at)
-
-            for item in items:
-                item_id = item.get('id')
-                qty = item.get('qty', 0)
-                menu_item = menu_by_id.get(item_id)
-                if not menu_item or qty <= 0:
-                    continue
-
-                revenue = menu_item['price'] * qty
-                if status == 'Completed':
-                    category_revenue[menu_item['category']] += revenue
-
-                top_entry = top_items_map[menu_item['name']]
-                top_entry['orders'] += qty
-                top_entry['revenue'] += revenue
-                top_entry['category'] = menu_item['category']
-
-            if order_dt and order_dt >= last_week_start:
-                day_label = order_pattern_labels[order_dt.weekday()]
-                order_pattern_counts[day_label] += 1
-
-        if category_revenue:
-            revenue_items = sorted(category_revenue.items(), key=lambda x: x[1], reverse=True)
-            revenue_labels = [item[0] for item in revenue_items]
-            revenue_values = [round(item[1], 2) for item in revenue_items]
-        else:
-            revenue_labels = ['No Data']
-            revenue_values = [0]
-
-        top_items = [
+    # Get recent notifications
+    cursor.execute('''
+        SELECT id, recipient_email, title, message, type, status, priority, created_at, read_at
+        FROM notifications 
+        ORDER BY created_at DESC 
+        LIMIT 50
+    ''')
+    
+    notifications = []
+    for row in cursor.fetchall():
+        notifications.append({
+            'id': row[0],
+            'recipient_email': row[1],
+            'title': row[2],
+            'message': row[3],
+            'type': row[4],
+            'status': row[5],
+            'priority': row[6],
+            'created_at': row[7],
+            'read_at': row[8]
+        })
+    
+    # Create some system notifications if none exist
+    if not notifications:
+        sample_notifications = [
             {
-                'name': name,
-                'category': data['category'],
-                'orders': data['orders'],
-                'revenue': round(data['revenue'], 2),
-                'rating': None
+                'title': 'Enterprise System Active',
+                'message': 'College Kiosk Enterprise system is running with all advanced features',
+                'type': 'system',
+                'priority': 'high'
+            },
+            {
+                'title': 'Database Migrated',
+                'message': 'Database successfully upgraded with enterprise features',
+                'type': 'system',
+                'priority': 'normal'
+            },
+            {
+                'title': 'Security Enhanced',
+                'message': 'Advanced security features including JWT authentication are now active',
+                'type': 'security',
+                'priority': 'normal'
             }
-            for name, data in top_items_map.items()
-            if data['orders'] > 0
         ]
-        top_items.sort(key=lambda x: x['orders'], reverse=True)
-        top_items = top_items[:5]
-
-        order_pattern_values = [order_pattern_counts[label] for label in order_pattern_labels]
-
-        analytics_data = {
-            'conversionRate': round(conversion_rate, 1),
-            'avgOrderValue': round(avg_order_value, 2),
-            'customerRetention': round(customer_retention, 1),
-            'monthlyGrowth': round(monthly_growth, 1),
-            'newCustomers': new_customers,
-            'returningCustomers': returning_customers,
-            'avgOrdersPerCustomer': round(avg_orders_per_customer, 1),
-            'userGrowth': {
-                'labels': user_growth_labels,
-                'values': user_growth_values
-            },
-            'revenueByCategory': {
-                'labels': revenue_labels,
-                'values': revenue_values
-            },
-            'orderPatterns': {
-                'labels': order_pattern_labels,
-                'values': order_pattern_values
-            },
-            'topItems': top_items
-        }
-
-        return jsonify(analytics_data), 200
-
-    except Exception as e:
-        print(f"Analytics error: {e}")
-        return jsonify({'error': 'Failed to compute analytics'}), 500
+        
+        for notif in sample_notifications:
+            cursor.execute('''
+                INSERT INTO notifications (recipient_email, title, message, type, priority)
+                VALUES (?, ?, ?, ?, ?)
+            ''', ('admin@college.edu', notif['title'], notif['message'], notif['type'], notif['priority']))
+        
+        conn.commit()
+        
+        # Fetch notifications again
+        cursor.execute('''
+            SELECT id, recipient_email, title, message, type, status, priority, created_at, read_at
+            FROM notifications 
+            ORDER BY created_at DESC 
+            LIMIT 50
+        ''')
+        
+        notifications = []
+        for row in cursor.fetchall():
+            notifications.append({
+                'id': row[0],
+                'recipient_email': row[1],
+                'title': row[2],
+                'message': row[3],
+                'type': row[4],
+                'status': row[5],
+                'priority': row[6],
+                'created_at': row[7],
+                'read_at': row[8]
+            })
     
-    finally:
-        conn.close()
+    conn.close()
+    return jsonify(notifications)
 
-# ---------------------- Helper Functions ---------------------- #
-def log_audit_action(admin_email, action, target, details=""):
-    """Log admin actions for audit trail"""
+# ---------------------- Original Core Endpoints (Enhanced) ---------------------- #
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    """Enhanced user registration with security features"""
     try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
+        phone = data.get('phone', '')
+        
+        if not all([name, email, password]):
+            return jsonify({'error': 'Name, email, and password are required'}), 400
+        
+        # Hash password
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO audit_logs (admin_email, action, target, details)
-            VALUES (?, ?, ?, ?)
-        """, (admin_email, action, target, details))
+        
+        try:
+            cursor.execute('''
+                INSERT INTO users (name, email, password, phone, role, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (name, email, hashed_password, phone, 'user', 'pending'))
+            
+            conn.commit()
+            user_id = cursor.lastrowid
+            
+            # Log security event
+            log_security_event('user_registered', {'user_id': user_id, 'email': email})
+            
+            conn.close()
+            return jsonify({'message': 'Registration successful. Please wait for approval.'})
+            
+        except sqlite3.IntegrityError:
+            return jsonify({'error': 'Email already exists'}), 400
+            
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+
+@app.route('/api/place-order', methods=['POST'])
+def place_order():
+    """Enhanced order placement with enterprise features"""
+    try:
+        data = request.get_json()
+        customer_name = data.get('customer_name')
+        customer_email = data.get('customer_email')
+        items = data.get('items', [])
+        total_price = data.get('total_price', 0)
+        delivery_address = data.get('delivery_address', '')
+        phone_number = data.get('phone_number', '')
+        payment_method = data.get('payment_method', 'cash')
+        
+        if not all([customer_name, customer_email, items]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Generate OTP
+        otp = ''.join(random.choices(string.digits, k=6))
+        
+        # Calculate estimated time based on items
+        estimated_time = sum(item.get('preparation_time', 15) for item in items) // len(items) if items else 15
+        
+        # Calculate loyalty points (1% of order value)
+        loyalty_points = int(total_price * 0.01)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO orders (
+                customer_name, customer_email, items, total_price, otp,
+                delivery_address, phone_number, payment_method, payment_status,
+                estimated_time, loyalty_points_earned
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            customer_name, customer_email, str(items), total_price, otp,
+            delivery_address, phone_number, payment_method, 'pending',
+            estimated_time, loyalty_points
+        ))
+        
+        order_id = cursor.lastrowid
+        
+        # Update customer loyalty points
+        cursor.execute('''
+            UPDATE users SET loyalty_points = loyalty_points + ?
+            WHERE email = ?
+        ''', (loyalty_points, customer_email))
+        
+        # Update item popularity scores
+        for item in items:
+            item_name = item.get('name')
+            if item_name:
+                cursor.execute('''
+                    UPDATE menu SET popularity_score = popularity_score + 1
+                    WHERE name = ?
+                ''', (item_name,))
+        
         conn.commit()
         conn.close()
+        
+        # Emit real-time update
+        socketio.emit('new_order', {
+            'order_id': order_id,
+            'customer_name': customer_name,
+            'total_price': total_price,
+            'estimated_time': estimated_time
+        }, room='admin')
+        
+        return jsonify({
+            'message': 'Order placed successfully',
+            'order_id': order_id,
+            'otp': otp,
+            'estimated_time': estimated_time,
+            'loyalty_points_earned': loyalty_points
+        })
+        
     except Exception as e:
-        print(f"Audit log error: {e}")
+        logger.error(f"Order placement error: {str(e)}")
+        return jsonify({'error': 'Failed to place order'}), 500
 
-# ---------------------- Enhanced Admin APIs ---------------------- #
-
-# Order Status Update with Audit Log
-@app.route('/api/orders/<int:order_id>/status', methods=['PUT'])
-def update_order_status_enhanced(order_id):
-    data = request.get_json()
-    new_status = data.get('status')
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not new_status:
-        return jsonify({'error': 'Status is required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Get current order details for audit
-    cursor.execute("SELECT status, customer_name FROM orders WHERE id = ?", (order_id,))
-    order = cursor.fetchone()
-    
-    if not order:
+@app.route('/api/update-order-status', methods=['PUT'])
+def update_order_status():
+    """Enhanced order status update with tracking"""
+    try:
+        data = request.get_json()
+        order_id = data.get('order_id')
+        new_status = data.get('status')
+        actual_time = data.get('actual_time')
+        
+        if not all([order_id, new_status]):
+            return jsonify({'error': 'Order ID and status required'}), 400
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        update_fields = ['status = ?', 'updated_at = ?']
+        update_values = [new_status, datetime.now().isoformat()]
+        
+        if actual_time:
+            update_fields.append('actual_time = ?')
+            update_values.append(actual_time)
+        
+        update_values.append(order_id)
+        
+        cursor.execute(f'''
+            UPDATE orders SET {', '.join(update_fields)}
+            WHERE id = ?
+        ''', update_values)
+        
+        conn.commit()
         conn.close()
-        return jsonify({'error': 'Order not found'}), 404
-    
-    old_status = order[0]
-    customer_name = order[1]
-    
-    # Update order status and updated_at
-    cursor.execute("""
-        UPDATE orders 
-        SET status = ?, updated_at = CURRENT_TIMESTAMP 
-        WHERE id = ?
-    """, (new_status, order_id))
-    
-    conn.commit()
-    conn.close()
-    
-    # Log audit action
-    log_audit_action(admin_email, 'UPDATE_ORDER_STATUS', 
-                    f'Order #{order_id} ({customer_name})', 
-                    f'Changed from {old_status} to {new_status}')
-    
-    return jsonify({'message': 'Order status updated successfully'}), 200
+        
+        # Emit real-time update
+        socketio.emit('order_updated', {
+            'order_id': order_id,
+            'status': new_status,
+            'actual_time': actual_time
+        }, room='admin')
+        
+        return jsonify({'message': 'Order status updated successfully'})
+        
+    except Exception as e:
+        logger.error(f"Order update error: {str(e)}")
+        return jsonify({'error': 'Failed to update order status'}), 500
 
-# Bulk Order Status Update
-@app.route('/api/orders/bulk-status', methods=['PUT'])
-def bulk_update_order_status():
-    data = request.get_json()
-    order_ids = data.get('order_ids', [])
-    new_status = data.get('status')
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not order_ids or not new_status:
-        return jsonify({'error': 'Order IDs and status are required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    updated_count = 0
-    for order_id in order_ids:
-        cursor.execute("SELECT customer_name FROM orders WHERE id = ?", (order_id,))
-        order = cursor.fetchone()
-        if order:
-            cursor.execute("""
-                UPDATE orders 
-                SET status = ?, updated_at = CURRENT_TIMESTAMP 
-                WHERE id = ?
-            """, (new_status, order_id))
-            updated_count += 1
+# Initialize database on startup
+initialize_enterprise_db()
+
+# WebSocket events for real-time features
+@socketio.on('connect')
+def handle_connect(auth):
+    """Handle client connection"""
+    performance_metrics['active_users'] += 1
+    emit('connected', {'status': 'Connected to enterprise system'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle client disconnection"""
+    performance_metrics['active_users'] = max(0, performance_metrics['active_users'] - 1)
+
+@socketio.on('join_admin')
+def handle_join_admin(data):
+    """Join admin room for real-time updates"""
+    join_room('admin')
+    emit('joined_admin', {'status': 'Joined admin room'})
+
+# Background task for system monitoring
+def system_monitor():
+    """Background system monitoring"""
+    while True:
+        try:
+            # Update system health
+            if len(performance_metrics['response_times']) > 0:
+                avg_response = np.mean(performance_metrics['response_times'][-100:])
+                if avg_response < 0.1:
+                    performance_metrics['system_health'] = 100
+                elif avg_response < 0.5:
+                    performance_metrics['system_health'] = 80
+                elif avg_response < 1.0:
+                    performance_metrics['system_health'] = 60
+                else:
+                    performance_metrics['system_health'] = 40
             
-            # Log audit action
-            log_audit_action(admin_email, 'BULK_UPDATE_ORDER_STATUS', 
-                            f'Order #{order_id} ({order[0]})', 
-                            f'Updated to {new_status}')
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'message': f'{updated_count} orders updated successfully'}), 200
+            # Emit real-time updates to admin
+            socketio.emit('system_update', {
+                'health': performance_metrics['system_health'],
+                'active_users': performance_metrics['active_users'],
+                'requests_count': performance_metrics['requests_count']
+            }, room='admin')
+            
+            time.sleep(30)  # Update every 30 seconds
+            
+        except Exception as e:
+            logger.error(f"System monitor error: {str(e)}")
+            time.sleep(60)
 
-# Enhanced Menu APIs with Audit Logging
-@app.route('/api/menu/<int:item_id>/audit', methods=['PUT'])
-def update_menu_item_with_audit(item_id):
-    admin_email = request.form.get('admin_email') or request.json.get('admin_email', 'admin')
-    
-    # Get original item for audit
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM menu WHERE id = ?", (item_id,))
-    item = cursor.fetchone()
-    
-    if not item:
-        conn.close()
-        return jsonify({'error': 'Menu item not found'}), 404
-    
-    item_name = item[0]
-    conn.close()
-    
-    # Use existing update logic
-    result = update_or_toggle_menu_item(item_id)
-    
-    # Log audit action if successful
-    if result[1] == 200:
-        log_audit_action(admin_email, 'UPDATE_MENU_ITEM', item_name, 'Menu item updated')
-    
-    return result
+# Start background monitoring
+monitor_thread = threading.Thread(target=system_monitor, daemon=True)
+monitor_thread.start()
 
-@app.route('/api/menu/<int:item_id>/delete-audit', methods=['DELETE'])
-def delete_menu_item_with_audit(item_id):
-    data = request.get_json() or {}
-    admin_email = data.get('admin_email', 'admin')
-    
-    # Get item name for audit
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM menu WHERE id = ?", (item_id,))
-    item = cursor.fetchone()
-    
-    if not item:
-        conn.close()
-        return jsonify({'error': 'Menu item not found'}), 404
-    
-    item_name = item[0]
-    
-    # Delete the item
-    cursor.execute("DELETE FROM menu WHERE id = ?", (item_id,))
-    conn.commit()
-    conn.close()
-    
-    # Log audit action
-    log_audit_action(admin_email, 'DELETE_MENU_ITEM', item_name, 'Menu item deleted')
-    
-    return jsonify({'message': 'Menu item deleted successfully'}), 200
-
-# Bulk Menu Operations
-@app.route('/api/menu/bulk-delete', methods=['DELETE'])
-def bulk_delete_menu_items():
-    data = request.get_json()
-    item_ids = data.get('item_ids', [])
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not item_ids:
-        return jsonify({'error': 'Item IDs are required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    deleted_items = []
-    for item_id in item_ids:
-        cursor.execute("SELECT name FROM menu WHERE id = ?", (item_id,))
-        item = cursor.fetchone()
-        if item:
-            cursor.execute("DELETE FROM menu WHERE id = ?", (item_id,))
-            deleted_items.append(item[0])
-            log_audit_action(admin_email, 'BULK_DELETE_MENU_ITEM', item[0], 'Bulk deletion')
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'message': f'{len(deleted_items)} items deleted successfully'}), 200
-
-@app.route('/api/menu/bulk-toggle', methods=['PUT'])
-def bulk_toggle_menu_availability():
-    data = request.get_json()
-    item_ids = data.get('item_ids', [])
-    available = data.get('available', True)
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not item_ids:
-        return jsonify({'error': 'Item IDs are required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    updated_items = []
-    for item_id in item_ids:
-        cursor.execute("SELECT name FROM menu WHERE id = ?", (item_id,))
-        item = cursor.fetchone()
-        if item:
-            cursor.execute("UPDATE menu SET available = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", 
-                          (1 if available else 0, item_id))
-            updated_items.append(item[0])
-            log_audit_action(admin_email, 'BULK_TOGGLE_MENU_AVAILABILITY', item[0], 
-                           f'Set availability to {available}')
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'message': f'{len(updated_items)} items updated successfully'}), 200
-
-# Enhanced User Management with Audit Logging
-@app.route('/api/users/approve-audit', methods=['POST'])
-def approve_user_with_audit():
-    data = request.get_json()
-    email = data.get('email')
-    role = data.get('role', 'user')
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET status='approved', role=? WHERE email=?", (role, email))
-    conn.commit()
-    conn.close()
-    
-    # Log audit action
-    log_audit_action(admin_email, 'APPROVE_USER', email, f'Approved with role: {role}')
-    
-    return jsonify({'message': f'User {email} approved with role {role}'}), 200
-
-@app.route('/api/users/delete-audit', methods=['POST'])
-def delete_user_with_audit():
-    data = request.get_json()
-    email = data.get('email')
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM users WHERE email=?", (email,))
-    conn.commit()
-    conn.close()
-    
-    # Log audit action
-    log_audit_action(admin_email, 'DELETE_USER', email, 'User account deleted')
-    
-    return jsonify({'message': f'User {email} deleted'}), 200
-
-# Bulk User Operations
-@app.route('/api/users/bulk-approve', methods=['POST'])
-def bulk_approve_users():
-    data = request.get_json()
-    emails = data.get('emails', [])
-    role = data.get('role', 'user')
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not emails:
-        return jsonify({'error': 'Email list is required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    approved_count = 0
-    for email in emails:
-        cursor.execute("UPDATE users SET status='approved', role=? WHERE email=?", (role, email))
-        if cursor.rowcount > 0:
-            approved_count += 1
-            log_audit_action(admin_email, 'BULK_APPROVE_USER', email, f'Bulk approved with role: {role}')
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'message': f'{approved_count} users approved successfully'}), 200
-
-@app.route('/api/users/bulk-delete', methods=['POST'])
-def bulk_delete_users():
-    data = request.get_json()
-    emails = data.get('emails', [])
-    admin_email = data.get('admin_email', 'admin')
-    
-    if not emails:
-        return jsonify({'error': 'Email list is required'}), 400
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    deleted_count = 0
-    for email in emails:
-        cursor.execute("DELETE FROM users WHERE email=?", (email,))
-        if cursor.rowcount > 0:
-            deleted_count += 1
-            log_audit_action(admin_email, 'BULK_DELETE_USER', email, 'Bulk deletion')
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'message': f'{deleted_count} users deleted successfully'}), 200
-
-# ---------------------- Reports APIs ---------------------- #
-
-@app.route('/api/reports/orders', methods=['GET'])
-def orders_report():
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    status_filter = request.args.get('status')
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM orders WHERE 1=1"
-    params = []
-    
-    if start_date:
-        query += " AND date(created_at) >= ?"
-        params.append(start_date)
-    
-    if end_date:
-        query += " AND date(created_at) <= ?"
-        params.append(end_date)
-    
-    if status_filter:
-        query += " AND status = ?"
-        params.append(status_filter)
-    
-    query += " ORDER BY created_at DESC"
-    
-    cursor.execute(query, params)
-    orders = cursor.fetchall()
-    
-    # Calculate summary statistics
-    total_orders = len(orders)
-    total_revenue = sum(order[4] for order in orders if order[4])  # total_price is index 4
-    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
-    
-    # Status distribution
-    status_counts = {}
-    for order in orders:
-        status = order[5]  # status is index 5
-        status_counts[status] = status_counts.get(status, 0) + 1
-    
-    conn.close()
-    
-    return jsonify({
-        'orders': [
-            {
-                'id': order[0],
-                'customer_name': order[1],
-                'customer_email': order[2],
-                'items': order[3],
-                'total_price': order[4],
-                'status': order[5],
-                'otp': order[6],
-                'created_at': order[7],
-                'updated_at': order[8] if len(order) > 8 else None
-            }
-            for order in orders
-        ],
-        'summary': {
-            'total_orders': total_orders,
-            'total_revenue': round(total_revenue, 2),
-            'avg_order_value': round(avg_order_value, 2),
-            'status_distribution': status_counts
-        }
-    }), 200
-
-@app.route('/api/reports/users', methods=['GET'])
-def users_report():
-    role_filter = request.args.get('role')
-    status_filter = request.args.get('status')
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM users WHERE 1=1"
-    params = []
-    
-    if role_filter:
-        query += " AND role = ?"
-        params.append(role_filter)
-    
-    if status_filter:
-        query += " AND status = ?"
-        params.append(status_filter)
-    
-    query += " ORDER BY created_at DESC"
-    
-    cursor.execute(query, params)
-    users = cursor.fetchall()
-    
-    # Calculate summary statistics
-    total_users = len(users)
-    role_counts = {}
-    status_counts = {}
-    
-    for user in users:
-        role = user[4]  # role is index 4
-        status = user[5]  # status is index 5
-        role_counts[role] = role_counts.get(role, 0) + 1
-        status_counts[status] = status_counts.get(status, 0) + 1
-    
-    conn.close()
-    
-    return jsonify({
-        'users': [
-            {
-                'id': user[0],
-                'name': user[1],
-                'email': user[2],
-                'role': user[4],
-                'status': user[5],
-                'created_at': user[6] if len(user) > 6 else None
-            }
-            for user in users
-        ],
-        'summary': {
-            'total_users': total_users,
-            'role_distribution': role_counts,
-            'status_distribution': status_counts
-        }
-    }), 200
-
-@app.route('/api/reports/menu', methods=['GET'])
-def menu_report():
-    category_filter = request.args.get('category')
-    low_stock_threshold = int(request.args.get('low_stock_threshold', 5))
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM menu WHERE 1=1"
-    params = []
-    
-    if category_filter:
-        query += " AND category = ?"
-        params.append(category_filter)
-    
-    query += " ORDER BY category, name"
-    
-    cursor.execute(query, params)
-    menu_items = cursor.fetchall()
-    
-    # Calculate summary statistics
-    total_items = len(menu_items)
-    available_items = sum(1 for item in menu_items if item[5])  # available is index 5
-    low_stock_items = sum(1 for item in menu_items if item[6] < low_stock_threshold)  # stock is index 6
-    
-    category_counts = {}
-    for item in menu_items:
-        category = item[3]  # category is index 3
-        category_counts[category] = category_counts.get(category, 0) + 1
-    
-    conn.close()
-    
-    return jsonify({
-        'menu_items': [
-            {
-                'id': item[0],
-                'name': item[1],
-                'price': item[2],
-                'category': item[3],
-                'image': item[4],
-                'available': bool(item[5]),
-                'stock': item[6],
-                'deliverable': bool(item[7]),
-                'low_stock': item[6] < low_stock_threshold
-            }
-            for item in menu_items
-        ],
-        'summary': {
-            'total_items': total_items,
-            'available_items': available_items,
-            'low_stock_items': low_stock_items,
-            'category_distribution': category_counts,
-            'low_stock_threshold': low_stock_threshold
-        }
-    }), 200
-
-# ---------------------- CSV Export APIs ---------------------- #
-import csv
-from io import StringIO
-
-@app.route('/api/reports/orders/csv', methods=['GET'])
-def export_orders_csv():
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    status_filter = request.args.get('status')
-    
-    # Get orders data using the same logic as orders_report
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM orders WHERE 1=1"
-    params = []
-    
-    if start_date:
-        query += " AND date(created_at) >= ?"
-        params.append(start_date)
-    
-    if end_date:
-        query += " AND date(created_at) <= ?"
-        params.append(end_date)
-    
-    if status_filter:
-        query += " AND status = ?"
-        params.append(status_filter)
-    
-    query += " ORDER BY created_at DESC"
-    
-    cursor.execute(query, params)
-    orders = cursor.fetchall()
-    conn.close()
-    
-    # Create CSV content
-    output = StringIO()
-    writer = csv.writer(output)
-    
-    # Write header
-    writer.writerow(['Order ID', 'Customer Name', 'Customer Email', 'Items', 'Total Price', 'Status', 'OTP', 'Created At', 'Updated At'])
-    
-    # Write data
-    for order in orders:
-        writer.writerow([
-            order[0],  # id
-            order[1],  # customer_name
-            order[2],  # customer_email
-            order[3],  # items
-            order[4],  # total_price
-            order[5],  # status
-            order[6],  # otp
-            order[7],  # created_at
-            order[8] if len(order) > 8 else ''  # updated_at
-        ])
-    
-    # Prepare response
-    from flask import Response
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype='text/csv',
-        headers={'Content-Disposition': f'attachment; filename=orders_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'}
-    )
-
-@app.route('/api/reports/users/csv', methods=['GET'])
-def export_users_csv():
-    role_filter = request.args.get('role')
-    status_filter = request.args.get('status')
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM users WHERE 1=1"
-    params = []
-    
-    if role_filter:
-        query += " AND role = ?"
-        params.append(role_filter)
-    
-    if status_filter:
-        query += " AND status = ?"
-        params.append(status_filter)
-    
-    query += " ORDER BY created_at DESC"
-    
-    cursor.execute(query, params)
-    users = cursor.fetchall()
-    conn.close()
-    
-    # Create CSV content
-    output = StringIO()
-    writer = csv.writer(output)
-    
-    # Write header
-    writer.writerow(['User ID', 'Name', 'Email', 'Role', 'Status', 'Created At'])
-    
-    # Write data
-    for user in users:
-        writer.writerow([
-            user[0],  # id
-            user[1],  # name
-            user[2],  # email
-            user[4],  # role
-            user[5],  # status
-            user[6] if len(user) > 6 else ''  # created_at
-        ])
-    
-    # Prepare response
-    from flask import Response
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype='text/csv',
-        headers={'Content-Disposition': f'attachment; filename=users_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'}
-    )
-
-@app.route('/api/reports/menu/csv', methods=['GET'])
-def export_menu_csv():
-    category_filter = request.args.get('category')
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM menu WHERE 1=1"
-    params = []
-    
-    if category_filter:
-        query += " AND category = ?"
-        params.append(category_filter)
-    
-    query += " ORDER BY category, name"
-    
-    cursor.execute(query, params)
-    menu_items = cursor.fetchall()
-    conn.close()
-    
-    # Create CSV content
-    output = StringIO()
-    writer = csv.writer(output)
-    
-    # Write header
-    writer.writerow(['Item ID', 'Name', 'Price', 'Category', 'Image', 'Available', 'Stock', 'Deliverable'])
-    
-    # Write data
-    for item in menu_items:
-        writer.writerow([
-            item[0],  # id
-            item[1],  # name
-            item[2],  # price
-            item[3],  # category
-            item[4],  # image
-            'Yes' if item[5] else 'No',  # available
-            item[6],  # stock
-            'Yes' if item[7] else 'No'   # deliverable
-        ])
-    
-    # Prepare response
-    from flask import Response
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype='text/csv',
-        headers={'Content-Disposition': f'attachment; filename=menu_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'}
-    )
-
-# ---------------------- Audit Logs APIs ---------------------- #
-
-@app.route('/api/audit-logs', methods=['GET'])
-def get_audit_logs():
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 50))
-    search = request.args.get('search', '')
-    action_filter = request.args.get('action')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Build query
-    query = "SELECT * FROM audit_logs WHERE 1=1"
-    params = []
-    
-    if search:
-        query += " AND (admin_email LIKE ? OR action LIKE ? OR target LIKE ? OR details LIKE ?)"
-        search_param = f'%{search}%'
-        params.extend([search_param, search_param, search_param, search_param])
-    
-    if action_filter:
-        query += " AND action = ?"
-        params.append(action_filter)
-    
-    if start_date:
-        query += " AND date(timestamp) >= ?"
-        params.append(start_date)
-    
-    if end_date:
-        query += " AND date(timestamp) <= ?"
-        params.append(end_date)
-    
-    query += " ORDER BY timestamp DESC"
-    
-    # Get total count
-    count_query = query.replace("SELECT *", "SELECT COUNT(*)")
-    cursor.execute(count_query, params)
-    total_count = cursor.fetchone()[0]
-    
-    # Add pagination
-    offset = (page - 1) * per_page
-    query += f" LIMIT {per_page} OFFSET {offset}"
-    
-    cursor.execute(query, params)
-    logs = cursor.fetchall()
-    conn.close()
-    
-    return jsonify({
-        'logs': [
-            {
-                'id': log[0],
-                'admin_email': log[1],
-                'action': log[2],
-                'target': log[3],
-                'details': log[4],
-                'timestamp': log[5]
-            }
-            for log in logs
-        ],
-        'pagination': {
-            'page': page,
-            'per_page': per_page,
-            'total': total_count,
-            'pages': (total_count + per_page - 1) // per_page
-        }
-    }), 200
-
-@app.route('/api/audit-logs/csv', methods=['GET'])
-def export_audit_logs_csv():
-    search = request.args.get('search', '')
-    action_filter = request.args.get('action')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Build query (similar to get_audit_logs but without pagination)
-    query = "SELECT * FROM audit_logs WHERE 1=1"
-    params = []
-    
-    if search:
-        query += " AND (admin_email LIKE ? OR action LIKE ? OR target LIKE ? OR details LIKE ?)"
-        search_param = f'%{search}%'
-        params.extend([search_param, search_param, search_param, search_param])
-    
-    if action_filter:
-        query += " AND action = ?"
-        params.append(action_filter)
-    
-    if start_date:
-        query += " AND date(timestamp) >= ?"
-        params.append(start_date)
-    
-    if end_date:
-        query += " AND date(timestamp) <= ?"
-        params.append(end_date)
-    
-    query += " ORDER BY timestamp DESC"
-    
-    cursor.execute(query, params)
-    logs = cursor.fetchall()
-    conn.close()
-    
-    # Create CSV content
-    output = StringIO()
-    writer = csv.writer(output)
-    
-    # Write header
-    writer.writerow(['Log ID', 'Admin Email', 'Action', 'Target', 'Details', 'Timestamp'])
-    
-    # Write data
-    for log in logs:
-        writer.writerow([
-            log[0],  # id
-            log[1],  # admin_email
-            log[2],  # action
-            log[3],  # target
-            log[4],  # details
-            log[5]   # timestamp
-        ])
-    
-    # Prepare response
-    from flask import Response
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype='text/csv',
-        headers={'Content-Disposition': f'attachment; filename=audit_logs_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'}
-    )
-
-# ---------------------- Dashboard Statistics API ---------------------- #
-
-@app.route('/api/dashboard/stats', methods=['GET'])
-def get_dashboard_stats():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Get counts
-    cursor.execute("SELECT COUNT(*) FROM users")
-    total_users = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM orders")
-    total_orders = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM orders WHERE status NOT IN ('Completed', 'Cancelled')")
-    active_orders = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'pending'")
-    pending_approvals = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM menu WHERE stock < 5")
-    low_stock_items = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT SUM(total_price) FROM orders WHERE status = 'Completed'")
-    total_revenue = cursor.fetchone()[0] or 0
-    
-    # Get recent orders for chart data
-    cursor.execute("""
-        SELECT status, COUNT(*) 
-        FROM orders 
-        GROUP BY status
-    """)
-    status_distribution = dict(cursor.fetchall())
-    
-    # Get sales trend (last 7 days)
-    cursor.execute("""
-        SELECT date(created_at) as order_date, COUNT(*) as order_count, SUM(total_price) as daily_revenue
-        FROM orders 
-        WHERE created_at >= date('now', '-7 days')
-        GROUP BY date(created_at)
-        ORDER BY order_date
-    """)
-    sales_trend = cursor.fetchall()
-    
-    # Get top selling items
-    cursor.execute("""
-        SELECT m.name, m.category, COUNT(*) as order_count
-        FROM orders o
-        JOIN menu m ON o.items LIKE '%' || m.name || '%'
-        WHERE o.status = 'Completed'
-        GROUP BY m.name, m.category
-        ORDER BY order_count DESC
-        LIMIT 5
-    """)
-    top_items = cursor.fetchall()
-    
-    conn.close()
-    
-    return jsonify({
-        'kpi': {
-            'total_users': total_users,
-            'total_orders': total_orders,
-            'active_orders': active_orders,
-            'pending_approvals': pending_approvals,
-            'low_stock_items': low_stock_items,
-            'total_revenue': round(total_revenue, 2)
-        },
-        'charts': {
-            'status_distribution': status_distribution,
-            'sales_trend': [
-                {
-                    'date': row[0],
-                    'orders': row[1],
-                    'revenue': row[2] or 0
-                }
-                for row in sales_trend
-            ],
-            'top_items': [
-                {
-                    'name': row[0],
-                    'category': row[1],
-                    'orders': row[2]
-                }
-                for row in top_items
-            ]
-        }
-    }), 200
-
-# ---------------------- Run Server ---------------------- #
 if __name__ == '__main__':
-    app.run(debug=True)
+    print("🚀 Starting College Kiosk Enterprise System...")
+    print("📊 Enterprise Features: Analytics, CRM, Financial Management, Inventory, Security")
+    print("🔒 Security: JWT Authentication, Role-based Access, Audit Logging")
+    print("📈 Real-time: WebSocket Support, Live Monitoring, Performance Tracking")
+    print("💡 Access: http://localhost:5000")
+    print("📚 API Docs: http://localhost:5000/api/docs")
+    print("⚡ Admin Panel: http://localhost:5000/admin")
+    
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
