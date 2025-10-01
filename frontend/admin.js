@@ -22,7 +22,10 @@ class EnhancedAdminApp {
         this.lowStockThreshold = 5;
         this.selectedItems = new Set();
         this.currentReportData = null;
+<<<<<<< HEAD
     this.lastChartData = null;
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
         
         this.init();
     }
@@ -197,6 +200,26 @@ class EnhancedAdminApp {
         document.getElementById('exportUsersBtn')?.addEventListener('click', () => {
             this.exportUsers();
         });
+<<<<<<< HEAD
+=======
+
+        // Chart export buttons
+        document.getElementById('salesTrendExport')?.addEventListener('click', () => {
+            this.exportChart('salesTrend', 'Sales Trend');
+        });
+
+        document.getElementById('orderStatusExport')?.addEventListener('click', () => {
+            this.exportChart('orderStatus', 'Order Status Distribution');
+        });
+
+        document.getElementById('topItemsExport')?.addEventListener('click', () => {
+            this.exportChart('topItems', 'Top Selling Items');
+        });
+
+        document.getElementById('categorySalesExport')?.addEventListener('click', () => {
+            this.exportChart('categorySales', 'Category-wise Sales');
+        });
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     }
 
     setupReportsEventListeners() {
@@ -247,6 +270,7 @@ class EnhancedAdminApp {
             pageElement.classList.remove('hidden');
         }
 
+<<<<<<< HEAD
         // Update navigation and ARIA states
         document.querySelectorAll('.nav-item').forEach(item => {
             const isActive = item.dataset.page === page;
@@ -263,6 +287,13 @@ class EnhancedAdminApp {
                 // Remove "Current page" from aria-label
                 const currentLabel = item.getAttribute('aria-label') || '';
                 item.setAttribute('aria-label', currentLabel.replace(' - Current page', ''));
+=======
+        // Update navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.page === page) {
+                item.classList.add('active');
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             }
         });
 
@@ -311,6 +342,7 @@ class EnhancedAdminApp {
     // Dashboard Data Loading
     async loadDashboardData() {
         try {
+<<<<<<< HEAD
             console.log('Loading dashboard data...');
             const response = await fetch('/api/dashboard/stats');
             
@@ -390,6 +422,37 @@ class EnhancedAdminApp {
         });
     }
 
+=======
+            const response = await fetch('/api/dashboard/stats');
+            const data = await response.json();
+
+            if (response.ok) {
+                this.updateKPICards(data.kpi);
+                this.updateCharts(data.charts);
+                await this.updateRecentOrders();
+                this.updateNotificationBadges(data.kpi);
+                
+                // Show success feedback
+                this.showToast('Dashboard data refreshed', 'success');
+            } else {
+                throw new Error(`HTTP ${response.status}: ${data.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Dashboard data error:', error);
+            this.showToast('Failed to load dashboard data', 'error');
+            
+            // Set default values if data fails to load
+            this.updateKPICards({
+                total_orders: 0,
+                total_revenue: 0,
+                active_orders: 0,
+                pending_approvals: 0,
+                low_stock_items: 0
+            });
+        }
+    }
+
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     updateKPICards(kpi) {
         document.getElementById('totalOrders').textContent = kpi.total_orders || 0;
         document.getElementById('totalRevenue').textContent = `₹${kpi.total_revenue || 0}`;
@@ -398,6 +461,7 @@ class EnhancedAdminApp {
         document.getElementById('lowStockCount').textContent = kpi.low_stock_items || 0;
 
         // Update badges in sidebar
+<<<<<<< HEAD
         this.updateSidebarBadges(kpi);
         this.updateInsightsPanel(kpi);
     }
@@ -491,6 +555,25 @@ class EnhancedAdminApp {
         
         // Top Items Chart
         this.createTopItemsChart(chartData.top_items);
+=======
+        document.getElementById('activeOrdersBadge').textContent = kpi.active_orders || 0;
+        document.getElementById('lowStockBadge').textContent = kpi.low_stock_items || 0;
+        document.getElementById('pendingUsersBadge').textContent = kpi.pending_approvals || 0;
+    }
+
+    updateCharts(chartData) {
+        // Store current chart data for theme switching
+        this.currentChartData = chartData;
+        
+        // Sales Trend Chart
+        this.createSalesTrendChart(chartData.sales_trend || []);
+        
+        // Order Status Distribution Chart
+        this.createOrderStatusChart(chartData.status_distribution || {});
+        
+        // Top Items Chart
+        this.createTopItemsChart(chartData.top_items || []);
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
         
         // Category Sales Chart (if available)
         if (chartData.category_sales) {
@@ -498,6 +581,7 @@ class EnhancedAdminApp {
         }
     }
 
+<<<<<<< HEAD
     refreshChartsTheme() {
         if (this.lastChartData) {
             this.updateCharts(this.lastChartData);
@@ -646,23 +730,96 @@ class EnhancedAdminApp {
             console.warn('Unable to get 2D context for sales chart');
             return;
         }
+=======
+    async updateRecentOrders() {
+        try {
+            const response = await fetch('/api/orders?limit=5');
+            const orders = await response.json();
+            
+            const recentOrdersList = document.getElementById('recentOrdersList');
+            if (!recentOrdersList) return;
+
+            if (response.ok && orders.length > 0) {
+                recentOrdersList.innerHTML = orders.map(order => `
+                    <div class="recent-order-item">
+                        <div class="order-info">
+                            <div class="order-id">#${order.id}</div>
+                            <div class="order-customer">${order.customer_name}</div>
+                            <div class="order-total">₹${order.total_price}</div>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge ${this.getStatusClass(order.status)}">${order.status}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                recentOrdersList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>No recent orders</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Recent orders error:', error);
+            const recentOrdersList = document.getElementById('recentOrdersList');
+            if (recentOrdersList) {
+                recentOrdersList.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load recent orders</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    createSalesTrendChart(salesData) {
+        const ctx = document.getElementById('salesTrendChart');
+        if (!ctx) return;
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 
         if (this.charts.salesTrend) {
             this.charts.salesTrend.destroy();
         }
 
+<<<<<<< HEAD
         if (!salesData || salesData.length === 0) {
             console.warn('No sales data available for chart');
+=======
+        // Handle empty data
+        if (!salesData || salesData.length === 0) {
+            const parentElement = ctx.parentElement;
+            parentElement.innerHTML = `
+                <div class="empty-chart-state">
+                    <i class="fas fa-chart-line"></i>
+                    <p>No sales data available</p>
+                    <small>Sales data will appear here once orders are placed</small>
+                </div>
+            `;
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             return;
         }
 
         const labels = salesData.map(item => new Date(item.date).toLocaleDateString());
+<<<<<<< HEAD
         const orders = salesData.map(item => item.orders);
         const revenue = salesData.map(item => item.revenue);
 
         const chartTheme = this.getChartTheme();
         const ordersGradient = this.createChartGradient(ctx, chartTheme.accent1);
         const revenueGradient = this.createChartGradient(ctx, chartTheme.accent3);
+=======
+        const orders = salesData.map(item => item.orders || 0);
+        const revenue = salesData.map(item => item.revenue || 0);
+
+        // Get CSS custom properties for theme-aware colors
+        const computedStyle = getComputedStyle(document.documentElement);
+        const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+        const successColor = computedStyle.getPropertyValue('--success').trim();
+        const textColor = computedStyle.getPropertyValue('--text').trim();
+        const borderColor = computedStyle.getPropertyValue('--border').trim();
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 
         this.charts.salesTrend = new Chart(ctx, {
             type: 'line',
@@ -672,6 +829,7 @@ class EnhancedAdminApp {
                     {
                         label: 'Orders',
                         data: orders,
+<<<<<<< HEAD
                         borderColor: chartTheme.accent1,
                         backgroundColor: ordersGradient,
                         borderWidth: 3,
@@ -683,10 +841,18 @@ class EnhancedAdminApp {
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         yAxisID: 'y'
+=======
+                        borderColor: primaryColor,
+                        backgroundColor: primaryColor + '20',
+                        tension: 0.4,
+                        yAxisID: 'y',
+                        fill: true
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                     },
                     {
                         label: 'Revenue (₹)',
                         data: revenue,
+<<<<<<< HEAD
                         borderColor: chartTheme.accent3,
                         backgroundColor: revenueGradient,
                         borderWidth: 3,
@@ -698,6 +864,13 @@ class EnhancedAdminApp {
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         yAxisID: 'y1'
+=======
+                        borderColor: successColor,
+                        backgroundColor: successColor + '20',
+                        tension: 0.4,
+                        yAxisID: 'y1',
+                        fill: true
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                     }
                 ]
             },
@@ -710,6 +883,7 @@ class EnhancedAdminApp {
                 },
                 plugins: {
                     legend: {
+<<<<<<< HEAD
                         display: true,
                         position: 'top',
                         labels: {
@@ -726,34 +900,56 @@ class EnhancedAdminApp {
                         borderColor: this.hexToRgba(chartTheme.tooltipText, 0.08),
                         borderWidth: 1,
                         cornerRadius: 8
+=======
+                        labels: {
+                            color: textColor
+                        }
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                     }
                 },
                 scales: {
                     x: {
+<<<<<<< HEAD
                         grid: {
                             color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
                             color: chartTheme.textMuted
+=======
+                        ticks: {
+                            color: textColor
+                        },
+                        grid: {
+                            color: borderColor
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                         }
                     },
                     y: {
                         type: 'linear',
                         display: true,
                         position: 'left',
+<<<<<<< HEAD
                         grid: {
                             color: chartTheme.grid,
                             drawBorder: false
                         },
                         ticks: {
                             color: chartTheme.textMuted
+=======
+                        ticks: {
+                            color: textColor
+                        },
+                        grid: {
+                            color: borderColor
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                         }
                     },
                     y1: {
                         type: 'linear',
                         display: true,
                         position: 'right',
+<<<<<<< HEAD
                         grid: {
                             drawOnChartArea: false,
                             color: chartTheme.grid,
@@ -762,6 +958,14 @@ class EnhancedAdminApp {
                         ticks: {
                             color: chartTheme.textMuted
                         }
+=======
+                        ticks: {
+                            color: textColor
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                     },
                 }
             }
@@ -769,6 +973,7 @@ class EnhancedAdminApp {
     }
 
     createOrderStatusChart(statusData) {
+<<<<<<< HEAD
         const canvas = document.getElementById('orderStatusChart');
         if (!canvas) return;
 
@@ -777,17 +982,51 @@ class EnhancedAdminApp {
             console.warn('Unable to get context for order status chart');
             return;
         }
+=======
+        const ctx = document.getElementById('orderStatusChart');
+        if (!ctx) return;
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 
         if (this.charts.orderStatus) {
             this.charts.orderStatus.destroy();
         }
 
+<<<<<<< HEAD
         const labels = Object.keys(statusData);
         const data = Object.values(statusData);
 
         const chartTheme = this.getChartTheme();
         const palette = this.generateChartPalette(labels.length);
         const hoverPalette = palette.map(color => this.adjustColor(color, -18));
+=======
+        // Handle empty data
+        if (!statusData || Object.keys(statusData).length === 0) {
+            const parentElement = ctx.parentElement;
+            parentElement.innerHTML = `
+                <div class="empty-chart-state">
+                    <i class="fas fa-chart-pie"></i>
+                    <p>No order status data</p>
+                    <small>Order status distribution will appear here</small>
+                </div>
+            `;
+            return;
+        }
+
+        const labels = Object.keys(statusData);
+        const data = Object.values(statusData);
+        
+        // Get CSS custom properties for theme-aware colors
+        const computedStyle = getComputedStyle(document.documentElement);
+        const colors = [
+            computedStyle.getPropertyValue('--warning').trim(),
+            computedStyle.getPropertyValue('--info').trim(),
+            computedStyle.getPropertyValue('--primary').trim(),
+            computedStyle.getPropertyValue('--success').trim(),
+            computedStyle.getPropertyValue('--danger').trim()
+        ];
+        const textColor = computedStyle.getPropertyValue('--text').trim();
+        const surfaceColor = computedStyle.getPropertyValue('--surface').trim();
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 
         this.charts.orderStatus = new Chart(ctx, {
             type: 'doughnut',
@@ -795,6 +1034,7 @@ class EnhancedAdminApp {
                 labels: labels,
                 datasets: [{
                     data: data,
+<<<<<<< HEAD
                     backgroundColor: palette,
                     hoverBackgroundColor: hoverPalette,
                     borderWidth: 3,
@@ -803,6 +1043,13 @@ class EnhancedAdminApp {
                     cutout: '65%',
                     borderRadius: 6,
                     spacing: 2
+=======
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 3,
+                    borderColor: surfaceColor,
+                    hoverBorderWidth: 4,
+                    hoverBorderColor: textColor
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                 }]
             },
             options: {
@@ -812,6 +1059,7 @@ class EnhancedAdminApp {
                     legend: {
                         position: 'bottom',
                         labels: {
+<<<<<<< HEAD
                             usePointStyle: true,
                             pointStyle: 'rectRounded',
                             padding: 15,
@@ -845,12 +1093,27 @@ class EnhancedAdminApp {
                     animateRotate: true,
                     animateScale: true,
                     duration: 1000
+=======
+                            color: textColor,
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: surfaceColor,
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: colors[0],
+                        borderWidth: 1
+                    }
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                 }
             }
         });
     }
 
     createTopItemsChart(topItems) {
+<<<<<<< HEAD
         const canvas = document.getElementById('topItemsChart');
         if (!canvas) return;
 
@@ -859,11 +1122,16 @@ class EnhancedAdminApp {
             console.warn('Unable to get context for top items chart');
             return;
         }
+=======
+        const ctx = document.getElementById('topItemsChart');
+        if (!ctx) return;
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 
         if (this.charts.topItems) {
             this.charts.topItems.destroy();
         }
 
+<<<<<<< HEAD
         const labels = topItems.map(item => item.name);
         const data = topItems.map(item => item.orders);
 
@@ -871,6 +1139,29 @@ class EnhancedAdminApp {
         const backgroundColors = this.generateChartPalette(labels.length);
         const borderColors = backgroundColors.map(color => this.adjustColor(color, -20));
         const hoverColors = backgroundColors.map(color => this.adjustColor(color, -10));
+=======
+        // Handle empty data
+        if (!topItems || topItems.length === 0) {
+            const parentElement = ctx.parentElement;
+            parentElement.innerHTML = `
+                <div class="empty-chart-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <p>No top selling items data</p>
+                    <small>Popular items will appear here</small>
+                </div>
+            `;
+            return;
+        }
+
+        const labels = topItems.map(item => item.name);
+        const data = topItems.map(item => item.orders || 0);
+
+        // Get CSS custom properties for theme-aware colors
+        const computedStyle = getComputedStyle(document.documentElement);
+        const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+        const textColor = computedStyle.getPropertyValue('--text').trim();
+        const borderColor = computedStyle.getPropertyValue('--border').trim();
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 
         this.charts.topItems = new Chart(ctx, {
             type: 'bar',
@@ -879,6 +1170,7 @@ class EnhancedAdminApp {
                 datasets: [{
                     label: 'Orders',
                     data: data,
+<<<<<<< HEAD
                     backgroundColor: backgroundColors,
                     borderColor: borderColors,
                     borderWidth: 2,
@@ -886,11 +1178,19 @@ class EnhancedAdminApp {
                     borderSkipped: false,
                     hoverBackgroundColor: hoverColors,
                     hoverBorderWidth: 3
+=======
+                    backgroundColor: primaryColor + '40',
+                    borderColor: primaryColor,
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false,
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+<<<<<<< HEAD
                 scales: {
                     x: {
                         grid: {
@@ -912,11 +1212,14 @@ class EnhancedAdminApp {
                         }
                     }
                 },
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                 plugins: {
                     legend: {
                         display: false
                     },
                     tooltip: {
+<<<<<<< HEAD
                         backgroundColor: chartTheme.tooltipBg,
                         titleColor: chartTheme.tooltipText,
                         bodyColor: chartTheme.tooltipSubtle,
@@ -990,10 +1293,27 @@ class EnhancedAdminApp {
                         },
                         ticks: {
                             color: chartTheme.textMuted
+=======
+                        backgroundColor: computedStyle.getPropertyValue('--surface').trim(),
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: primaryColor,
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: textColor
+                        },
+                        grid: {
+                            color: borderColor
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                         }
                     },
                     y: {
                         beginAtZero: true,
+<<<<<<< HEAD
                         grid: {
                             color: chartTheme.grid,
                             drawBorder: false
@@ -1020,6 +1340,15 @@ class EnhancedAdminApp {
                 animation: {
                     duration: 1000,
                     easing: 'easeOutQuart'
+=======
+                        ticks: {
+                            color: textColor
+                        },
+                        grid: {
+                            color: borderColor
+                        }
+                    }
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                 }
             }
         });
@@ -1083,8 +1412,13 @@ class EnhancedAdminApp {
                     </td>
                     <td>
                         <div class="date-info">
+<<<<<<< HEAD
                             <div>${new Date(order.created_at).toLocaleDateString()}</div>
                             <div class="text-muted">${new Date(order.created_at).toLocaleTimeString()}</div>
+=======
+                            <div>${this.formatDate(order.created_at)}</div>
+                            <div class="text-muted">${this.formatTime(order.created_at)}</div>
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                         </div>
                     </td>
                     <td>
@@ -1103,6 +1437,7 @@ class EnhancedAdminApp {
 
         // Setup order checkboxes
         this.setupOrderCheckboxes();
+<<<<<<< HEAD
         this.updateSelectAllState('orders');
     }
 
@@ -1145,6 +1480,17 @@ class EnhancedAdminApp {
                 subtotal
             };
         });
+=======
+    }
+
+    parseOrderItems(itemsString) {
+        try {
+            const parsed = JSON.parse(itemsString);
+            return parsed.items || [];
+        } catch {
+            return [];
+        }
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     }
 
     getStatusClass(status) {
@@ -1161,7 +1507,16 @@ class EnhancedAdminApp {
     setupOrderCheckboxes() {
         document.querySelectorAll('.order-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', () => {
+<<<<<<< HEAD
                 this.updateBulkOrderButton();
+=======
+                if (checkbox.checked) {
+                    this.selectedItems.add(checkbox.value);
+                } else {
+                    this.selectedItems.delete(checkbox.value);
+                }
+                this.updateBulkActionButtons();
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             });
         });
     }
@@ -1227,6 +1582,7 @@ class EnhancedAdminApp {
     // Menu Management
     async loadMenuData() {
         try {
+<<<<<<< HEAD
             console.log('Loading menu data...');
             
             // Initialize view button state
@@ -1265,10 +1621,22 @@ class EnhancedAdminApp {
         } else {
             toggleBtn.innerHTML = '<i class="fas fa-th"></i> Grid View';
             toggleBtn.title = 'Switch to Grid View';
+=======
+            const response = await fetch('/api/menu');
+            const menuItems = await response.json();
+
+            if (response.ok) {
+                this.renderMenuItems(menuItems);
+                this.populateMenuCategories(menuItems);
+            }
+        } catch (error) {
+            console.error('Menu data error:', error);
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
         }
     }
 
     renderMenuItems(menuItems) {
+<<<<<<< HEAD
         console.log('Rendering menu items:', menuItems.length);
         
         // Check if grid view is active by checking container visibility
@@ -1294,10 +1662,18 @@ class EnhancedAdminApp {
             // Hide grid view and show table view
             if (gridContainer) gridContainer.classList.add('hidden');
             if (tableContainer) tableContainer.classList.remove('hidden');
+=======
+        const isGridView = !document.getElementById('menuTableView').classList.contains('hidden');
+        
+        if (isGridView) {
+            this.renderMenuGrid(menuItems);
+        } else {
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             this.renderMenuTable(menuItems);
         }
     }
 
+<<<<<<< HEAD
     renderMenuTable(menuItems) {
         const tbody = document.getElementById('menuTableBody');
         if (!tbody) {
@@ -1371,6 +1747,8 @@ class EnhancedAdminApp {
         this.updateSelectAllState('menu');
     }
 
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     renderMenuGrid(menuItems) {
         const container = document.getElementById('menuGridView');
         if (!container) return;
@@ -1431,7 +1809,10 @@ class EnhancedAdminApp {
         }).join('');
 
         this.setupMenuCheckboxes();
+<<<<<<< HEAD
         this.updateSelectAllState('menu');
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     }
 
     populateMenuCategories(menuItems) {
@@ -1448,6 +1829,7 @@ class EnhancedAdminApp {
         document.querySelectorAll('.menu-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 this.updateBulkMenuButtons();
+<<<<<<< HEAD
                 this.updateSelectAllState('menu');
             });
         });
@@ -1458,6 +1840,8 @@ class EnhancedAdminApp {
             checkbox.addEventListener('change', () => {
                 this.updateBulkOrderButtons();
                 this.updateSelectAllState('orders');
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             });
         });
     }
@@ -1471,6 +1855,74 @@ class EnhancedAdminApp {
         }
     }
 
+<<<<<<< HEAD
+=======
+    renderMenuTable(menuItems) {
+        const tbody = document.getElementById('menuTableBody');
+        if (!tbody) return;
+
+        if (menuItems.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center">No menu items found</td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = menuItems.map(item => {
+            const lowStock = item.stock < this.lowStockThreshold;
+            const stockClass = lowStock ? 'low-stock' : (item.stock === 0 ? 'out-of-stock' : '');
+            
+            return `
+                <tr data-item-id="${item.id}">
+                    <td><input type="checkbox" class="menu-checkbox" value="${item.id}"></td>
+                    <td>
+                        <div class="menu-image">
+                            <img src="/static/images/${item.image}" alt="${item.name}" onerror="this.src='/static/images/placeholder.jpg'">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="menu-item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-category text-muted">${item.category}</div>
+                        </div>
+                    </td>
+                    <td>${item.category}</td>
+                    <td><strong>₹${item.price}</strong></td>
+                    <td>
+                        <span class="stock-info ${stockClass}">
+                            ${item.stock}
+                            ${lowStock ? '<i class="fas fa-exclamation-triangle warning-icon"></i>' : ''}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="availability-badge ${item.available ? 'available' : 'unavailable'}">
+                            ${item.available ? 'Available' : 'Unavailable'}
+                        </span>
+                        ${item.deliverable ? '<span class="deliverable-badge">Deliverable</span>' : ''}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="adminApp.editMenuItem(${item.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="adminApp.toggleMenuAvailability(${item.id})" title="Toggle Availability">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="adminApp.deleteMenuItem(${item.id})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        this.setupMenuCheckboxes();
+    }
+
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     // User Management
     async loadUsersData() {
         try {
@@ -1519,7 +1971,11 @@ class EnhancedAdminApp {
                         <span class="status-badge ${statusClass}">${user.status}</span>
                     </td>
                     <td>
+<<<<<<< HEAD
                         ${user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+=======
+                        ${this.formatDate(user.created_at)}
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -1541,14 +1997,20 @@ class EnhancedAdminApp {
         }).join('');
 
         this.setupUserCheckboxes();
+<<<<<<< HEAD
         this.updateSelectAllState('users');
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     }
 
     setupUserCheckboxes() {
         document.querySelectorAll('.user-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 this.updateBulkUserButtons();
+<<<<<<< HEAD
                 this.updateSelectAllState('users');
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             });
         });
     }
@@ -1566,6 +2028,7 @@ class EnhancedAdminApp {
         }
     }
 
+<<<<<<< HEAD
     // Select All Functions
     toggleSelectAllOrders(checked) {
         const orderCheckboxes = document.querySelectorAll('.order-checkbox');
@@ -1665,6 +2128,8 @@ class EnhancedAdminApp {
         this.loadMenuData();
     }
 
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     async approveUser(email) {
         try {
             const response = await fetch('/api/users/approve-audit', {
@@ -1790,6 +2255,7 @@ class EnhancedAdminApp {
         container.innerHTML = summaryCards;
     }
 
+<<<<<<< HEAD
     renderReportDetails(reportType, data) {
         const container = document.getElementById('reportData');
         
@@ -2027,6 +2493,8 @@ class EnhancedAdminApp {
         }
     }
 
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     // Audit Logs Management
     async loadAuditLogsData(page = 1) {
         try {
@@ -2094,6 +2562,7 @@ class EnhancedAdminApp {
             .replace(/\b\w/g, l => l.toUpperCase());
     }
 
+<<<<<<< HEAD
     renderAuditLogsPagination(pagination) {
         const paginationContainer = document.getElementById('auditLogsPagination');
         if (!paginationContainer || !pagination) return;
@@ -2162,6 +2631,8 @@ class EnhancedAdminApp {
         await this.loadAuditLogsData(1);
     }
 
+=======
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     // Utility Methods
     async refreshCurrentPage() {
         const refreshBtn = document.getElementById('refreshBtn');
@@ -2175,6 +2646,10 @@ class EnhancedAdminApp {
             await this.loadPageData(this.currentPage);
             this.showToast('Data refreshed successfully', 'success');
         } catch (error) {
+<<<<<<< HEAD
+=======
+            console.error('Error refreshing data:', error);
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
             this.showToast('Error refreshing data', 'error');
         } finally {
             if (icon) {
@@ -2183,6 +2658,34 @@ class EnhancedAdminApp {
         }
     }
 
+<<<<<<< HEAD
+=======
+    async loadPageData(page) {
+        switch (page) {
+            case 'dashboard':
+                await this.loadDashboardData();
+                break;
+            case 'orders':
+                await this.loadOrdersData();
+                break;
+            case 'menu':
+                await this.loadMenuData();
+                break;
+            case 'users':
+                await this.loadUsersData();
+                break;
+            case 'reports':
+                // Reports page doesn't need auto-refresh
+                break;
+            case 'audit-logs':
+                await this.loadAuditLogsData();
+                break;
+            default:
+                await this.loadDashboardData();
+        }
+    }
+
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     startClock() {
         const updateClock = () => {
             const now = new Date();
@@ -2203,6 +2706,7 @@ class EnhancedAdminApp {
     }
 
     startServerStatusCheck() {
+<<<<<<< HEAD
         let retryCount = 0;
         const maxRetries = 3;
         
@@ -2217,12 +2721,18 @@ class EnhancedAdminApp {
                 });
                 
                 clearTimeout(timeoutId);
+=======
+        const checkStatus = async () => {
+            try {
+                const response = await fetch('/api/dashboard/stats');
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
                 const statusDot = document.getElementById('statusDot');
                 const statusText = document.getElementById('statusText');
                 
                 if (response.ok) {
                     statusDot.className = 'status-dot online';
                     statusText.textContent = 'Online';
+<<<<<<< HEAD
                     retryCount = 0; // Reset retry count on success
                 } else {
                     throw new Error(`HTTP ${response.status}`);
@@ -2249,6 +2759,22 @@ class EnhancedAdminApp {
         
         // Check every 30 seconds
         setInterval(checkStatus, 30000);
+=======
+                } else {
+                    statusDot.className = 'status-dot offline';
+                    statusText.textContent = 'Issues';
+                }
+            } catch (error) {
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = 'Offline';
+            }
+        };
+
+        checkStatus();
+        setInterval(checkStatus, 30000); // Check every 30 seconds
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     }
 
     startDataRefresh() {
@@ -2318,6 +2844,7 @@ class EnhancedAdminApp {
             icon.className = 'fas fa-moon';
             localStorage.setItem('theme', 'light');
         }
+<<<<<<< HEAD
 
         this.refreshChartsTheme();
     }
@@ -2359,6 +2886,242 @@ class EnhancedAdminApp {
         }
 
         return metaLines.join('');
+=======
+        
+        // Re-render charts with new theme colors
+        setTimeout(() => {
+            this.updateCharts(this.currentChartData || {
+                sales_trend: [],
+                status_distribution: {},
+                top_items: []
+            });
+        }, 100);
+    }
+
+    toggleNotificationCenter() {
+        const notificationCenter = document.getElementById('notificationCenter');
+        if (notificationCenter) {
+            notificationCenter.classList.toggle('hidden');
+            if (!notificationCenter.classList.contains('hidden')) {
+                this.loadNotifications();
+            }
+        }
+    }
+
+    hideNotificationCenter() {
+        const notificationCenter = document.getElementById('notificationCenter');
+        if (notificationCenter) {
+            notificationCenter.classList.add('hidden');
+        }
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch('/api/notifications');
+            const notifications = await response.json();
+            
+            if (response.ok) {
+                this.renderNotifications(notifications);
+            }
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            this.renderNotifications([]);
+        }
+    }
+
+    renderNotifications(notifications) {
+        const notificationList = document.getElementById('notificationList');
+        if (!notificationList) return;
+
+        if (notifications.length === 0) {
+            notificationList.innerHTML = `
+                <div class="no-notifications">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No new notifications</p>
+                </div>
+            `;
+            return;
+        }
+
+        notificationList.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.type || 'info'}">
+                <div class="notification-icon">
+                    <i class="fas ${this.getNotificationIcon(notification.type)}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${new Date(notification.timestamp).toLocaleString()}</div>
+                </div>
+                ${notification.action ? `
+                    <div class="notification-action">
+                        <button class="btn btn-sm btn-primary" onclick="adminApp.handleNotificationAction('${notification.action}', '${notification.id}')">
+                            ${notification.actionText || 'View'}
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    getNotificationIcon(type) {
+        const icons = {
+            'warning': 'fa-exclamation-triangle',
+            'danger': 'fa-exclamation-circle',
+            'success': 'fa-check-circle',
+            'info': 'fa-info-circle',
+            'order': 'fa-shopping-cart',
+            'user': 'fa-user',
+            'stock': 'fa-box'
+        };
+        return icons[type] || 'fa-bell';
+    }
+
+    handleNotificationAction(action, notificationId) {
+        switch(action) {
+            case 'view_orders':
+                this.showPage('orders');
+                break;
+            case 'view_users':
+                this.showPage('users');
+                break;
+            case 'view_menu':
+                this.showPage('menu');
+                break;
+            default:
+                console.log('Unknown notification action:', action);
+        }
+        this.hideNotificationCenter();
+    }
+
+    // Utility functions for date formatting
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+            return date.toLocaleDateString();
+        } catch (error) {
+            return 'Invalid Date';
+        }
+    }
+
+    formatTime(dateString) {
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'Invalid Time';
+            }
+            return date.toLocaleTimeString();
+        } catch (error) {
+            return 'Invalid Time';
+        }
+    }
+
+    formatDateTime(dateString) {
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+            return date.toLocaleString();
+        } catch (error) {
+            return 'Invalid Date';
+        }
+    }
+
+    // Filter Functions
+    filterOrders() {
+        const searchTerm = document.getElementById('orderSearch')?.value.toLowerCase() || '';
+        const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
+        const dateFrom = document.getElementById('orderDateFrom')?.value || '';
+        const dateTo = document.getElementById('orderDateTo')?.value || '';
+
+        const rows = document.querySelectorAll('#ordersTableBody tr');
+        
+        rows.forEach(row => {
+            const customerName = row.querySelector('.customer-name')?.textContent.toLowerCase() || '';
+            const customerEmail = row.querySelector('.customer-email')?.textContent.toLowerCase() || '';
+            const status = row.querySelector('.status-badge')?.textContent || '';
+            const orderDate = row.querySelector('.date-info div')?.textContent || '';
+
+            const matchesSearch = customerName.includes(searchTerm) || 
+                                customerEmail.includes(searchTerm) ||
+                                row.querySelector('td:nth-child(2)')?.textContent.toLowerCase().includes(searchTerm);
+            
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            let matchesDate = true;
+            if (dateFrom || dateTo) {
+                const rowDate = new Date(orderDate);
+                if (dateFrom && rowDate < new Date(dateFrom)) matchesDate = false;
+                if (dateTo && rowDate > new Date(dateTo)) matchesDate = false;
+            }
+
+            row.style.display = (matchesSearch && matchesStatus && matchesDate) ? '' : 'none';
+        });
+    }
+
+    filterMenu() {
+        const searchTerm = document.getElementById('menuSearch')?.value.toLowerCase() || '';
+        const categoryFilter = document.getElementById('menuCategoryFilter')?.value || '';
+        const stockFilter = document.getElementById('menuStockFilter')?.value || '';
+
+        const items = document.querySelectorAll('.menu-card, #menuTableBody tr');
+        
+        items.forEach(item => {
+            const name = item.querySelector('.menu-card-title, .item-name')?.textContent.toLowerCase() || '';
+            const category = item.querySelector('.menu-card-category, .item-category')?.textContent || '';
+            const stockText = item.querySelector('.stock, .stock-info')?.textContent || '';
+            const stock = parseInt(stockText.match(/\d+/)?.[0] || '0');
+
+            const matchesSearch = name.includes(searchTerm) || category.toLowerCase().includes(searchTerm);
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            
+            let matchesStock = true;
+            if (stockFilter === 'low') matchesStock = stock < this.lowStockThreshold;
+            else if (stockFilter === 'out') matchesStock = stock === 0;
+            else if (stockFilter === 'available') matchesStock = stock > 0;
+
+            item.style.display = (matchesSearch && matchesCategory && matchesStock) ? '' : 'none';
+        });
+    }
+
+    filterUsers() {
+        const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
+        const roleFilter = document.getElementById('userRoleFilter')?.value || '';
+        const statusFilter = document.getElementById('userStatusFilter')?.value || '';
+
+        const rows = document.querySelectorAll('#usersTableBody tr');
+        
+        rows.forEach(row => {
+            const name = row.querySelector('.user-name')?.textContent.toLowerCase() || '';
+            const email = row.querySelector('.user-email')?.textContent.toLowerCase() || '';
+            const role = row.querySelector('.role-badge')?.textContent || '';
+            const status = row.querySelector('.status-badge')?.textContent || '';
+
+            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            const matchesRole = !roleFilter || role === roleFilter;
+            const matchesStatus = !statusFilter || status === statusFilter;
+
+            row.style.display = (matchesSearch && matchesRole && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    clearOrderFilters() {
+        document.getElementById('orderSearch').value = '';
+        document.getElementById('orderStatusFilter').value = '';
+        document.getElementById('orderDateFrom').value = '';
+        document.getElementById('orderDateTo').value = '';
+        this.filterOrders();
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     }
 
     handleLogout() {
@@ -2371,6 +3134,101 @@ class EnhancedAdminApp {
         }
     }
 
+<<<<<<< HEAD
+=======
+    // Bulk Operations
+    toggleSelectAllOrders(checked) {
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+        
+        this.selectedItems.clear();
+        if (checked) {
+            checkboxes.forEach(checkbox => {
+                this.selectedItems.add(checkbox.value);
+            });
+        }
+        
+        this.updateBulkActionButtons();
+    }
+
+    updateBulkActionButtons() {
+        const bulkBtn = document.getElementById('bulkOrderActionBtn');
+        const selectedCount = this.selectedItems.size;
+        
+        if (bulkBtn) {
+            bulkBtn.style.display = selectedCount > 0 ? 'block' : 'none';
+            bulkBtn.textContent = `Bulk Update (${selectedCount} selected)`;
+        }
+    }
+
+    showBulkOrderStatusModal() {
+        if (this.selectedItems.size === 0) {
+            this.showToast('No orders selected', 'warning');
+            return;
+        }
+
+        const modalContent = `
+            <div class="bulk-status-modal">
+                <div class="modal-header">
+                    <h3>Update Order Status</h3>
+                    <p>Selected: ${this.selectedItems.size} orders</p>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="bulkStatusSelect">New Status:</label>
+                        <select id="bulkStatusSelect" class="form-control">
+                            <option value="Order Received">Order Received</option>
+                            <option value="Preparing">Preparing</option>
+                            <option value="Ready for Pickup">Ready for Pickup</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="adminApp.hideModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="adminApp.executeBulkStatusUpdate()">Update Orders</button>
+                </div>
+            </div>
+        `;
+
+        this.showModal('Bulk Update Orders', modalContent);
+    }
+
+    async executeBulkStatusUpdate() {
+        const status = document.getElementById('bulkStatusSelect').value;
+        const orderIds = Array.from(this.selectedItems);
+
+        try {
+            const response = await fetch('/api/orders/bulk-update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    order_ids: orderIds,
+                    status: status
+                })
+            });
+
+            if (response.ok) {
+                this.showToast(`${orderIds.length} orders updated successfully`, 'success');
+                this.hideModal();
+                this.selectedItems.clear();
+                await this.loadOrdersData();
+                this.updateBulkActionButtons();
+            } else {
+                throw new Error('Failed to update orders');
+            }
+        } catch (error) {
+            console.error('Bulk update error:', error);
+            this.showToast('Error updating orders', 'error');
+        }
+    }
+
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
     // Export Functions
     async exportOrders() {
         try {
@@ -2472,6 +3330,7 @@ class EnhancedAdminApp {
         }
     }
 
+<<<<<<< HEAD
     // Order Management Functions
     async showOrderDetails(orderId) {
         try {
@@ -3293,6 +4152,49 @@ class EnhancedAdminApp {
         );
         this.updateNotificationBadge(updatedNotifications);
     }
+=======
+    // Chart export functionality
+    exportChart(chartType, chartName) {
+        try {
+            const chart = this.charts[chartType];
+            if (!chart) {
+                this.showToast(`${chartName} chart not available for export`, 'warning');
+                return;
+            }
+
+            // Create a temporary canvas to render the chart
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Fill with background color
+            const computedStyle = getComputedStyle(document.documentElement);
+            const bgColor = computedStyle.getPropertyValue('--surface').trim();
+            ctx.fillStyle = bgColor || '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Get chart image
+            const chartCanvas = chart.canvas;
+            const chartImage = chartCanvas.toDataURL('image/png');
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = chartImage;
+            link.download = `${chartName.toLowerCase().replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.showToast(`${chartName} exported successfully`, 'success');
+        } catch (error) {
+            console.error('Chart export error:', error);
+            this.showToast(`Error exporting ${chartName}`, 'error');
+        }
+    }
+>>>>>>> c2b106b4db9515a14f54fbcdc17e2871fcfd4390
 }
 
 // Initialize the Enhanced Admin App
