@@ -2427,6 +2427,113 @@ class EnhancedAdminApp {
         }
     }
 
+    // Filter Functions
+    filterMenu() {
+        const searchTerm = document.getElementById('menuSearch')?.value.toLowerCase() || '';
+        const categoryFilter = document.getElementById('menuCategoryFilter')?.value || '';
+        const stockFilter = document.getElementById('menuStockFilter')?.value || '';
+
+        console.log('Filtering menu:', { searchTerm, categoryFilter, stockFilter });
+
+        // Filter grid view items
+        const gridItems = document.querySelectorAll('.menu-card');
+        gridItems.forEach(item => {
+            const name = item.querySelector('.menu-card-title')?.textContent.toLowerCase() || '';
+            const category = item.querySelector('.menu-card-category')?.textContent || '';
+            const stockText = item.querySelector('.stock')?.textContent || '';
+            const stock = parseInt(stockText.match(/\d+/)?.[0] || '0');
+
+            const matchesSearch = name.includes(searchTerm) || category.toLowerCase().includes(searchTerm);
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            
+            let matchesStock = true;
+            if (stockFilter === 'low') matchesStock = stock < this.lowStockThreshold;
+            else if (stockFilter === 'out') matchesStock = stock === 0;
+            else if (stockFilter === 'in') matchesStock = stock > 0;
+
+            item.style.display = (matchesSearch && matchesCategory && matchesStock) ? '' : 'none';
+        });
+
+        // Filter table view items
+        const tableRows = document.querySelectorAll('#menuTableBody tr');
+        tableRows.forEach(row => {
+            const name = row.querySelector('.item-name')?.textContent.toLowerCase() || '';
+            const category = row.cells[3]?.textContent || ''; // Category is in 4th column
+            const stockText = row.querySelector('.stock-number')?.textContent || '';
+            const stock = parseInt(stockText || '0');
+
+            const matchesSearch = name.includes(searchTerm) || category.toLowerCase().includes(searchTerm);
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            
+            let matchesStock = true;
+            if (stockFilter === 'low') matchesStock = stock < this.lowStockThreshold;
+            else if (stockFilter === 'out') matchesStock = stock === 0;
+            else if (stockFilter === 'in') matchesStock = stock > 0;
+
+            row.style.display = (matchesSearch && matchesCategory && matchesStock) ? '' : 'none';
+        });
+    }
+
+    filterOrders() {
+        const searchTerm = document.getElementById('orderSearch')?.value.toLowerCase() || '';
+        const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
+        const fromDate = document.getElementById('orderDateFrom')?.value || '';
+        const toDate = document.getElementById('orderDateTo')?.value || '';
+
+        console.log('Filtering orders:', { searchTerm, statusFilter, fromDate, toDate });
+
+        const tableRows = document.querySelectorAll('#ordersTableBody tr');
+        tableRows.forEach(row => {
+            const orderId = row.cells[0]?.textContent.toLowerCase() || '';
+            const customerName = row.cells[1]?.textContent.toLowerCase() || '';
+            const status = row.cells[2]?.textContent || '';
+            const orderDate = row.cells[4]?.textContent || '';
+
+            const matchesSearch = orderId.includes(searchTerm) || customerName.includes(searchTerm);
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            let matchesDate = true;
+            if (fromDate && toDate) {
+                const orderDateObj = new Date(orderDate);
+                const fromDateObj = new Date(fromDate);
+                const toDateObj = new Date(toDate);
+                matchesDate = orderDateObj >= fromDateObj && orderDateObj <= toDateObj;
+            }
+
+            row.style.display = (matchesSearch && matchesStatus && matchesDate) ? '' : 'none';
+        });
+    }
+
+    filterUsers() {
+        const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
+        const roleFilter = document.getElementById('userRoleFilter')?.value || '';
+        const statusFilter = document.getElementById('userStatusFilter')?.value || '';
+
+        console.log('Filtering users:', { searchTerm, roleFilter, statusFilter });
+
+        const tableRows = document.querySelectorAll('#usersTableBody tr');
+        tableRows.forEach(row => {
+            const username = row.cells[1]?.textContent.toLowerCase() || '';
+            const email = row.cells[2]?.textContent.toLowerCase() || '';
+            const role = row.cells[3]?.textContent || '';
+            const status = row.cells[4]?.textContent || '';
+
+            const matchesSearch = username.includes(searchTerm) || email.includes(searchTerm);
+            const matchesRole = !roleFilter || role === roleFilter;
+            const matchesStatus = !statusFilter || status === statusFilter;
+
+            row.style.display = (matchesSearch && matchesRole && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    clearOrderFilters() {
+        document.getElementById('orderSearch').value = '';
+        document.getElementById('orderStatusFilter').value = '';
+        document.getElementById('orderDateFrom').value = '';
+        document.getElementById('orderDateTo').value = '';
+        this.filterOrders();
+    }
+
     async deleteMenuItem(itemId) {
         if (!confirm('Are you sure you want to delete this menu item?')) {
             return;
