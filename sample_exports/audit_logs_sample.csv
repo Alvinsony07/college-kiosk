@@ -1,0 +1,11 @@
+Log ID,Admin Email,Action,Target,Details,Timestamp
+1,kioskadmin@saintgits.org,APPROVE_USER,john.doe@saintgits.org,Approved with role: user,2024-01-10 14:35:00
+2,kioskadmin@saintgits.org,UPDATE_MENU_ITEM,Chicken Sandwich,Menu item updated,2024-01-11 09:15:00
+3,kioskadmin@saintgits.org,UPDATE_ORDER_STATUS,Order #1 (John Doe),Changed from Order Received to Preparing,2024-01-15 10:45:00
+4,kioskadmin@saintgits.org,UPDATE_ORDER_STATUS,Order #1 (John Doe),Changed from Preparing to Ready for Pickup,2024-01-15 11:00:00
+5,kioskadmin@saintgits.org,UPDATE_ORDER_STATUS,Order #1 (John Doe),Changed from Ready for Pickup to Completed,2024-01-15 11:15:00
+6,kioskadmin@saintgits.org,APPROVE_USER,jane.smith@saintgits.org,Approved with role: user,2024-01-12 09:20:00
+7,kioskadmin@saintgits.org,DELETE_MENU_ITEM,Old Menu Item,Menu item deleted,2024-01-12 14:30:00
+8,kioskadmin@saintgits.org,BULK_UPDATE_ORDER_STATUS,Order #2 (Jane Smith),Updated to Ready for Pickup,2024-01-15 11:30:00
+9,kioskadmin@saintgits.org,UPDATE_MENU_ITEM,Vada Pav,Menu item updated,2024-01-13 16:20:00
+10,kioskadmin@saintgits.org,APPROVE_USER,lisa.g@saintgits.org,Approved with role: staff,2024-01-11 13:05:00

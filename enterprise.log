@@ -1,0 +1,599 @@
+2025-10-01 16:55:12,162 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 16:55:12,174 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 16:55:12,175 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 16:55:12,176 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 16:55:14,234 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 16:55:14,236 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 16:55:14,239 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 16:55:19,362 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,363 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/users HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,365 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/orders HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,370 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,374 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/users HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/notifications HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,382 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/orders HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,384 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:55:19,449 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,466 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,485 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,501 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,517 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,533 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,549 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,572 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:55:19,588 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:55:19] "[35m[1mGET /api/dashboard/stats HTTP/1.1[0m" 500 -
+2025-10-01 16:57:41,105 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 16:57:41,115 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 16:57:41,115 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 16:57:41,116 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 16:57:43,123 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 16:57:43,125 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 16:57:43,128 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 16:58:19,372 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,378 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/users HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,386 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/orders HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,391 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/notifications HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/users HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/orders HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,404 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,412 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,415 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,421 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/menu HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/orders?limit=5 HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,430 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,436 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,444 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,449 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/orders?limit=5 HTTP/1.1[0m" 404 -
+2025-10-01 16:58:19,454 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,461 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,468 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:58:19,477 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:58:19] "[33mGET /api/orders?limit=5 HTTP/1.1[0m" 404 -
+2025-10-01 16:59:03,047 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 16:59:03,329 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 16:59:05,417 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 16:59:05,419 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 16:59:05,423 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 16:59:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 16:59:19,388 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 16:59:19,391 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 16:59:19,392 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,447 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 16:59:19,457 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 16:59:19,458 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,459 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 16:59:19,467 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 16:59:19,474 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 16:59:19,476 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,490 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 16:59:19,492 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,503 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 16:59:19,504 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 16:59:19,506 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,514 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 16:59:19,516 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,524 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,534 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,545 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 16:59:19,559 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 16:59:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 16:59:37,695 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 16:59:37,990 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 16:59:40,084 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 16:59:40,086 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 16:59:40,089 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 17:00:19,375 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,378 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:00:19,383 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 17:00:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 17:00:19,395 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:00:19,398 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 17:00:19,398 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 17:00:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:00:19,413 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,414 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 17:00:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:00:19,425 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,431 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:00:19,437 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:00:19,438 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,447 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:00:19,449 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,455 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,461 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,468 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:00:19,478 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:00:37,105 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 17:00:37,449 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 17:00:39,911 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:00:39,914 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 17:00:39,919 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 17:00:40,401 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:40] "[33mGET /admin HTTP/1.1[0m" 404 -
+2025-10-01 17:00:52,403 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:00:52,418 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 17:00:52,419 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 17:00:52,419 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 17:00:54,778 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:00:54,780 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 17:00:54,783 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 17:00:58,163 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:00:58] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 17:01:07,848 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:01:07] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:01:07,853 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:01:07] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:01:07,862 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:01:07] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:02:24,459 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:02:24,472 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 17:02:24,473 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 17:02:24,473 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 17:02:26,844 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:02:26,846 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 17:02:26,849 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 17:02:27,213 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:02:27,216 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:02:27,220 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:02:27,225 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:02:27,229 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:02:27,230 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:02:27,236 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:02:27] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:06,025 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:03:06,037 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 17:03:06,037 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 17:03:06,038 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 17:03:08,189 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 17:03:08,191 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 17:03:08,193 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 17:03:15,785 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:15] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 17:03:18,301 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:18] "POST /api/login HTTP/1.1" 200 -
+2025-10-01 17:03:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:03:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 17:03:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 17:03:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 17:03:19,392 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 17:03:19,395 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:03:19,398 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 17:03:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:03:19,409 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,411 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:03:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 17:03:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,426 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,433 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:03:19,435 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,443 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 17:03:19,454 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 17:03:25,191 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 17:03:25] "[33mGET /admin HTTP/1.1[0m" 404 -
+2025-10-01 18:01:05,338 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:01:05,360 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 18:01:05,360 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 18:01:05,361 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:01:07,371 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:01:07,377 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:01:07,381 - werkzeug - INFO -  * Debugger PIN: 272-732-931
+2025-10-01 18:01:21,603 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:01:21,623 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 18:01:21,623 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 18:01:21,623 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:01:23,977 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:01:23,982 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:01:23,985 - werkzeug - INFO -  * Debugger PIN: 272-732-931
+2025-10-01 18:01:24,167 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:01:24,168 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:01:24,169 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:01:24,171 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:01:24,172 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:01:24,177 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:01:24,178 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:01:24,180 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:01:24,183 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:01:24,185 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:01:24,189 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:01:24,194 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:01:24,200 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:01:24,202 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:24] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:01:30,110 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:30] "[33mGET /admin HTTP/1.1[0m" 404 -
+2025-10-01 18:01:35,915 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:35] "[33mGET /api/docs HTTP/1.1[0m" 404 -
+2025-10-01 18:01:43,431 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:01:43] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 18:02:14,628 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:14] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 18:02:19,371 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:02:19,374 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:02:19,376 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:02:19,388 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:02:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:02:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:02:19,415 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:02:19,426 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:02:19,438 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,451 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:02:19,458 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:02:19,464 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,481 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,491 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,503 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,504 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:02:19,523 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:02:19,533 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:02:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:03:19,372 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,373 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:03:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:03:19,381 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,382 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:03:19,390 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:03:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:03:19,400 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:03:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:03:19,405 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:03:19,410 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,413 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:03:19,421 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:03:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,426 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:03:19,433 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,440 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,449 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:03:19,461 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:03:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:03:22,616 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 18:03:23,024 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:03:25,497 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:03:25,501 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:03:25,504 - werkzeug - INFO -  * Debugger PIN: 272-732-931
+2025-10-01 18:04:19,378 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:04:19,383 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:04:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:04:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,404 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:04:19,411 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:04:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:04:19,430 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:04:19,438 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,454 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:04:19,456 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,469 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:04:19,485 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,494 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:04:19,501 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,516 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,530 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:04:19,533 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:04:19,559 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:04:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:05:19,368 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,374 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:05:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:05:19,381 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:05:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:05:19,404 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,405 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:05:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,432 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,448 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,474 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:19,477 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:05:19,495 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:05:19,500 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:05:19,504 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:05:19,506 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:05:19,514 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:05:19,528 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:19] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:05:28,052 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 18:05:28,611 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:05:31,400 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:05:31,406 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:05:31,409 - werkzeug - INFO -  * Debugger PIN: 272-732-931
+2025-10-01 18:05:36,811 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:36] "GET /admin HTTP/1.1" 200 -
+2025-10-01 18:05:36,978 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:36] "GET /admin.css HTTP/1.1" 200 -
+2025-10-01 18:05:37,182 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:37] "GET /admin.js HTTP/1.1" 200 -
+2025-10-01 18:05:37,946 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:37] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:38,254 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:38] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:38,568 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:38] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:05:38,829 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:38] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:05:38,886 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:38] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:05:54,037 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:05:54] "GET /api/docs HTTP/1.1" 200 -
+2025-10-01 18:06:08,672 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:08] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:10,922 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:10] "[36mGET /admin HTTP/1.1[0m" 304 -
+2025-10-01 18:06:11,277 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:11] "[36mGET /admin.css HTTP/1.1[0m" 304 -
+2025-10-01 18:06:11,278 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:11] "[36mGET /admin.js HTTP/1.1[0m" 304 -
+2025-10-01 18:06:11,542 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:11] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:11,851 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:11] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:12,177 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:12] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:06:12,420 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:12] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:12,493 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:12] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:06:17,704 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:17] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:18,036 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:18] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:06:19,376 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:06:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:06:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:06:19,394 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:06:19,395 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:06:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:19,398 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:06:19,413 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:06:19,417 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:06:19,419 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:19,434 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:19,435 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:06:19,442 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:06:38,384 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:38] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:06:41,856 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:06:41] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:08,364 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:08] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:11,861 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:11] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:12,127 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:12] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:12,176 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:12] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:07:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:07:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:07:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:07:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:07:19,405 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:07:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:07:19,410 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:07:19,413 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:07:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:19,425 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:07:19,428 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:19,436 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:07:38,357 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:38] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:07:41,856 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:07:41] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:08,368 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:08] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:12,665 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:12] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:19,367 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:08:19,369 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:08:19,373 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:08:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:08:19,381 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:08:19,384 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:08:19,390 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:08:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:19,400 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:08:19,407 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:08:19,416 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:08:38,359 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:38] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:08:42,668 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:08:42] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:09:12,372 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:12] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:09:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:09:19,381 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:09:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:09:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:09:19,394 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:09:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:09:19,403 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:09:19,403 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:09:19,405 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:09:19,416 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:09:19,417 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:09:19,425 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:09:19,427 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:09:19,688 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:09:42,366 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:09:42] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:10:12,672 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:12] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:10:19,366 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:10:19,372 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:10:19,372 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:10:19,376 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:10:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:10:19,388 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:10:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:10:19,390 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:10:19,392 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:10:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:10:19,404 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:10:19,407 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:10:19,413 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:10:19,420 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:10:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:11:19,372 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:11:19,373 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:11:19,374 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:11:19,380 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:11:19,388 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:11:19,392 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:11:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:11:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:11:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:11:19,407 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:11:19,412 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:11:19,417 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:11:19,427 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:11:19,684 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:11:19,943 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:11:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:11:44,217 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 18:11:44,613 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:11:46,770 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:11:46,774 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:11:46,776 - werkzeug - INFO -  * Debugger PIN: 272-732-931
+2025-10-01 18:12:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:12:19,391 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:12:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:12:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:12:19,403 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:12:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:12:19,409 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:12:19,425 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:12:19,428 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:12:19,435 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:12:19,439 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:12:19,443 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:12:19,453 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:12:19,685 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:12:19,938 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:12:54,558 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Alvin Sony\\Desktop\\colege kiosk with blue white theme\\college-kiosk\\college-kiosk\\backend\\app.py', reloading
+2025-10-01 18:12:55,035 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:12:58,052 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:12:58,056 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:12:58,059 - werkzeug - INFO -  * Debugger PIN: 272-732-931
+2025-10-01 18:12:58,229 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:12:58] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 18:13:19,368 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:13:19,369 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:13:19,370 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:13:19,371 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:13:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:13:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:13:19,383 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:13:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:13:19,390 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:13:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:13:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:13:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:13:19,403 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:13:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:13:19,682 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:13:31,097 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:13:31,110 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.115.29.245:5000
+2025-10-01 18:13:31,110 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-01 18:13:31,110 - werkzeug - INFO -  * Restarting with stat
+2025-10-01 18:13:33,461 - __main__ - INFO - Enterprise database initialized successfully
+2025-10-01 18:13:33,463 - werkzeug - WARNING -  * Debugger is active!
+2025-10-01 18:13:33,466 - werkzeug - INFO -  * Debugger PIN: 620-713-752
+2025-10-01 18:13:36,583 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:36] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 18:13:46,722 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:13:46] "[31m[1mPOST /api/login HTTP/1.1[0m" 401 -
+2025-10-01 18:14:06,526 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:06] "[36mGET / HTTP/1.1[0m" 304 -
+2025-10-01 18:14:19,384 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:14:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:14:19,386 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:14:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:14:19,391 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:14:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:14:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:14:19,406 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:14:19,409 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:14:19,414 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:14:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:14:19,424 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:14:19,426 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:14:19,433 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:14:19,697 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:14:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:15:19,373 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:15:19,378 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:15:19,394 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:15:19,394 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:15:19,395 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:15:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:15:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:15:19,407 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:15:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:15:19,410 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:15:19,417 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:15:19,418 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:15:19,424 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:15:19,679 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:15:19,938 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:15:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:16:19,367 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:16:19,368 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:16:19,370 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:16:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:16:19,378 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:16:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:16:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:16:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:16:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:16:19,391 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:16:19,392 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:16:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:16:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:16:19,402 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:16:19,681 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:16:34,028 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:34] "GET / HTTP/1.1" 200 -
+2025-10-01 18:16:45,790 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:16:45] "POST /api/login HTTP/1.1" 200 -
+2025-10-01 18:17:19,368 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:17:19,369 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:17:19,373 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:17:19,375 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:17:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:17:19,381 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:17:19,386 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:17:19,387 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:17:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:17:19,394 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:17:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:17:19,401 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:17:19,403 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:17:19,670 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:17:19,919 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:17:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:18:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:18:19,384 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:18:19,388 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:18:19,394 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:18:19,395 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:18:19,397 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:18:19,405 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:18:19,410 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:18:19,412 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:18:19,416 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:18:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:18:19,429 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:18:19,429 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:18:19,437 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:18:19,712 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:18:52,333 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:52] "POST /api/login HTTP/1.1" 200 -
+2025-10-01 18:18:54,902 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:18:54] "GET / HTTP/1.1" 200 -
+2025-10-01 18:19:09,616 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:09] "POST /api/login HTTP/1.1" 200 -
+2025-10-01 18:19:10,251 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:10] "[36mGET /admin HTTP/1.1[0m" 304 -
+2025-10-01 18:19:10,613 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:10] "[36mGET /admin.css HTTP/1.1[0m" 304 -
+2025-10-01 18:19:10,614 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:10] "[36mGET /admin.js HTTP/1.1[0m" 304 -
+2025-10-01 18:19:10,885 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:10] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:11,113 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:11] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:11,195 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:11] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:19:11,435 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:11] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:11,521 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:11] "GET /api/orders?limit=5 HTTP/1.1" 200 -
+2025-10-01 18:19:19,381 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:19:19,385 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:19:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:19:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:19,396 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:19:19,399 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:19,400 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:19:19,408 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:19:19,411 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:19:19,424 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:19:19,426 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:19,436 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:19:19,442 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:19,449 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:19:19,714 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:19:41,677 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:19:41] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:20:11,361 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:11] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:20:19,377 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:20:19,379 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:20:19,389 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:20:19,393 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:20:19,398 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:20:19,400 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/notifications HTTP/1.1" 200 -
+2025-10-01 18:20:19,404 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:20:19,409 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/users HTTP/1.1" 200 -
+2025-10-01 18:20:19,421 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/orders HTTP/1.1" 200 -
+2025-10-01 18:20:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:20:19,424 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:20:19,432 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:20:19,442 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/menu HTTP/1.1" 200 -
+2025-10-01 18:20:19,694 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
+2025-10-01 18:20:19,960 - werkzeug - INFO - 127.0.0.1 - - [01/Oct/2025 18:20:19] "GET /api/dashboard/stats HTTP/1.1" 200 -
