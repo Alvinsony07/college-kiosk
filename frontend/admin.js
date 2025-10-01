@@ -246,11 +246,22 @@ class EnhancedAdminApp {
             pageElement.classList.remove('hidden');
         }
 
-        // Update navigation
+        // Update navigation and ARIA states
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.dataset.page === page) {
-                item.classList.add('active');
+            const isActive = item.dataset.page === page;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-pressed', isActive.toString());
+            
+            // Update aria-label for active page
+            if (isActive) {
+                const originalLabel = item.getAttribute('aria-label') || item.textContent.trim();
+                if (!originalLabel.includes('Current page')) {
+                    item.setAttribute('aria-label', `${originalLabel} - Current page`);
+                }
+            } else {
+                // Remove "Current page" from aria-label
+                const currentLabel = item.getAttribute('aria-label') || '';
+                item.setAttribute('aria-label', currentLabel.replace(' - Current page', ''));
             }
         });
 
@@ -301,26 +312,41 @@ class EnhancedAdminApp {
         try {
             console.log('Loading dashboard data...');
             const response = await fetch('/api/dashboard/stats');
-            const data = await response.json();
-
-            console.log('Dashboard response:', response.ok, data);
             
-            if (response.ok) {
-                this.updateKPICards(data.kpi);
-                this.updateCharts(data.charts);
-                await this.updateRecentOrders();
-                this.updateNotificationBadges(data.kpi);
-                console.log('Dashboard data loaded successfully');
-            } else {
-                console.error('Dashboard API error:', data);
-                this.showToast('Failed to load dashboard data', 'error');
-                // Load fallback data
-                this.loadFallbackDashboardData();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+            
+            const data = await response.json();
+            console.log('Dashboard response:', data);
+            
+            this.updateKPICards(data.kpi || {});
+            this.updateCharts(data.charts || {});
+            this.updateNotificationBadges(data.kpi || {});
+            
+            // Load other dashboard components in parallel
+            const [ordersResult, notificationsResult, chartsResult] = await Promise.allSettled([
+                this.updateRecentOrders(),
+                this.loadNotifications(),
+                this.loadChartsData()
+            ]);
+            
+            // Log any failures but don't stop execution
+            if (ordersResult.status === 'rejected') {
+                console.warn('Failed to load recent orders:', ordersResult.reason);
+            }
+            if (notificationsResult.status === 'rejected') {
+                console.warn('Failed to load notifications:', notificationsResult.reason);
+            }
+            if (chartsResult.status === 'rejected') {
+                console.warn('Failed to load charts:', chartsResult.reason);
+            }
+            
+            console.log('Dashboard data loaded successfully');
+            
         } catch (error) {
             console.error('Dashboard data error:', error);
-            this.showToast('Error loading dashboard data', 'error');
-            // Load fallback data
+            this.showToast('Failed to load dashboard data', 'error');
             this.loadFallbackDashboardData();
         }
     }
@@ -2018,29 +2044,52 @@ class EnhancedAdminApp {
     }
 
     startServerStatusCheck() {
+        let retryCount = 0;
+        const maxRetries = 3;
+        
         const checkStatus = async () => {
             try {
-                const response = await fetch('/api/dashboard/stats');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const response = await fetch('/api/dashboard/stats', {
+                    signal: controller.signal,
+                    method: 'HEAD' // Use HEAD for lighter requests
+                });
+                
+                clearTimeout(timeoutId);
                 const statusDot = document.getElementById('statusDot');
                 const statusText = document.getElementById('statusText');
                 
                 if (response.ok) {
                     statusDot.className = 'status-dot online';
                     statusText.textContent = 'Online';
+                    retryCount = 0; // Reset retry count on success
                 } else {
-                    statusDot.className = 'status-dot offline';
-                    statusText.textContent = 'Issues';
+                    throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
+                retryCount++;
                 const statusDot = document.getElementById('statusDot');
                 const statusText = document.getElementById('statusText');
-                statusDot.className = 'status-dot offline';
-                statusText.textContent = 'Offline';
+                
+                if (retryCount >= maxRetries) {
+                    statusDot.className = 'status-dot offline';
+                    statusText.textContent = 'Offline';
+                    statusDot.title = `Server Offline (${error.message})`;
+                } else {
+                    statusDot.className = 'status-dot warning';
+                    statusText.textContent = 'Issues';
+                    statusDot.title = `Connection issues (Retry ${retryCount}/${maxRetries})`;
+                }
             }
         };
-
+        
+        // Initial check
         checkStatus();
-        setInterval(checkStatus, 30000); // Check every 30 seconds
+        
+        // Check every 30 seconds
+        setInterval(checkStatus, 30000);
     }
 
     startDataRefresh() {
@@ -2534,6 +2583,46 @@ class EnhancedAdminApp {
         this.filterOrders();
     }
 
+    filterAuditLogs() {
+        const searchTerm = document.getElementById('auditLogSearch')?.value.toLowerCase() || '';
+        const actionFilter = document.getElementById('auditActionFilter')?.value || '';
+        const fromDate = document.getElementById('auditDateFrom')?.value || '';
+        const toDate = document.getElementById('auditDateTo')?.value || '';
+
+        console.log('Filtering audit logs:', { searchTerm, actionFilter, fromDate, toDate });
+
+        const tableRows = document.querySelectorAll('#auditLogsTableBody tr');
+        tableRows.forEach(row => {
+            const action = row.cells[1]?.textContent || '';
+            const admin = row.cells[2]?.textContent.toLowerCase() || '';
+            const details = row.cells[3]?.textContent.toLowerCase() || '';
+            const timestamp = row.cells[4]?.textContent || '';
+
+            const matchesSearch = admin.includes(searchTerm) || details.includes(searchTerm);
+            const matchesAction = !actionFilter || action === actionFilter;
+            
+            let matchesDate = true;
+            if (fromDate && toDate) {
+                const logDate = new Date(timestamp);
+                const fromDateObj = new Date(fromDate);
+                const toDateObj = new Date(toDate);
+                matchesDate = logDate >= fromDateObj && logDate <= toDateObj;
+            }
+
+            row.style.display = (matchesSearch && matchesAction && matchesDate) ? '' : 'none';
+        });
+    }
+
+    clearReportData() {
+        const reportResults = document.getElementById('reportResults');
+        if (reportResults) {
+            reportResults.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i><h3>No Report Generated</h3><p>Select a report type and date range, then click Generate Report.</p></div>';
+        }
+        
+        document.getElementById('exportReportBtn').disabled = true;
+        this.currentReportData = null;
+    }
+
     async deleteMenuItem(itemId) {
         if (!confirm('Are you sure you want to delete this menu item?')) {
             return;
@@ -2555,6 +2644,160 @@ class EnhancedAdminApp {
         } catch (error) {
             console.error('Error deleting menu item:', error);
             this.showToast('Error deleting menu item', 'error');
+        }
+    }
+
+    // Bulk Operations for Menu
+    toggleSelectAllMenu(checked) {
+        const checkboxes = document.querySelectorAll('.menu-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+        
+        this.selectedItems.clear();
+        if (checked) {
+            checkboxes.forEach(checkbox => {
+                this.selectedItems.add(checkbox.dataset.itemId);
+            });
+        }
+        
+        this.updateBulkActionButtons();
+    }
+
+    async bulkDeleteMenuItems() {
+        if (this.selectedItems.size === 0) {
+            this.showToast('No items selected', 'warning');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to delete ${this.selectedItems.size} selected items?`)) {
+            return;
+        }
+
+        try {
+            const promises = Array.from(this.selectedItems).map(itemId => 
+                fetch(`/api/menu/${itemId}`, { method: 'DELETE' })
+            );
+            
+            await Promise.all(promises);
+            this.showToast(`${this.selectedItems.size} items deleted successfully`, 'success');
+            this.selectedItems.clear();
+            await this.loadMenuData();
+        } catch (error) {
+            console.error('Error deleting menu items:', error);
+            this.showToast('Error deleting menu items', 'error');
+        }
+    }
+
+    async bulkToggleMenuAvailability() {
+        if (this.selectedItems.size === 0) {
+            this.showToast('No items selected', 'warning');
+            return;
+        }
+
+        try {
+            const promises = Array.from(this.selectedItems).map(itemId => 
+                fetch(`/api/menu/${itemId}/toggle`, { method: 'PUT' })
+            );
+            
+            await Promise.all(promises);
+            this.showToast(`${this.selectedItems.size} items updated successfully`, 'success');
+            this.selectedItems.clear();
+            await this.loadMenuData();
+        } catch (error) {
+            console.error('Error updating menu items:', error);
+            this.showToast('Error updating menu items', 'error');
+        }
+    }
+
+    updateBulkActionButtons() {
+        const selectedCount = this.selectedItems.size;
+        const bulkActions = document.getElementById('bulkMenuActions');
+        
+        if (bulkActions) {
+            bulkActions.style.display = selectedCount > 0 ? 'flex' : 'none';
+            
+            const countSpan = bulkActions.querySelector('.selected-count');
+            if (countSpan) {
+                countSpan.textContent = selectedCount;
+            }
+        }
+    }
+
+    // Bulk Operations for Menu
+    toggleSelectAllMenu(checked) {
+        const checkboxes = document.querySelectorAll('.menu-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+        
+        this.selectedItems.clear();
+        if (checked) {
+            checkboxes.forEach(checkbox => {
+                this.selectedItems.add(checkbox.dataset.itemId);
+            });
+        }
+        
+        this.updateBulkActionButtons();
+    }
+
+    async bulkDeleteMenuItems() {
+        if (this.selectedItems.size === 0) {
+            this.showToast('No items selected', 'warning');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to delete ${this.selectedItems.size} selected items?`)) {
+            return;
+        }
+
+        try {
+            const promises = Array.from(this.selectedItems).map(itemId => 
+                fetch(`/api/menu/${itemId}`, { method: 'DELETE' })
+            );
+            
+            await Promise.all(promises);
+            this.showToast(`${this.selectedItems.size} items deleted successfully`, 'success');
+            this.selectedItems.clear();
+            await this.loadMenuData();
+        } catch (error) {
+            console.error('Error deleting menu items:', error);
+            this.showToast('Error deleting menu items', 'error');
+        }
+    }
+
+    async bulkToggleMenuAvailability() {
+        if (this.selectedItems.size === 0) {
+            this.showToast('No items selected', 'warning');
+            return;
+        }
+
+        try {
+            const promises = Array.from(this.selectedItems).map(itemId => 
+                fetch(`/api/menu/${itemId}/toggle`, { method: 'PUT' })
+            );
+            
+            await Promise.all(promises);
+            this.showToast(`${this.selectedItems.size} items updated successfully`, 'success');
+            this.selectedItems.clear();
+            await this.loadMenuData();
+        } catch (error) {
+            console.error('Error updating menu items:', error);
+            this.showToast('Error updating menu items', 'error');
+        }
+    }
+
+    updateBulkActionButtons() {
+        const selectedCount = this.selectedItems.size;
+        const bulkActions = document.getElementById('bulkMenuActions');
+        
+        if (bulkActions) {
+            bulkActions.style.display = selectedCount > 0 ? 'flex' : 'none';
+            
+            const countSpan = bulkActions.querySelector('.selected-count');
+            if (countSpan) {
+                countSpan.textContent = selectedCount;
+            }
         }
     }
 
