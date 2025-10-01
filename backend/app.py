@@ -396,6 +396,54 @@ def update_or_toggle_menu_item(item_id):
         conn.close()
         return jsonify({'message': 'Availability toggled', 'available': bool(new_status)}), 200
 
+@app.route('/api/menu/<int:item_id>/toggle', methods=['PUT'])
+def toggle_menu_availability(item_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Get current availability status
+    cursor.execute("SELECT available FROM menu WHERE id=?", (item_id,))
+    result = cursor.fetchone()
+    
+    if not result:
+        conn.close()
+        return jsonify({'error': 'Menu item not found'}), 404
+    
+    # Toggle availability
+    new_availability = 0 if result[0] else 1
+    cursor.execute("UPDATE menu SET available=? WHERE id=?", (new_availability, item_id))
+    
+    conn.commit()
+    conn.close()
+    
+    status = 'available' if new_availability else 'unavailable'
+    return jsonify({
+        'message': f'Menu item is now {status}',
+        'available': bool(new_availability)
+    }), 200
+
+@app.route('/api/menu/<int:item_id>', methods=['GET'])
+def get_menu_item(item_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM menu WHERE id=?", (item_id,))
+    item = cursor.fetchone()
+    conn.close()
+    
+    if not item:
+        return jsonify({'error': 'Menu item not found'}), 404
+    
+    return jsonify({
+        'id': item[0],
+        'name': item[1],
+        'price': item[2],
+        'category': item[3],
+        'image': item[4],
+        'available': bool(item[5]),
+        'stock': item[6],
+        'deliverable': bool(item[7])
+    }), 200
+
 @app.route('/api/menu/<int:item_id>', methods=['DELETE'])
 def delete_menu_item(item_id):
     conn = sqlite3.connect(DB_PATH)
