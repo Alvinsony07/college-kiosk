@@ -1523,7 +1523,9 @@ function createCategoryRevenueChart(orders, menu) {
                 const menuItem = menu.find(m => m.id === item.id);
                 if (menuItem) {
                     const category = menuItem.category;
-                    categoryRevenue[category] = (categoryRevenue[category] || 0) + (menuItem.price * item.qty);
+                    // Use price from item data (already includes price from backend)
+                    const itemPrice = item.price || menuItem.price || 0;
+                    categoryRevenue[category] = (categoryRevenue[category] || 0) + (itemPrice * item.qty);
                 }
             });
         }
@@ -1574,8 +1576,8 @@ function displayTopItems(orders) {
                     itemStats[item.name] = { qty: 0, revenue: 0 };
                 }
                 itemStats[item.name].qty += item.qty || 1;
-                // Approximate revenue (would need actual price from menu)
-                itemStats[item.name].revenue += 50 * (item.qty || 1); // Placeholder
+                // Use actual price from order item data
+                itemStats[item.name].revenue += (item.price || 0) * (item.qty || 1);
             });
         }
     });
