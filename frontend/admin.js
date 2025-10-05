@@ -112,7 +112,7 @@ function setupEventListeners() {
     document.getElementById('applyDateFilter')?.addEventListener('click', loadRevenueData);
     
     // Export stock button
-    document.getElementById('exportStockBtn')?.addEventListener('click', () => exportData('stock'));
+    document.getElementById('exportStockBtn')?.addEventListener('click', () => downloadReport('stock'));
     
     // Backup database
     document.getElementById('backupDbBtn')?.addEventListener('click', backupDatabase);
