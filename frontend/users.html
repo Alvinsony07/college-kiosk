@@ -27,6 +27,17 @@
     header .user {
       font-size: 14px; opacity:.95;
     }
+    header .header-right {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .logout-btn {
+      background: rgba(255,255,255,0.15); color: #fff; padding: 8px 16px;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer;
+      font-size: 14px; font-weight: 600; transition: all 0.2s ease;
+    }
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5);
+    }
     .wrap { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
 
     .layout { display:grid; grid-template-columns: 1fr 360px; gap: 18px; align-items:start; }
@@ -101,7 +112,10 @@
 <body>
   <header>
     <h1>College Kiosk — Customer</h1>
-    <div class="user" id="userBadge">Loading…</div>
+    <div class="header-right">
+      <div class="user" id="userBadge">Loading…</div>
+      <button class="logout-btn" onclick="logout()">⏻ Logout</button>
+    </div>
   </header>
 
   <div class="wrap">
@@ -340,6 +354,17 @@
         else { fields.forEach(f => f.style.display = 'none'); }
       });
     });
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        // Clear cart and session data
+        CART.clear();
+        sessionStorage.clear();
+        localStorage.clear();
+        // Redirect to login/home page
+        window.location.href = '/';
+      }
+    }
 
     // ------------------ Init ------------------
     renderUserBadge(); loadMenu(); renderCart();

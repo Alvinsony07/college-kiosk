@@ -14,9 +14,25 @@
   .toggle { background: #17a2b8; }
   .add-btn { background: #007bff; color: white; }
   img { max-width: 60px; border-radius: 5px; }
+  .header-bar {
+    background: #004080; color: white; padding: 15px 30px; margin: -30px -30px 20px -30px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .header-bar h1 { margin: 0; font-size: 22px; }
+  .logout-btn {
+    background: rgba(255,255,255,0.15); color: white; padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer;
+    font-size: 14px; transition: all 0.2s ease;
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.25); }
 </style>
 </head>
 <body>
+
+<div class="header-bar">
+  <h1>Staff Dashboard - College Kiosk</h1>
+  <button class="logout-btn" onclick="logout()">⏻ Logout</button>
+</div>
 
 <h2>Menu Management</h2>
 <div class="section">
@@ -202,6 +218,16 @@ async function loadOrders() {
   } catch (err) {
     console.error(err);
     document.getElementById('orders-list').innerHTML = `<tr><td colspan="6">Error loading orders</td></tr>`;
+  }
+}
+
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    // Clear any session data
+    sessionStorage.clear();
+    localStorage.clear();
+    // Redirect to login/home page
+    window.location.href = '/';
   }
 }
 
