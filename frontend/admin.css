@@ -46,7 +46,32 @@ body {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     overflow-x: hidden;
+    overflow-y: auto;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure containers don't clip borders */
+.container,
+.container-fluid {
+    overflow: visible !important;
+}
+
+div {
+    overflow: visible;
+}
+
+/* Override only when needed */
+.overflow-hidden {
+    overflow: hidden !important;
+}
+
+.overflow-auto {
+    overflow: auto !important;
+}
+
+.overflow-x-auto {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
 }
 
 /* ==================== Sidebar ==================== */
@@ -187,6 +212,7 @@ body {
     min-height: 100vh;
     padding: 0;
     transition: margin-left 0.3s ease;
+    overflow: visible;
 }
 
 /* ==================== Top Header ==================== */
@@ -245,10 +271,12 @@ body {
     display: none;
     padding: 2rem;
     animation: fadeIn 0.3s ease;
+    overflow: visible;
 }
 
 .content-section.active {
     display: block;
+    overflow: visible;
 }
 
 @keyframes fadeIn {
@@ -401,10 +429,52 @@ body {
     border-radius: 12px;
     box-shadow: var(--shadow);
     transition: all 0.3s ease;
+    overflow: visible;
 }
 
 .card:hover {
     box-shadow: var(--shadow-lg);
+}
+
+/* Bordered Cards (Inventory Stock Alerts) */
+.card.border-danger {
+    border: 3px solid var(--danger);
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.card.border-warning {
+    border: 3px solid var(--warning);
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.card.border-success {
+    border: 3px solid var(--success);
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.card.border-info {
+    border: 3px solid var(--info);
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.card.border-primary {
+    border: 3px solid var(--primary);
+    border-radius: 12px;
+    overflow: visible;
+}
+
+/* Ensure row container doesn't clip borders */
+.row {
+    overflow: visible;
+}
+
+.col,
+[class*="col-"] {
+    overflow: visible;
 }
 
 .card-header {
@@ -433,11 +503,13 @@ body {
 /* ==================== Chart Cards ==================== */
 .chart-card {
     height: 100%;
+    overflow: visible;
 }
 
 .chart-card .card-body {
     min-height: 300px;
     position: relative;
+    overflow: visible;
 }
 
 .chart-card canvas {
@@ -450,7 +522,8 @@ body {
 /* ==================== Tables ==================== */
 .table-responsive {
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 .table {
@@ -647,6 +720,7 @@ body {
 .report-card {
     text-align: center;
     transition: all 0.3s ease;
+    overflow: visible;
 }
 
 .report-card:hover {
@@ -946,6 +1020,28 @@ body.dark-mode .card.border-success,
 body.dark-mode .card.border-info,
 body.dark-mode .card.border-primary {
     background: var(--bg-secondary) !important;
+    overflow: visible;
+}
+
+/* Ensure borders are visible and properly sized in dark mode */
+body.dark-mode .card.border-danger {
+    border: 3px solid var(--danger) !important;
+}
+
+body.dark-mode .card.border-warning {
+    border: 3px solid var(--warning) !important;
+}
+
+body.dark-mode .card.border-success {
+    border: 3px solid var(--success) !important;
+}
+
+body.dark-mode .card.border-info {
+    border: 3px solid var(--info) !important;
+}
+
+body.dark-mode .card.border-primary {
+    border: 3px solid var(--primary) !important;
 }
 
 body.dark-mode .card.border-danger .card-body,
