@@ -627,60 +627,222 @@ function generateSmartInsights(orders, menu) {
     
     const insightItems = [];
     
-    // Find fastest selling item
-    const itemCounts = {};
+    // Calculate comprehensive item sales data
+    const itemStats = {};
     orders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
                 const itemName = item.name || `Item ${item.id}`;
-                itemCounts[itemName] = (itemCounts[itemName] || 0) + (item.qty || 1);
+                if (!itemStats[itemName]) {
+                    itemStats[itemName] = { quantity: 0, revenue: 0 };
+                }
+                itemStats[itemName].quantity += (item.qty || 1);
+                itemStats[itemName].revenue += (item.price || 0) * (item.qty || 1);
             });
         }
     });
     
-    if (Object.keys(itemCounts).length > 0) {
-        const topItem = Object.entries(itemCounts)
-            .sort(([,a], [,b]) => b - a)[0];
+    // 1. BEST SELLER INSIGHT - Most sold item by quantity
+    if (Object.keys(itemStats).length > 0) {
+        const topItem = Object.entries(itemStats)
+            .sort(([,a], [,b]) => b.quantity - a.quantity)[0];
+        const [itemName, stats] = topItem;
+        const totalRevenue = stats.revenue.toFixed(2);
+        
         insightItems.push(`
             <div class="insight-item">
-                <i class="bi bi-fire"></i>
-                Fastest-selling item: <strong>${topItem[0]}</strong> (${topItem[1]} sold)
+                <i class="bi bi-fire text-danger"></i>
+                <strong>Best Seller:</strong> ${itemName} - ${stats.quantity} units sold (₹${totalRevenue} revenue)
             </div>
         `);
     }
     
-    // Predict stock-out
-    const lowStockItems = menu.filter(m => m.stock > 0 && m.stock <= 10);
-    if (lowStockItems.length > 0) {
-        insightItems.push(`
-            <div class="insight-item">
-                <i class="bi bi-graph-down"></i>
-                Predicted stock-out soon: <strong>${lowStockItems[0].name}</strong>
-            </div>
-        `);
+    // 2. REVENUE CHAMPION - Highest revenue generating item
+    if (Object.keys(itemStats).length > 1) {
+        const revenueChamp = Object.entries(itemStats)
+            .sort(([,a], [,b]) => b.revenue - a.revenue)[0];
+        const [itemName, stats] = revenueChamp;
+        
+        // Only show if different from best seller
+        const bestSeller = Object.entries(itemStats)
+            .sort(([,a], [,b]) => b.quantity - a.quantity)[0][0];
+        
+        if (itemName !== bestSeller) {
+            insightItems.push(`
+                <div class="insight-item">
+                    <i class="bi bi-trophy text-warning"></i>
+                    <strong>Revenue Champion:</strong> ${itemName} (₹${stats.revenue.toFixed(2)} total)
+                </div>
+            `);
+        }
     }
     
-    // Revenue insight
+    // 3. CRITICAL STOCK ALERT - Items that will run out based on sales velocity
+    const criticalItems = menu.filter(item => {
+        if (item.stock <= 0) return false;
+        const itemName = item.name;
+        const sold = itemStats[itemName]?.quantity || 0;
+        
+        // Calculate sales velocity: if sold > 5 and stock < 10, it's critical
+        // Or if current stock < 20% of items sold, flag it
+        if (sold > 0) {
+            const velocityRatio = item.stock / sold;
+            return velocityRatio < 2 && item.stock <= 10; // Will run out soon
+        }
+        return item.stock <= 3; // Very low stock regardless
+    });
+    
+    if (criticalItems.length > 0) {
+        const mostCritical = criticalItems[0];
+        const soldQty = itemStats[mostCritical.name]?.quantity || 0;
+        const hoursLeft = soldQty > 0 ? Math.floor((mostCritical.stock / soldQty) * 24) : 0;
+        
+        if (hoursLeft > 0 && hoursLeft < 48) {
+            insightItems.push(`
+                <div class="insight-item">
+                    <i class="bi bi-exclamation-triangle text-danger"></i>
+                    <strong>⚠️ Critical Alert:</strong> ${mostCritical.name} will run out in ~${hoursLeft}h at current sales rate!
+                </div>
+            `);
+        } else {
+            insightItems.push(`
+                <div class="insight-item">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    <strong>Low Stock Alert:</strong> ${mostCritical.name} (only ${mostCritical.stock} left)
+                </div>
+            `);
+        }
+    }
+    
+    // 4. SMART REVENUE INSIGHT - Average order value with trend
     const totalRevenue = orders.reduce((sum, o) => sum + (o.total_price || 0), 0);
-    const avgOrder = orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : 0;
-    insightItems.push(`
-        <div class="insight-item">
-            <i class="bi bi-currency-rupee"></i>
-            Average order value: <strong>₹${avgOrder}</strong>
-        </div>
-    `);
+    const avgOrder = orders.length > 0 ? (totalRevenue / orders.length) : 0;
     
-    // Order trend
     if (orders.length > 0) {
+        let revenueInsight = '';
+        if (avgOrder > 150) {
+            revenueInsight = ' - Excellent! Above target ₹150';
+        } else if (avgOrder > 100) {
+            revenueInsight = ' - Good performance';
+        } else if (avgOrder > 50) {
+            revenueInsight = ' - Consider upselling combos';
+        } else {
+            revenueInsight = ' - Low value, promote higher items';
+        }
+        
         insightItems.push(`
             <div class="insight-item">
-                <i class="bi bi-graph-up-arrow"></i>
-                Total orders processed: <strong>${orders.length}</strong>
+                <i class="bi bi-graph-up text-success"></i>
+                <strong>Avg Order Value:</strong> ₹${avgOrder.toFixed(2)}${revenueInsight}
             </div>
         `);
     }
     
-    insights.innerHTML = insightItems.join('');
+    // 5. PEAK PERFORMANCE - Order volume analysis
+    if (orders.length >= 10) {
+        const statusBreakdown = orders.reduce((acc, o) => {
+            acc[o.status || 'Order Received'] = (acc[o.status || 'Order Received'] || 0) + 1;
+            return acc;
+        }, {});
+        
+        const completed = statusBreakdown['Delivered'] || 0;
+        const completionRate = ((completed / orders.length) * 100).toFixed(1);
+        
+        insightItems.push(`
+            <div class="insight-item">
+                <i class="bi bi-speedometer text-primary"></i>
+                <strong>Order Volume:</strong> ${orders.length} orders | ${completionRate}% completion rate
+            </div>
+        `);
+    } else if (orders.length > 0) {
+        insightItems.push(`
+            <div class="insight-item">
+                <i class="bi bi-info-circle text-info"></i>
+                <strong>Order Status:</strong> ${orders.length} order${orders.length > 1 ? 's' : ''} processed today
+            </div>
+        `);
+    }
+    
+    // 6. CATEGORY PERFORMANCE - Which category is selling most
+    const categoryStats = {};
+    menu.forEach(item => {
+        const category = item.category || 'Other';
+        const sold = itemStats[item.name]?.quantity || 0;
+        if (!categoryStats[category]) {
+            categoryStats[category] = { quantity: 0, revenue: 0 };
+        }
+        categoryStats[category].quantity += sold;
+        categoryStats[category].revenue += itemStats[item.name]?.revenue || 0;
+    });
+    
+    const topCategory = Object.entries(categoryStats)
+        .filter(([,stats]) => stats.quantity > 0)
+        .sort(([,a], [,b]) => b.quantity - a.quantity)[0];
+    
+    if (topCategory) {
+        const [catName, stats] = topCategory;
+        insightItems.push(`
+            <div class="insight-item">
+                <i class="bi bi-star text-warning"></i>
+                <strong>Top Category:</strong> ${catName} (${stats.quantity} items sold)
+            </div>
+        `);
+    }
+    
+    // 7. STOCK HEALTH - Overall inventory status
+    const totalItems = menu.length;
+    const outOfStock = menu.filter(m => m.stock === 0).length;
+    const lowStock = menu.filter(m => m.stock > 0 && m.stock <= 5).length;
+    const healthyStock = totalItems - outOfStock - lowStock;
+    
+    if (totalItems > 0) {
+        const healthPercentage = ((healthyStock / totalItems) * 100).toFixed(0);
+        let healthStatus = '';
+        let healthIcon = '';
+        
+        if (healthPercentage >= 80) {
+            healthStatus = 'Excellent inventory health';
+            healthIcon = 'bi-check-circle text-success';
+        } else if (healthPercentage >= 60) {
+            healthStatus = 'Good - Minor restocking needed';
+            healthIcon = 'bi-info-circle text-info';
+        } else if (healthPercentage >= 40) {
+            healthStatus = 'Fair - Restocking required';
+            healthIcon = 'bi-exclamation-circle text-warning';
+        } else {
+            healthStatus = 'Critical - Urgent restocking!';
+            healthIcon = 'bi-x-circle text-danger';
+        }
+        
+        insightItems.push(`
+            <div class="insight-item">
+                <i class="bi ${healthIcon}"></i>
+                <strong>Inventory Health:</strong> ${healthPercentage}% healthy (${healthyStock}/${totalItems} items) - ${healthStatus}
+            </div>
+        `);
+    }
+    
+    // 8. NO DATA INSIGHT - Helpful message if no orders
+    if (orders.length === 0 && menu.length > 0) {
+        insightItems.push(`
+            <div class="insight-item">
+                <i class="bi bi-lightbulb text-info"></i>
+                <strong>Getting Started:</strong> No orders yet. ${menu.length} menu items ready. Enable Demo Mode to see insights in action!
+            </div>
+        `);
+    }
+    
+    // Display insights or show helpful message
+    if (insightItems.length === 0) {
+        insights.innerHTML = `
+            <div class="insight-item">
+                <i class="bi bi-info-circle text-muted"></i>
+                <strong>Smart Insights:</strong> Add menu items and process orders to see AI-powered insights here.
+            </div>
+        `;
+    } else {
+        insights.innerHTML = insightItems.join('');
+    }
 }
 
 // ==================== User Management ====================
