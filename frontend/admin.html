@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - College Canteen Management</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    
+    <!-- Toastify -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="light-mode">
+    
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-section">
+                <i class="bi bi-shop-window"></i>
+                <h4>Canteen Admin</h4>
+            </div>
+            <button class="close-sidebar d-md-none" id="closeSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-brand">
+            <p class="text-muted small mb-0">Saintgits College</p>
+            <p class="text-muted small">MCA Batch 2025</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#users" class="nav-link" data-section="users">
+                <i class="bi bi-people"></i>
+                <span>User Management</span>
+                <span class="badge bg-warning" id="pendingUsersBadge">0</span>
+            </a>
+            <a href="#menu" class="nav-link" data-section="menu">
+                <i class="bi bi-cup-hot"></i>
+                <span>Menu Management</span>
+            </a>
+            <a href="#inventory" class="nav-link" data-section="inventory">
+                <i class="bi bi-box-seam"></i>
+                <span>Inventory & Stock</span>
+                <span class="badge bg-danger" id="lowStockBadge">0</span>
+            </a>
+            <a href="#orders" class="nav-link" data-section="orders">
+                <i class="bi bi-receipt"></i>
+                <span>Orders</span>
+            </a>
+            <a href="#revenue" class="nav-link" data-section="revenue">
+                <i class="bi bi-graph-up"></i>
+                <span>Revenue & Analytics</span>
+            </a>
+            <a href="#reports" class="nav-link" data-section="reports">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>Reports</span>
+            </a>
+            <a href="#settings" class="nav-link" data-section="settings">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline-danger btn-sm w-100" id="logoutBtn">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+        
+        <!-- Top Header -->
+        <header class="top-header">
+            <button class="menu-toggle d-md-none" id="menuToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <div class="header-left">
+                <h3 id="pageTitle">Dashboard Overview</h3>
+                <p class="text-muted small mb-0" id="currentDateTime"></p>
+            </div>
+            
+            <div class="header-right">
+                <button class="btn btn-sm btn-outline-primary me-2" id="refreshBtn" title="Refresh Data">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                
+                <div class="form-check form-switch me-3">
+                    <input class="form-check-input" type="checkbox" id="demoModeToggle">
+                    <label class="form-check-label small" for="demoModeToggle">Demo Mode</label>
+                </div>
+                
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="themeToggle">
+                    <label class="form-check-label" for="themeToggle">
+                        <i class="bi bi-moon-stars" id="themeIcon"></i>
+                    </label>
+                </div>
+                
+                <div class="admin-profile ms-3">
+                    <i class="bi bi-person-circle"></i>
+                    <span id="adminName">Admin</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="content-section active">
+            
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card card-primary">
+                        <div class="stat-icon">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="todayOrders">0</h3>
+                            <p>Orders Today</p>
+                            <small class="stat-change positive" id="ordersChange">+0%</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stat-card card-success">
+                        <div class="stat-icon">
+                            <i class="bi bi-currency-rupee"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>₹<span id="todayRevenue">0</span></h3>
+                            <p>Revenue Today</p>
+                            <small class="stat-change positive" id="revenueChange">+0%</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stat-card card-info">
+                        <div class="stat-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="activeUsers">0</h3>
+                            <p>Active Users</p>
+                            <small class="stat-change" id="usersChange">0 pending</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stat-card card-danger">
+                        <div class="stat-icon">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="outOfStock">0</h3>
+                            <p>Out of Stock Items</p>
+                            <small class="stat-change negative" id="stockChange">0 low stock</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-graph-up"></i> Orders Per Hour (Today)</h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="downloadOrdersChart">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="ordersPerHourChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-pie-chart"></i> Order Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Second Charts Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-bar-chart"></i> Top Selling Items</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="topSellingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-graph-up-arrow"></i> Revenue Trend (Last 7 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Real-Time Feed -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-bell"></i> Recent Orders</h5>
+                        </div>
+                        <div class="card-body activity-feed" id="recentOrdersFeed">
+                            <p class="text-muted">No recent orders</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-exclamation-circle"></i> Live Alerts</h5>
+                        </div>
+                        <div class="card-body activity-feed" id="liveAlerts">
+                            <p class="text-muted">No alerts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Smart Insights -->
+            <div class="row g-3 mt-3">
+                <div class="col-12">
+                    <div class="card insight-card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-lightbulb"></i> Smart Insights</h5>
+                            <div id="smartInsights">
+                                <p class="text-muted">Analyzing data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+        
+        <!-- User Management Section -->
+        <section id="usersSection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-people"></i> User Management</h4>
+                <div class="section-actions">
+                    <input type="search" class="form-control me-2" id="userSearch" placeholder="Search users...">
+                    <select class="form-select me-2" id="roleFilter" style="width: 150px;">
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="staff">Staff</option>
+                        <option value="user">User</option>
+                    </select>
+                    <select class="form-select" id="statusFilter" style="width: 150px;">
+                        <option value="">All Status</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Menu Management Section -->
+        <section id="menuSection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-cup-hot"></i> Menu Management</h4>
+                <div class="section-actions">
+                    <button class="btn btn-primary" id="addMenuItemBtn">
+                        <i class="bi bi-plus-circle"></i> Add Menu Item
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Category Tabs -->
+            <ul class="nav nav-tabs mb-3" id="categoryTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-category="all" href="#">All</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-category="Snacks" href="#">Snacks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-category="Meals" href="#">Meals</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-category="Drinks" href="#">Drinks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-category="Desserts" href="#">Desserts</a>
+                </li>
+            </ul>
+            
+            <div class="row g-3" id="menuItemsGrid">
+                <div class="col-12 text-center text-muted">
+                    <p>Loading menu items...</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Inventory Section -->
+        <section id="inventorySection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-box-seam"></i> Inventory & Stock Management</h4>
+                <div class="section-actions">
+                    <button class="btn btn-success" id="exportStockBtn">
+                        <i class="bi bi-file-earmark-excel"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stock Alerts -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-danger">
+                        <div class="card-body">
+                            <h6 class="text-danger"><i class="bi bi-x-circle"></i> Out of Stock</h6>
+                            <h3 id="outOfStockCount">0</h3>
+                            <small class="text-muted">Items need immediate restock</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <h6 class="text-warning"><i class="bi bi-exclamation-triangle"></i> Low Stock</h6>
+                            <h3 id="lowStockCount">0</h3>
+                            <small class="text-muted">Items below threshold (≤10)</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="text-success"><i class="bi bi-check-circle"></i> In Stock</h6>
+                            <h3 id="inStockCount">0</h3>
+                            <small class="text-muted">Items adequately stocked</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="inventoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Loading inventory...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Orders Section -->
+        <section id="ordersSection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-receipt"></i> Orders Management</h4>
+                <div class="section-actions">
+                    <select class="form-select" id="orderStatusFilter" style="width: 200px;">
+                        <option value="">All Orders</option>
+                        <option value="Order Received">Order Received</option>
+                        <option value="Preparing">Preparing</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>OTP</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">Loading orders...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Revenue & Analytics Section -->
+        <section id="revenueSection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-graph-up"></i> Revenue & Analytics</h4>
+                <div class="section-actions">
+                    <input type="date" class="form-control me-2" id="startDate" style="width: 150px;">
+                    <input type="date" class="form-control me-2" id="endDate" style="width: 150px;">
+                    <button class="btn btn-primary" id="applyDateFilter">
+                        <i class="bi bi-filter"></i> Filter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Revenue Summary -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Revenue</h6>
+                            <h3 class="text-success">₹<span id="totalRevenue">0</span></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Avg Order Value</h6>
+                            <h3 class="text-primary">₹<span id="avgOrderValue">0</span></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Orders</h6>
+                            <h3 class="text-info"><span id="totalOrdersCount">0</span></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Peak Hour</h6>
+                            <h3 class="text-warning" id="peakHour">--</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Revenue Charts -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h5>Daily Revenue Breakdown</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="dailyRevenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h5>Category Revenue</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="categoryRevenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Items -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-trophy"></i> Top 10 Best Selling Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topItemsTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Reports Section -->
+        <section id="reportsSection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-file-earmark-bar-graph"></i> Reports & Downloads</h4>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card report-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-file-earmark-text report-icon"></i>
+                            <h5>Sales Report</h5>
+                            <p class="text-muted small">Download comprehensive sales data</p>
+                            <button class="btn btn-primary" onclick="downloadReport('sales')">
+                                <i class="bi bi-download"></i> Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card report-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-box-seam report-icon"></i>
+                            <h5>Stock Report</h5>
+                            <p class="text-muted small">Current inventory status</p>
+                            <button class="btn btn-success" onclick="downloadReport('stock')">
+                                <i class="bi bi-download"></i> Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card report-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people report-icon"></i>
+                            <h5>User Activity</h5>
+                            <p class="text-muted small">User registration and activity</p>
+                            <button class="btn btn-info" onclick="downloadReport('users')">
+                                <i class="bi bi-download"></i> Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card report-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-database report-icon"></i>
+                            <h5>Database Backup</h5>
+                            <p class="text-muted small">Backup college.db</p>
+                            <button class="btn btn-warning" id="backupDbBtn">
+                                <i class="bi bi-download"></i> Backup Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card report-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clipboard-data report-icon"></i>
+                            <h5>Analytics Summary</h5>
+                            <p class="text-muted small">Complete analytics report</p>
+                            <button class="btn btn-secondary" onclick="downloadReport('analytics')">
+                                <i class="bi bi-download"></i> Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card report-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock-history report-icon"></i>
+                            <h5>Audit Log</h5>
+                            <p class="text-muted small">Admin activity history</p>
+                            <button class="btn btn-dark" onclick="downloadReport('audit')">
+                                <i class="bi bi-download"></i> Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Settings Section -->
+        <section id="settingsSection" class="content-section">
+            <div class="section-header mb-4">
+                <h4><i class="bi bi-gear"></i> System Settings</h4>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Notification Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifyNewOrders" checked>
+                                <label class="form-check-label" for="notifyNewOrders">
+                                    Notify on new orders
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifyLowStock" checked>
+                                <label class="form-check-label" for="notifyLowStock">
+                                    Alert on low stock
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifyNewUsers" checked>
+                                <label class="form-check-label" for="notifyNewUsers">
+                                    Notify on new user registrations
+                                </label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="soundAlerts" checked>
+                                <label class="form-check-label" for="soundAlerts">
+                                    Enable sound alerts
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Auto-Refresh Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Dashboard Refresh Interval (seconds)</label>
+                                <input type="number" class="form-control" id="refreshInterval" value="10" min="5" max="60">
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                                <label class="form-check-label" for="autoRefresh">
+                                    Enable auto-refresh
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" id="saveSettingsBtn">
+                                <i class="bi bi-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>College Branding</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">College Name</label>
+                                        <input type="text" class="form-control" id="collegeName" value="Saintgits College of Engineering">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Batch Info</label>
+                                        <input type="text" class="form-control" id="batchInfo" value="MCA Batch 2025">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> 
+                                <strong>Project Credit:</strong> Developed by MCA Batch 2025 - Saintgits College of Engineering
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </div>
+    
+    <!-- Add Menu Item Modal -->
+    <div class="modal fade" id="addMenuModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Menu Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMenuForm">
+                        <div class="mb-3">
+                            <label class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="menuName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Price (₹) *</label>
+                            <input type="number" class="form-control" id="menuPrice" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category *</label>
+                            <select class="form-select" id="menuCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="Snacks">Snacks</option>
+                                <option value="Meals">Meals</option>
+                                <option value="Drinks">Drinks</option>
+                                <option value="Desserts">Desserts</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stock Quantity *</label>
+                            <input type="number" class="form-control" id="menuStock" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Image *</label>
+                            <input type="file" class="form-control" id="menuImage" accept="image/*" required>
+                            <div id="imagePreview" class="mt-2"></div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="menuDeliverable">
+                            <label class="form-check-label" for="menuDeliverable">
+                                Deliverable to Classroom
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitMenuBtn">Add Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Menu Item Modal -->
+    <div class="modal fade" id="editMenuModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Menu Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMenuForm">
+                        <input type="hidden" id="editMenuId">
+                        <div class="mb-3">
+                            <label class="form-label">Item Name</label>
+                            <input type="text" class="form-control" id="editMenuName">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" class="form-control" id="editMenuPrice" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" id="editMenuCategory">
+                                <option value="Snacks">Snacks</option>
+                                <option value="Meals">Meals</option>
+                                <option value="Drinks">Drinks</option>
+                                <option value="Desserts">Desserts</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stock Quantity</label>
+                            <input type="number" class="form-control" id="editMenuStock">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Change Image (optional)</label>
+                            <input type="file" class="form-control" id="editMenuImage" accept="image/*">
+                            <div id="editImagePreview" class="mt-2"></div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editMenuDeliverable">
+                            <label class="form-check-label" for="editMenuDeliverable">
+                                Deliverable to Classroom
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="updateMenuBtn">Update Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserEmail">
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editUserEmailDisplay" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" id="editUserRole">
+                                <option value="user">User</option>
+                                <option value="staff">Staff</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="updateUserBtn">Update Role</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="admin.js"></script>
+    
+</body>
+</html>
