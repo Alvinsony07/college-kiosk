@@ -754,18 +754,6 @@ div {
     border-radius: 16px;
     position: relative;
     overflow: hidden;
-    animation: subtle-glow 6s ease-in-out infinite;
-}
-
-@keyframes subtle-glow {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08),
-                    0 0 40px rgba(134, 239, 172, 0.06);
-    }
-    50% {
-        box-shadow: 0 4px 24px rgba(20, 184, 166, 0.10),
-                    0 0 50px rgba(110, 231, 183, 0.08);
-    }
 }
 
 .insight-card::before {
@@ -780,29 +768,6 @@ div {
     opacity: 0.88;
     z-index: 0;
     pointer-events: none;
-}
-
-.insight-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.1) 50%,
-        transparent 70%
-    );
-    animation: shimmer 6s infinite;
-    z-index: 1;
-    pointer-events: none;
-}
-
-@keyframes shimmer {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 .insight-card .card-body {
@@ -1309,6 +1274,49 @@ body.dark-mode .modal-body {
 body.dark-mode .modal-footer {
     background: var(--bg-tertiary);
     border-top-color: var(--border-color);
+}
+
+/* SweetAlert2 Dark Mode */
+body.dark-mode .swal2-popup {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .swal2-title {
+    color: var(--text-primary) !important;
+}
+
+body.dark-mode .swal2-html-container {
+    color: var(--text-secondary) !important;
+}
+
+body.dark-mode .swal2-icon.swal2-question {
+    border-color: var(--info) !important;
+    color: var(--info) !important;
+}
+
+body.dark-mode .swal2-icon.swal2-warning {
+    border-color: var(--warning) !important;
+    color: var(--warning) !important;
+}
+
+body.dark-mode .swal2-icon.swal2-error {
+    border-color: var(--danger) !important;
+}
+
+body.dark-mode .swal2-icon.swal2-success {
+    border-color: var(--success) !important;
+}
+
+body.dark-mode .swal2-confirm {
+    background: var(--primary) !important;
+}
+
+body.dark-mode .swal2-cancel {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 /* Chart cards - specific dark mode adjustments */
