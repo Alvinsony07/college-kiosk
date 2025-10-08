@@ -390,20 +390,23 @@ def get_orders():
             try:
                 conn = sqlite3.connect(DB_PATH)
                 cur = conn.cursor()
-                cur.execute("SELECT name, price FROM menu WHERE id=?", (i["id"],))
+                cur.execute("SELECT name, price, category FROM menu WHERE id=?", (i["id"],))
                 m = cur.fetchone()
                 conn.close()
                 item_name = m[0] if m else f"ID:{i['id']}"
                 item_price = m[1] if m else 0
+                item_category = m[2] if m else "Other"
             except Exception:
                 item_name = f"ID:{i['id']}"
                 item_price = 0
+                item_category = "Other"
 
             detailed_items.append({
                 "id": i["id"],
                 "name": item_name,
                 "qty": i["qty"],
-                "price": item_price
+                "price": item_price,
+                "category": item_category
             })
 
         orders.append({

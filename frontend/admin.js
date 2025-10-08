@@ -581,14 +581,41 @@ function updateRecentOrders(orders) {
         return;
     }
     
-    feed.innerHTML = recent.map(order => `
-        <div class="activity-item">
-            <strong>${order.customer_name}</strong> placed order #${order.id}
-            <br>
-            <small>₹${order.total_price} • ${order.items?.length || 0} items</small>
-            <span class="time">Just now</span>
-        </div>
-    `).join('');
+    feed.innerHTML = recent.map(order => {
+        // Calculate actual time ago from created_at timestamp
+        let timeAgo = 'Unknown time';
+        if (order.created_at) {
+            try {
+                const orderTime = new Date(order.created_at);
+                const now = new Date();
+                const diffMs = now - orderTime;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) {
+                    timeAgo = 'Just now';
+                } else if (diffMins < 60) {
+                    timeAgo = `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+                } else if (diffHours < 24) {
+                    timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                } else {
+                    timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                }
+            } catch (e) {
+                console.error('Error calculating time ago:', e);
+            }
+        }
+        
+        return `
+            <div class="activity-item">
+                <strong>${order.customer_name}</strong> placed order #${order.id}
+                <br>
+                <small>₹${order.total_price} • ${order.items?.length || 0} items</small>
+                <span class="time">${timeAgo}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 function updateAlerts(menu, users) {
@@ -1564,18 +1591,16 @@ function createCategoryRevenueChart(orders, menu) {
         charts.categoryRevenue.destroy();
     }
     
-    // Calculate revenue by category
+    // Calculate revenue by category from actual order data
     const categoryRevenue = {};
     orders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
-                const menuItem = menu.find(m => m.id === item.id);
-                if (menuItem) {
-                    const category = menuItem.category;
-                    // Use price from item data (already includes price from backend)
-                    const itemPrice = item.price || menuItem.price || 0;
-                    categoryRevenue[category] = (categoryRevenue[category] || 0) + (itemPrice * item.qty);
-                }
+                // Use category directly from item (now included from backend)
+                const category = item.category || 'Other';
+                const itemPrice = item.price || 0;
+                const itemQty = item.qty || 1;
+                categoryRevenue[category] = (categoryRevenue[category] || 0) + (itemPrice * itemQty);
             });
         }
     });
@@ -1606,6 +1631,15 @@ function createCategoryRevenueChart(orders, menu) {
                     labels: {
                         color: isDark ? '#f1f5f9' : '#0f172a'
                     }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            return label + ': ₹' + value.toFixed(2);
+                        }
+                    }
                 }
             }
         }
@@ -1622,7 +1656,7 @@ function displayTopItems(orders) {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
                 if (!itemStats[item.name]) {
-                    itemStats[item.name] = { qty: 0, revenue: 0 };
+                    itemStats[item.name] = { qty: 0, revenue: 0, category: item.category || 'Other' };
                 }
                 itemStats[item.name].qty += item.qty || 1;
                 // Use actual price from order item data
@@ -1644,7 +1678,7 @@ function displayTopItems(orders) {
         <tr>
             <td><strong>${index + 1}</strong></td>
             <td>${name}</td>
-            <td><span class="badge bg-secondary">Category</span></td>
+            <td><span class="badge bg-secondary">${stats.category}</span></td>
             <td><strong>${stats.qty}</strong></td>
             <td><strong>₹${stats.revenue.toFixed(2)}</strong></td>
         </tr>
