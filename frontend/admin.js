@@ -1487,9 +1487,19 @@ function calculateRevenueSummary(orders) {
         }
     });
     
+    // Find the peak hour (hour with most orders)
     const maxCount = Math.max(...hourCounts);
-    const peakHour = maxCount > 0 ? hourCounts.indexOf(maxCount) : 0;
-    document.getElementById('peakHour').textContent = `${peakHour}:00`;
+    
+    if (maxCount === 0) {
+        // No orders with valid timestamps
+        document.getElementById('peakHour').textContent = 'N/A';
+    } else {
+        // Find the hour with maximum orders
+        // If there are ties, this will pick the first one
+        const peakHour = hourCounts.indexOf(maxCount);
+        const formattedHour = peakHour.toString().padStart(2, '0') + ':00';
+        document.getElementById('peakHour').textContent = formattedHour;
+    }
 }
 
 function createDailyRevenueChart(orders) {
