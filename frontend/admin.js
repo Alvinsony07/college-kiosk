@@ -9,6 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
+    // Check if user is logged in
+    const adminEmail = localStorage.getItem('adminEmail');
+    const userName = localStorage.getItem('userName');
+    
+    if (!adminEmail) {
+        window.location.href = '/';
+        return;
+    }
+    
+    // Display admin name
+    if (userName) {
+        document.getElementById('adminName').textContent = userName;
+    }
+    
     setupEventListeners();
     setupThemeToggle();
     setupSidebarNavigation();
@@ -17,6 +31,9 @@ function initializeApp() {
     
     // Load initial data
     loadDashboardData();
+    
+    // Initialize notification center
+    notificationCenter.initialize();
     
     // Setup auto-refresh
     startAutoRefresh();
@@ -50,6 +67,7 @@ function setupEventListeners() {
             cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
+                localStorage.clear();
                 window.location.href = '/';
             }
         });
@@ -203,6 +221,9 @@ function loadSectionData(section) {
         case 'revenue':
             loadRevenueData();
             break;
+        case 'activityLog':
+            loadActivityLog();
+            break;
     }
 }
 
@@ -221,6 +242,13 @@ async function loadDashboardData() {
         updateRecentOrders(orders);
         updateAlerts(menu, users);
         generateSmartInsights(orders, menu);
+        
+        // NEW: Generate predictive analytics
+        generateDemandForecast(orders, menu);
+        generateReorderRecommendations(orders, menu);
+        
+        // Check for notifications based on real data
+        await notificationCenter.checkForNewNotifications(orders, menu, users);
         
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -968,6 +996,7 @@ async function approveUser(email) {
         const data = await response.json();
         
         if (response.ok) {
+            await logActivity('USER_APPROVE', `Approved user: ${email}`);
             showToast('User approved successfully', 'success');
             loadUsers();
             loadDashboardData();
@@ -1003,6 +1032,7 @@ async function updateUser() {
         const data = await response.json();
         
         if (response.ok) {
+            await logActivity('USER_ROLE_UPDATE', `Updated role for ${email} to ${role}`);
             showToast('User role updated successfully', 'success');
             bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
             loadUsers();
@@ -1038,6 +1068,7 @@ async function deleteUser(email) {
         const data = await response.json();
         
         if (response.ok) {
+            await logActivity('USER_DELETE', `Deleted user: ${email}`);
             showToast('User deleted successfully', 'success');
             loadUsers();
             loadDashboardData();
@@ -1154,8 +1185,9 @@ function previewEditImage(e) {
 }
 
 async function submitMenuItem() {
+    const itemName = document.getElementById('menuName').value;
     const formData = new FormData();
-    formData.append('name', document.getElementById('menuName').value);
+    formData.append('name', itemName);
     formData.append('price', document.getElementById('menuPrice').value);
     formData.append('category', document.getElementById('menuCategory').value);
     formData.append('stock', document.getElementById('menuStock').value);
@@ -1171,6 +1203,7 @@ async function submitMenuItem() {
         const data = await response.json();
         
         if (response.ok) {
+            await logActivity('MENU_ADD', `Added menu item: ${itemName}`);
             showToast('Menu item added successfully', 'success');
             bootstrap.Modal.getInstance(document.getElementById('addMenuModal')).hide();
             document.getElementById('addMenuForm').reset();
@@ -1203,10 +1236,11 @@ function editMenuItem(itemId) {
 
 async function updateMenuItem() {
     const itemId = document.getElementById('editMenuId').value;
+    const itemName = document.getElementById('editMenuName').value;
     const imageFile = document.getElementById('editMenuImage').files[0];
     
     const formData = new FormData();
-    formData.append('name', document.getElementById('editMenuName').value);
+    formData.append('name', itemName);
     formData.append('price', document.getElementById('editMenuPrice').value);
     formData.append('category', document.getElementById('editMenuCategory').value);
     formData.append('stock', document.getElementById('editMenuStock').value);
@@ -1225,6 +1259,7 @@ async function updateMenuItem() {
         const data = await response.json();
         
         if (response.ok) {
+            await logActivity('MENU_UPDATE', `Updated menu item: ${itemName}`);
             showToast('Menu item updated successfully', 'success');
             bootstrap.Modal.getInstance(document.getElementById('editMenuModal')).hide();
             loadMenuItems();
@@ -1239,9 +1274,12 @@ async function updateMenuItem() {
 }
 
 async function deleteMenuItem(itemId) {
+    const item = window.allMenuItems.find(m => m.id === itemId);
+    const itemName = item ? item.name : `Item #${itemId}`;
+    
     const result = await Swal.fire({
         title: 'Delete Menu Item',
-        text: 'Are you sure you want to delete this item?',
+        text: `Are you sure you want to delete ${itemName}?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete',
@@ -1257,6 +1295,7 @@ async function deleteMenuItem(itemId) {
         });
         
         if (response.ok) {
+            await logActivity('MENU_DELETE', `Deleted menu item: ${itemName}`);
             showToast('Menu item deleted successfully', 'success');
             loadMenuItems();
             loadDashboardData();
@@ -1270,6 +1309,9 @@ async function deleteMenuItem(itemId) {
 }
 
 async function quickRestock(itemId, currentStock) {
+    const item = window.allMenuItems.find(m => m.id === itemId);
+    const itemName = item ? item.name : `Item #${itemId}`;
+    
     try {
         const response = await fetch(`${API_BASE}/menu/${itemId}`, {
             method: 'PUT',
@@ -1278,6 +1320,7 @@ async function quickRestock(itemId, currentStock) {
         });
         
         if (response.ok) {
+            await logActivity('STOCK_UPDATE', `Quick restock: ${itemName} (+10 items, total: ${currentStock + 10})`);
             showToast('Stock updated: +10 items', 'success');
             loadMenuItems();
             loadInventory();
@@ -1866,3 +1909,1127 @@ window.deleteMenuItem = deleteMenuItem;
 window.quickRestock = quickRestock;
 window.viewOrderDetails = viewOrderDetails;
 window.downloadReport = downloadReport;
+
+// ==================== Notification Center Class ====================
+class NotificationCenter {
+    constructor() {
+        this.notifications = [];
+        this.unreadCount = 0;
+        this.adminEmail = localStorage.getItem('adminEmail') || 'admin@saintgits.org';
+    }
+    
+    async initialize() {
+        await this.loadNotifications();
+        this.setupAutoRefresh();
+    }
+    
+    async loadNotifications() {
+        try {
+            const response = await fetch(`${API_BASE}/notifications?email=${this.adminEmail}`);
+            if (response.ok) {
+                this.notifications = await response.json();
+                this.unreadCount = this.notifications.filter(n => !n.read).length;
+                this.updateBadge();
+                this.renderNotifications();
+            }
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+        }
+    }
+    
+    async addNotification(type, title, message, priority = 'normal') {
+        try {
+            const response = await fetch(`${API_BASE}/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipient_email: this.adminEmail,
+                    type,
+                    title,
+                    message,
+                    priority
+                })
+            });
+            
+            if (response.ok) {
+                await this.loadNotifications();
+                this.playSound(priority);
+            }
+        } catch (error) {
+            console.error('Error adding notification:', error);
+        }
+    }
+    
+    async markAsRead(notificationId) {
+        try {
+            const response = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+                method: 'PUT'
+            });
+            
+            if (response.ok) {
+                await this.loadNotifications();
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+    
+    async markAllAsRead() {
+        try {
+            const response = await fetch(`${API_BASE}/notifications/mark-all-read`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: this.adminEmail })
+            });
+            
+            if (response.ok) {
+                await this.loadNotifications();
+                showToast('All notifications marked as read', 'success');
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    }
+    
+    updateBadge() {
+        const badge = document.getElementById('notificationBadge');
+        if (badge) {
+            badge.textContent = this.unreadCount;
+            badge.style.display = this.unreadCount > 0 ? 'inline' : 'none';
+        }
+    }
+    
+    renderNotifications() {
+        const container = document.getElementById('notificationList');
+        if (!container) return;
+        
+        if (this.notifications.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted p-3">No notifications</div>';
+            return;
+        }
+        
+        container.innerHTML = this.notifications.map(notification => {
+            const iconMap = {
+                'order': 'receipt',
+                'stock': 'box-seam',
+                'user': 'person',
+                'system': 'info-circle'
+            };
+            
+            const icon = iconMap[notification.type] || 'bell';
+            const timeAgo = this.getTimeAgo(notification.created_at);
+            
+            return `
+                <div class="notification-item ${!notification.read ? 'unread' : ''} priority-${notification.priority}" 
+                     onclick="notificationCenter.markAsRead(${notification.id})">
+                    <div class="notification-icon type-${notification.type}">
+                        <i class="bi bi-${icon}"></i>
+                    </div>
+                    <div>
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${timeAgo}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    getTimeAgo(timestamp) {
+        const now = new Date();
+        const notifTime = new Date(timestamp);
+        const diffMs = now - notifTime;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    }
+    
+    playSound(priority) {
+        if (!document.getElementById('soundAlerts')?.checked) return;
+        
+        const audio = new Audio();
+        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDSG0fPTgjMGHm7A7OmdUBELTKXh8rltIAU2jdXzzn0vBSh9zPLaizsKGGS56+mjUBELTKXh8rltIAU2jdXzzn0vBSh9';
+        audio.play().catch(e => console.log('Audio play failed:', e));
+    }
+    
+    setupAutoRefresh() {
+        setInterval(() => {
+            this.loadNotifications();
+        }, 30000);
+    }
+    
+    async checkForNewNotifications(orders, menu, users) {
+        const lowStockItems = menu.filter(m => m.stock > 0 && m.stock <= 5);
+        if (lowStockItems.length > 0) {
+            for (const item of lowStockItems.slice(0, 3)) {
+                await this.addNotification(
+                    'stock',
+                    'Low Stock Alert',
+                    `${item.name} has only ${item.stock} items left`,
+                    item.stock <= 2 ? 'critical' : 'high'
+                );
+            }
+        }
+        
+        const outOfStockItems = menu.filter(m => m.stock === 0);
+        if (outOfStockItems.length > 0) {
+            for (const item of outOfStockItems.slice(0, 2)) {
+                await this.addNotification(
+                    'stock',
+                    'Out of Stock',
+                    `${item.name} is out of stock. Restock immediately!`,
+                    'critical'
+                );
+            }
+        }
+        
+        const pendingUsers = users.filter(u => u.status === 'pending');
+        if (pendingUsers.length > 0) {
+            await this.addNotification(
+                'user',
+                'Pending User Approvals',
+                `${pendingUsers.length} user${pendingUsers.length > 1 ? 's' : ''} waiting for approval`,
+                'normal'
+            );
+        }
+    }
+}
+
+const notificationCenter = new NotificationCenter();
+window.notificationCenter = notificationCenter;
+
+// ==================== Activity Logging ====================
+async function logActivity(action, details) {
+    const adminEmail = localStorage.getItem('adminEmail') || 'admin@saintgits.org';
+    
+    try {
+        await fetch(`${API_BASE}/admin/log-activity`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                admin_email: adminEmail,
+                action,
+                details
+            })
+        });
+    } catch (error) {
+        console.error('Failed to log activity:', error);
+    }
+}
+
+async function loadActivityLog() {
+    try {
+        const response = await fetch(`${API_BASE}/admin/activity-log?limit=200`);
+        const logs = await response.json();
+        
+        window.allActivityLogs = logs;
+        displayActivityLogs(logs);
+        
+    } catch (error) {
+        console.error('Error loading activity log:', error);
+        showToast('Error loading activity log', 'error');
+    }
+}
+
+function displayActivityLogs(logs) {
+    const tbody = document.getElementById('activityLogTableBody');
+    if (!tbody) return;
+    
+    if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No activity logs found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = logs.map(log => {
+        const timestamp = new Date(log.timestamp).toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const actionBadge = getActionBadge(log.action);
+        
+        return `
+            <tr>
+                <td><small>${timestamp}</small></td>
+                <td><small>${log.admin}</small></td>
+                <td>${actionBadge}</td>
+                <td><small>${log.details}</small></td>
+                <td><small><code>${log.ip_address}</code></small></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function getActionBadge(action) {
+    const actionPrefix = action.split('_')[0];
+    const badgeMap = {
+        'MENU': 'primary',
+        'USER': 'info',
+        'ORDER': 'success',
+        'STOCK': 'warning',
+        'SYSTEM': 'secondary'
+    };
+    const color = badgeMap[actionPrefix] || 'secondary';
+    return `<span class="badge bg-${color}">${action}</span>`;
+}
+
+function filterActivityLogs() {
+    const search = document.getElementById('logSearch')?.value.toLowerCase() || '';
+    const actionFilter = document.getElementById('logActionFilter')?.value || '';
+    
+    const filtered = (window.allActivityLogs || []).filter(log => {
+        const matchesSearch = log.details.toLowerCase().includes(search) || 
+                             log.admin.toLowerCase().includes(search);
+        const matchesAction = !actionFilter || log.action.startsWith(actionFilter);
+        
+        return matchesSearch && matchesAction;
+    });
+    
+    displayActivityLogs(filtered);
+}
+
+document.getElementById('logSearch')?.addEventListener('input', filterActivityLogs);
+document.getElementById('logActionFilter')?.addEventListener('change', filterActivityLogs);
+
+function exportActivityLog() {
+    const logs = window.allActivityLogs || [];
+    let csvContent = 'Timestamp,Admin,Action,Details,IP Address\n';
+    
+    logs.forEach(log => {
+        csvContent += `"${log.timestamp}","${log.admin}","${log.action}","${log.details}","${log.ip_address}"\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `activity_log_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    showToast('Activity log exported successfully', 'success');
+}
+
+window.loadActivityLog = loadActivityLog;
+window.exportActivityLog = exportActivityLog;
+
+// ==================== Batch Operations ====================
+let selectionMode = false;
+let selectedItems = new Set();
+
+document.getElementById('selectMultipleBtn')?.addEventListener('click', toggleSelectionMode);
+
+function toggleSelectionMode() {
+    selectionMode = !selectionMode;
+    const btn = document.getElementById('selectMultipleBtn');
+    const bulkActions = document.getElementById('bulkActions');
+    
+    if (selectionMode) {
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-warning');
+        btn.innerHTML = '<i class="bi bi-x-square"></i> Cancel Selection';
+        bulkActions.style.display = 'inline-flex';
+        addCheckboxesToCards();
+    } else {
+        btn.classList.remove('btn-warning');
+        btn.classList.add('btn-secondary');
+        btn.innerHTML = '<i class="bi bi-check-square"></i> Select Multiple';
+        bulkActions.style.display = 'none';
+        removeCheckboxesFromCards();
+        selectedItems.clear();
+    }
+}
+
+function addCheckboxesToCards() {
+    const cards = document.querySelectorAll('.menu-item-card');
+    cards.forEach(card => {
+        const editBtn = card.querySelector('[onclick*="editMenuItem"]');
+        if (editBtn) {
+            const itemId = editBtn.getAttribute('onclick').match(/editMenuItem\((\d+)\)/)[1];
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'menu-item-checkbox form-check-input';
+            checkbox.dataset.itemId = itemId;
+            
+            checkbox.addEventListener('change', (e) => {
+                const id = parseInt(e.target.dataset.itemId);
+                if (e.target.checked) {
+                    selectedItems.add(id);
+                    card.classList.add('selected');
+                } else {
+                    selectedItems.delete(id);
+                    card.classList.remove('selected');
+                }
+            });
+            
+            card.style.position = 'relative';
+            card.insertBefore(checkbox, card.firstChild);
+        }
+    });
+}
+
+function removeCheckboxesFromCards() {
+    document.querySelectorAll('.menu-item-checkbox').forEach(cb => cb.remove());
+    document.querySelectorAll('.menu-item-card.selected').forEach(card => {
+        card.classList.remove('selected');
+    });
+}
+
+async function bulkUpdateStock() {
+    if (selectedItems.size === 0) {
+        showToast('No items selected', 'warning');
+        return;
+    }
+    
+    const { value: stockToAdd } = await Swal.fire({
+        title: 'Bulk Stock Update',
+        input: 'number',
+        inputLabel: `Add stock to ${selectedItems.size} selected item${selectedItems.size > 1 ? 's' : ''}`,
+        inputPlaceholder: 'Enter quantity to add',
+        inputAttributes: {
+            min: 1,
+            step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Update Stock',
+        inputValidator: (value) => {
+            if (!value || value <= 0) {
+                return 'Please enter a valid quantity';
+            }
+        }
+    });
+    
+    if (stockToAdd) {
+        const quantity = parseInt(stockToAdd);
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (const itemId of selectedItems) {
+            const item = window.allMenuItems.find(m => m.id === itemId);
+            if (item) {
+                try {
+                    const response = await fetch(`${API_BASE}/menu/${itemId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ stock: item.stock + quantity })
+                    });
+                    
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (error) {
+                    failCount++;
+                }
+            }
+        }
+        
+        await logActivity('STOCK_BULK_UPDATE', `Bulk updated stock for ${successCount} items (+${quantity} each)`);
+        showToast(`Updated ${successCount} items successfully${failCount > 0 ? `, ${failCount} failed` : ''}`, 'success');
+        
+        selectedItems.clear();
+        toggleSelectionMode();
+        loadMenuItems();
+        loadInventory();
+        loadDashboardData();
+    }
+}
+
+async function bulkToggleAvailability() {
+    if (selectedItems.size === 0) {
+        showToast('No items selected', 'warning');
+        return;
+    }
+    
+    const result = await Swal.fire({
+        title: 'Toggle Availability',
+        text: `Toggle availability for ${selectedItems.size} selected item${selectedItems.size > 1 ? 's' : ''}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, toggle',
+        cancelButtonText: 'Cancel'
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (const itemId of selectedItems) {
+        const item = window.allMenuItems.find(m => m.id === itemId);
+        if (item) {
+            try {
+                const response = await fetch(`${API_BASE}/menu/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ available: item.available ? 0 : 1 })
+                });
+                
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (error) {
+                failCount++;
+            }
+        }
+    }
+    
+    await logActivity('MENU_BULK_TOGGLE', `Toggled availability for ${successCount} items`);
+    showToast(`Toggled ${successCount} items successfully${failCount > 0 ? `, ${failCount} failed` : ''}`, 'success');
+    
+    selectedItems.clear();
+    toggleSelectionMode();
+    loadMenuItems();
+    loadDashboardData();
+}
+
+async function bulkDelete() {
+    if (selectedItems.size === 0) {
+        showToast('No items selected', 'warning');
+        return;
+    }
+    
+    const result = await Swal.fire({
+        title: 'Delete Multiple Items',
+        text: `Are you sure you want to delete ${selectedItems.size} selected item${selectedItems.size > 1 ? 's' : ''}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete all',
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'Cancel'
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    let successCount = 0;
+    let failCount = 0;
+    const deletedItems = [];
+    
+    for (const itemId of selectedItems) {
+        const item = window.allMenuItems.find(m => m.id === itemId);
+        try {
+            const response = await fetch(`${API_BASE}/menu/${itemId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                successCount++;
+                if (item) deletedItems.push(item.name);
+            } else {
+                failCount++;
+            }
+        } catch (error) {
+            failCount++;
+        }
+    }
+    
+    await logActivity('MENU_BULK_DELETE', `Deleted ${successCount} items: ${deletedItems.join(', ')}`);
+    showToast(`Deleted ${successCount} items successfully${failCount > 0 ? `, ${failCount} failed` : ''}`, 'success');
+    
+    selectedItems.clear();
+    toggleSelectionMode();
+    loadMenuItems();
+    loadDashboardData();
+}
+
+window.bulkUpdateStock = bulkUpdateStock;
+window.bulkToggleAvailability = bulkToggleAvailability;
+window.bulkDelete = bulkDelete;
+
+// ==================== Global Search ====================
+let searchTimeout;
+
+document.getElementById('globalSearch')?.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => performGlobalSearch(e.target.value), 300);
+});
+
+document.getElementById('globalSearch')?.addEventListener('focus', () => {
+    if (document.getElementById('globalSearch').value.length >= 2) {
+        document.getElementById('searchResults').style.display = 'block';
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+        document.getElementById('searchResults').style.display = 'none';
+    }
+});
+
+async function performGlobalSearch(query) {
+    const searchResults = document.getElementById('searchResults');
+    if (!searchResults) return;
+    
+    if (query.length < 2) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    const results = {
+        menu: [],
+        users: [],
+        orders: []
+    };
+    
+    if (window.allMenuItems) {
+        results.menu = window.allMenuItems.filter(item => 
+            item.name.toLowerCase().includes(lowerQuery) ||
+            item.category.toLowerCase().includes(lowerQuery)
+        ).slice(0, 5);
+    }
+    
+    if (window.allUsers) {
+        results.users = window.allUsers.filter(user => 
+            user.email.toLowerCase().includes(lowerQuery) ||
+            (user.name && user.name.toLowerCase().includes(lowerQuery)) ||
+            user.role.toLowerCase().includes(lowerQuery)
+        ).slice(0, 5);
+    }
+    
+    if (window.allOrders) {
+        results.orders = window.allOrders.filter(order => 
+            order.customer_name.toLowerCase().includes(lowerQuery) ||
+            order.customer_email.toLowerCase().includes(lowerQuery) ||
+            order.id.toString().includes(query) ||
+            order.otp.toLowerCase().includes(lowerQuery)
+        ).slice(0, 5);
+    }
+    
+    displaySearchResults(results);
+}
+
+function displaySearchResults(results) {
+    const searchResults = document.getElementById('searchResults');
+    if (!searchResults) return;
+    
+    const totalResults = results.menu.length + results.users.length + results.orders.length;
+    
+    if (totalResults === 0) {
+        searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
+    
+    let html = '';
+    
+    if (results.menu.length > 0) {
+        html += '<div class="search-result-category">Menu Items</div>';
+        results.menu.forEach(item => {
+            html += `
+                <div class="search-result-item" onclick="navigateToMenuItem(${item.id})">
+                    <div class="search-result-icon type-menu">
+                        <i class="bi bi-cup-hot"></i>
+                    </div>
+                    <div class="search-result-content">
+                        <div class="search-result-title">${item.name}</div>
+                        <div class="search-result-subtitle">₹${item.price} • ${item.category} • Stock: ${item.stock}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (results.users.length > 0) {
+        html += '<div class="search-result-category">Users</div>';
+        results.users.forEach(user => {
+            html += `
+                <div class="search-result-item" onclick="navigateToUser('${user.email}')">
+                    <div class="search-result-icon type-user">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="search-result-content">
+                        <div class="search-result-title">${user.name || user.email}</div>
+                        <div class="search-result-subtitle">${user.email} • ${user.role} • ${user.status}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (results.orders.length > 0) {
+        html += '<div class="search-result-category">Orders</div>';
+        results.orders.forEach(order => {
+            html += `
+                <div class="search-result-item" onclick="navigateToOrder(${order.id})">
+                    <div class="search-result-icon type-order">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div class="search-result-content">
+                        <div class="search-result-title">Order #${order.id} - ${order.customer_name}</div>
+                        <div class="search-result-subtitle">₹${order.total_price} • ${order.status} • OTP: ${order.otp}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    searchResults.innerHTML = html;
+    searchResults.style.display = 'block';
+}
+
+function navigateToMenuItem(itemId) {
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('globalSearch').value = '';
+    document.querySelector('[data-section="menu"]').click();
+    setTimeout(() => {
+        editMenuItem(itemId);
+    }, 500);
+}
+
+function navigateToUser(email) {
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('globalSearch').value = '';
+    document.querySelector('[data-section="users"]').click();
+    setTimeout(() => {
+        const rows = document.querySelectorAll('#usersTableBody tr');
+        rows.forEach(row => {
+            if (row.textContent.includes(email)) {
+                row.style.background = 'rgba(79, 70, 229, 0.1)';
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    row.style.background = '';
+                }, 2000);
+            }
+        });
+    }, 500);
+}
+
+function navigateToOrder(orderId) {
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('globalSearch').value = '';
+    document.querySelector('[data-section="orders"]').click();
+    setTimeout(() => {
+        viewOrderDetails(orderId);
+    }, 500);
+}
+
+window.navigateToMenuItem = navigateToMenuItem;
+window.navigateToUser = navigateToUser;
+window.navigateToOrder = navigateToOrder;
+
+// ==================== Keyboard Shortcuts ====================
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.key === 'Escape') {
+            e.target.blur();
+        }
+        return;
+    }
+    
+    if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('globalSearch')?.focus();
+        return;
+    }
+    
+    if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        document.getElementById('addMenuItemBtn')?.click();
+        return;
+    }
+    
+    if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        document.getElementById('refreshBtn')?.click();
+        return;
+    }
+    
+    if (e.key === '?') {
+        e.preventDefault();
+        showKeyboardShortcuts();
+        return;
+    }
+    
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.show').forEach(modal => {
+            bootstrap.Modal.getInstance(modal)?.hide();
+        });
+        document.querySelectorAll('.dropdown-menu.show').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+        return;
+    }
+    
+    if (e.key >= '1' && e.key <= '8' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+        e.preventDefault();
+        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+        const index = parseInt(e.key) - 1;
+        if (navLinks[index]) {
+            navLinks[index].click();
+        }
+        return;
+    }
+});
+
+document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', showKeyboardShortcuts);
+
+function showKeyboardShortcuts() {
+    Swal.fire({
+        title: '<i class="bi bi-keyboard"></i> Keyboard Shortcuts',
+        html: `
+            <div style="text-align: left;">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Shortcut</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><kbd>Ctrl</kbd> + <kbd>K</kbd></td>
+                            <td>Global Search</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Ctrl</kbd> + <kbd>N</kbd></td>
+                            <td>Add New Menu Item</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Ctrl</kbd> + <kbd>R</kbd></td>
+                            <td>Refresh Dashboard Data</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>?</kbd></td>
+                            <td>Show Keyboard Shortcuts</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Esc</kbd></td>
+                            <td>Close Modals/Dropdowns</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>1</kbd> - <kbd>8</kbd></td>
+                            <td>Quick Navigation to Sections</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-info mt-3 mb-0">
+                    <small><i class="bi bi-info-circle"></i> Press <kbd>?</kbd> anytime to view this help</small>
+                </div>
+            </div>
+        `,
+        width: 600,
+        confirmButtonText: 'Got it!'
+    });
+}
+
+// ==================== Predictive Analytics Class ====================
+class PredictiveAnalytics {
+    static calculateSalesVelocity(itemName, orders) {
+        const itemOrders = [];
+        orders.forEach(order => {
+            if (order.items && Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    if (item.name === itemName && order.created_at) {
+                        itemOrders.push({
+                            date: new Date(order.created_at),
+                            qty: item.qty || 1
+                        });
+                    }
+                });
+            }
+        });
+        
+        if (itemOrders.length === 0) return 0;
+        
+        itemOrders.sort((a, b) => a.date - b.date);
+        
+        const totalQty = itemOrders.reduce((sum, o) => sum + o.qty, 0);
+        
+        const firstDate = itemOrders[0].date;
+        const lastDate = itemOrders[itemOrders.length - 1].date;
+        const daysDiff = Math.max(1, (lastDate - firstDate) / (1000 * 60 * 60 * 24));
+        
+        return totalQty / daysDiff;
+    }
+    
+    static forecastDemand(itemName, orders) {
+        const salesData = [];
+        
+        orders.forEach(order => {
+            if (order.items && Array.isArray(order.items) && order.created_at) {
+                order.items.forEach(item => {
+                    if (item.name === itemName) {
+                        salesData.push({
+                            date: new Date(order.created_at),
+                            qty: item.qty || 1,
+                            price: item.price || 0
+                        });
+                    }
+                });
+            }
+        });
+        
+        if (salesData.length === 0) {
+            return {
+                nextWeekForecast: 0,
+                trend: 'no-data',
+                confidence: 'none',
+                avgDailySales: 0
+            };
+        }
+        
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        const recentSales = salesData.filter(s => s.date >= sevenDaysAgo);
+        const avgDailySales = recentSales.length > 0
+            ? recentSales.reduce((sum, s) => sum + s.qty, 0) / 7
+            : 0;
+        
+        const nextWeekForecast = Math.round(avgDailySales * 7);
+        
+        const trend = this.calculateTrend(salesData);
+        
+        let confidence = 'low';
+        if (salesData.length >= 20) confidence = 'high';
+        else if (salesData.length >= 10) confidence = 'medium';
+        
+        return {
+            nextWeekForecast,
+            trend,
+            confidence,
+            avgDailySales: avgDailySales.toFixed(2)
+        };
+    }
+    
+    static calculateTrend(salesData) {
+        if (salesData.length < 4) return 'stable';
+        
+        salesData.sort((a, b) => a.date - b.date);
+        
+        const midPoint = Math.floor(salesData.length / 2);
+        const firstHalf = salesData.slice(0, midPoint);
+        const secondHalf = salesData.slice(midPoint);
+        
+        const firstAvg = firstHalf.reduce((sum, s) => sum + s.qty, 0) / firstHalf.length;
+        const secondAvg = secondHalf.reduce((sum, s) => sum + s.qty, 0) / secondHalf.length;
+        
+        if (secondAvg > firstAvg * 1.15) return 'increasing';
+        if (secondAvg < firstAvg * 0.85) return 'decreasing';
+        return 'stable';
+    }
+    
+    static suggestReorderQuantity(item, salesVelocity) {
+        const currentStock = item.stock;
+        
+        const daysOfStock = salesVelocity > 0 ? currentStock / salesVelocity : 999;
+        
+        const optimalStock = Math.ceil(salesVelocity * 7);
+        
+        let priority = 'low';
+        let message = '';
+        let suggestedQuantity = 0;
+        
+        if (daysOfStock <= 0 || currentStock === 0) {
+            priority = 'high';
+            message = 'OUT OF STOCK - Immediate action required';
+            suggestedQuantity = Math.max(optimalStock, 50);
+        } else if (daysOfStock < 2) {
+            priority = 'high';
+            message = `Critical: Will run out in ${daysOfStock.toFixed(1)} days`;
+            suggestedQuantity = Math.max(optimalStock - currentStock, 30);
+        } else if (daysOfStock < 5) {
+            priority = 'medium';
+            message = `Low: Will run out in ${daysOfStock.toFixed(1)} days`;
+            suggestedQuantity = Math.max(optimalStock - currentStock, 20);
+        } else if (daysOfStock < 7) {
+            priority = 'low';
+            message = `Restock soon: ${daysOfStock.toFixed(1)} days remaining`;
+            suggestedQuantity = optimalStock - currentStock;
+        } else {
+            return null;
+        }
+        
+        return {
+            priority,
+            message,
+            suggestedQuantity: Math.max(suggestedQuantity, 10),
+            daysOfStock: daysOfStock.toFixed(1),
+            optimalStock
+        };
+    }
+}
+
+function generateDemandForecast(orders, menu) {
+    const forecastContainer = document.getElementById('demandForecastContent');
+    if (!forecastContainer) return;
+    
+    const itemSales = {};
+    orders.forEach(order => {
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                const name = item.name || `Item ${item.id}`;
+                itemSales[name] = (itemSales[name] || 0) + (item.qty || 1);
+            });
+        }
+    });
+    
+    const topItems = Object.entries(itemSales)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([name]) => name);
+    
+    if (topItems.length === 0) {
+        forecastContainer.innerHTML = '<p class="text-muted">Not enough data for forecasting</p>';
+        return;
+    }
+    
+    let html = '';
+    
+    topItems.forEach(itemName => {
+        const forecast = PredictiveAnalytics.forecastDemand(itemName, orders);
+        
+        if (forecast.trend === 'no-data') return;
+        
+        const trendIcon = {
+            'increasing': 'bi-arrow-up-circle text-success',
+            'decreasing': 'bi-arrow-down-circle text-danger',
+            'stable': 'bi-dash-circle text-info'
+        }[forecast.trend] || 'bi-circle';
+        
+        const trendText = {
+            'increasing': 'Increasing',
+            'decreasing': 'Decreasing',
+            'stable': 'Stable'
+        }[forecast.trend] || 'Unknown';
+        
+        const confidenceBadge = {
+            'high': '<span class="badge bg-success">High Confidence</span>',
+            'medium': '<span class="badge bg-warning">Medium Confidence</span>',
+            'low': '<span class="badge bg-secondary">Low Confidence</span>'
+        }[forecast.confidence] || '';
+        
+        html += `
+            <div class="forecast-item trend-${forecast.trend}">
+                <div class="forecast-header">
+                    <div class="forecast-title">
+                        <i class="${trendIcon}"></i> ${itemName}
+                    </div>
+                    ${confidenceBadge}
+                </div>
+                <div class="forecast-details">
+                    <strong>Next Week Forecast:</strong> ${forecast.nextWeekForecast} units<br>
+                    <strong>Trend:</strong> ${trendText}<br>
+                    <strong>Avg Daily Sales:</strong> ${forecast.avgDailySales} units/day
+                </div>
+            </div>
+        `;
+    });
+    
+    forecastContainer.innerHTML = html || '<p class="text-muted">No forecast data available</p>';
+}
+
+function generateReorderRecommendations(orders, menu) {
+    const reorderContainer = document.getElementById('reorderRecommendations');
+    if (!reorderContainer) return;
+    
+    const recommendations = [];
+    
+    menu.forEach(item => {
+        const salesVelocity = PredictiveAnalytics.calculateSalesVelocity(item.name, orders);
+        const reorder = PredictiveAnalytics.suggestReorderQuantity(item, salesVelocity);
+        
+        if (reorder) {
+            recommendations.push({
+                item,
+                ...reorder
+            });
+        }
+    });
+    
+    const priorityOrder = { 'high': 1, 'medium': 2, 'low': 3 };
+    recommendations.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    
+    if (recommendations.length === 0) {
+        reorderContainer.innerHTML = '<p class="text-success"><i class="bi bi-check-circle"></i> All items are adequately stocked</p>';
+        return;
+    }
+    
+    let html = '';
+    
+    recommendations.slice(0, 5).forEach(rec => {
+        const priorityIcon = {
+            'high': 'bi-exclamation-triangle text-danger',
+            'medium': 'bi-exclamation-circle text-warning',
+            'low': 'bi-info-circle text-info'
+        }[rec.priority];
+        
+        html += `
+            <div class="reorder-item priority-${rec.priority}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <strong><i class="${priorityIcon}"></i> ${rec.item.name}</strong>
+                        <br>
+                        <small class="text-muted">${rec.message}</small>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small>
+                            Current: <strong>${rec.item.stock}</strong> | 
+                            Optimal: <strong>${rec.optimalStock}</strong> | 
+                            Suggest: <strong class="text-success">+${rec.suggestedQuantity}</strong>
+                        </small>
+                    </div>
+                    <button class="btn btn-sm btn-success" onclick="quickRestock(${rec.item.id}, ${rec.item.stock})">
+                        <i class="bi bi-plus-circle"></i> Restock
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    reorderContainer.innerHTML = html;
+}
+
+// ==================== Loading States ====================
+function showLoadingSpinner(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = `
+            <div class="spinner-wrapper">
+                <div class="spinner"></div>
+            </div>
+        `;
+    }
+}
+
+function showSkeletonLoading(elementId, count = 3) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        let html = '';
+        for (let i = 0; i < count; i++) {
+            html += `
+                <div class="skeleton skeleton-card mb-3"></div>
+            `;
+        }
+        element.innerHTML = html;
+    }
+}
+
+function setButtonLoading(button, loading = true) {
+    if (loading) {
+        button.classList.add('loading');
+        button.disabled = true;
+        button.dataset.originalText = button.innerHTML;
+    } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+        if (button.dataset.originalText) {
+            button.innerHTML = button.dataset.originalText;
+        }
+    }
+}

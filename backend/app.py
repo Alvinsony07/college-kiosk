@@ -85,6 +85,32 @@ def initialize_db():
         )
     ''')
 
+    # Notifications table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipient_email TEXT,
+            title TEXT,
+            message TEXT,
+            type TEXT,
+            priority TEXT DEFAULT 'normal',
+            read INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Activity Log table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS activity_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_email TEXT,
+            action TEXT,
+            details TEXT,
+            ip_address TEXT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Insert default admin if not exists
     cursor.execute("SELECT * FROM users WHERE email = ?", ('kioskadmin@saintgits.org',))
     if not cursor.fetchone():
@@ -817,6 +843,129 @@ def update_order_status(order_id):
     except Exception as e:
         print(f"Error updating order status: {e}")
         return jsonify({'error': 'Failed to update order status'}), 500
+
+# ---------------------- Notification Endpoints ---------------------- #
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    email = request.args.get('email', 'admin@saintgits.org')
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT id, title, message, type, priority, read, created_at 
+                FROM notifications 
+                WHERE recipient_email = ? 
+                ORDER BY created_at DESC 
+                LIMIT 50
+            ''', (email,))
+            notifications = cursor.fetchall()
+        
+        return jsonify([{
+            'id': n[0],
+            'title': n[1],
+            'message': n[2],
+            'type': n[3],
+            'priority': n[4],
+            'read': bool(n[5]),
+            'created_at': n[6]
+        } for n in notifications]), 200
+    except Exception as e:
+        print(f"Error getting notifications: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications', methods=['POST'])
+def create_notification():
+    data = request.get_json()
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO notifications (recipient_email, title, message, type, priority)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                data.get('recipient_email', 'admin@saintgits.org'),
+                data.get('title'),
+                data.get('message'),
+                data.get('type'),
+                data.get('priority', 'normal')
+            ))
+            conn.commit()
+        return jsonify({'message': 'Notification created'}), 201
+    except Exception as e:
+        print(f"Error creating notification: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications/<int:id>/read', methods=['PUT'])
+def mark_notification_read(id):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE notifications SET read = 1 WHERE id = ?', (id,))
+            conn.commit()
+        return jsonify({'message': 'Marked as read'}), 200
+    except Exception as e:
+        print(f"Error marking notification as read: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications/mark-all-read', methods=['PUT'])
+def mark_all_read():
+    email = request.get_json().get('email', 'admin@saintgits.org')
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE notifications SET read = 1 WHERE recipient_email = ?', (email,))
+            conn.commit()
+        return jsonify({'message': 'All marked as read'}), 200
+    except Exception as e:
+        print(f"Error marking all as read: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ---------------------- Activity Log Endpoints ---------------------- #
+@app.route('/api/admin/log-activity', methods=['POST'])
+def log_activity():
+    data = request.get_json()
+    admin_email = data.get('admin_email')
+    action = data.get('action')
+    details = data.get('details')
+    ip_address = request.remote_addr
+    
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO activity_log (admin_email, action, details, ip_address)
+                VALUES (?, ?, ?, ?)
+            ''', (admin_email, action, details, ip_address))
+            conn.commit()
+        return jsonify({'message': 'Activity logged'}), 201
+    except Exception as e:
+        print(f"Error logging activity: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/activity-log', methods=['GET'])
+def get_activity_log():
+    limit = request.args.get('limit', 100, type=int)
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT admin_email, action, details, ip_address, timestamp 
+                FROM activity_log 
+                ORDER BY timestamp DESC 
+                LIMIT ?
+            ''', (limit,))
+            logs = cursor.fetchall()
+        
+        return jsonify([{
+            'admin': log[0],
+            'action': log[1],
+            'details': log[2],
+            'ip_address': log[3],
+            'timestamp': log[4]
+        } for log in logs]), 200
+    except Exception as e:
+        print(f"Error getting activity log: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ---------------------- Run Server ---------------------- #
 if __name__ == '__main__':

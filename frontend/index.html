@@ -89,8 +89,11 @@
 
       const data = await res.json();
       if (res.ok) {
-        // Save role in local storage
+        // Save user info to localStorage
         localStorage.setItem("userRole", data.role);
+        localStorage.setItem("userName", data.name);
+        localStorage.setItem("adminEmail", email);  // Store email for activity logging
+        
         msg.style.color = "green";
         msg.textContent = "Login successful! Redirecting...";
 
