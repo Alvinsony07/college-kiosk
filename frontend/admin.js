@@ -1,6 +1,5 @@
 // ==================== Configuration ====================
 const API_BASE = 'http://localhost:5000/api';
-let isDemoMode = false;
 let autoRefreshInterval = null;
 let charts = {};
 
@@ -38,18 +37,6 @@ function setupEventListeners() {
     document.getElementById('refreshBtn')?.addEventListener('click', () => {
         loadDashboardData();
         showToast('Data refreshed successfully', 'success');
-    });
-    
-    // Demo mode toggle
-    document.getElementById('demoModeToggle')?.addEventListener('change', (e) => {
-        isDemoMode = e.target.checked;
-        if (isDemoMode) {
-            showToast('Demo Mode Enabled', 'info');
-            loadDemoData();
-        } else {
-            showToast('Demo Mode Disabled', 'info');
-            loadDashboardData();
-        }
     });
     
     // Logout button
@@ -221,11 +208,6 @@ function loadSectionData(section) {
 
 // ==================== Dashboard Data ====================
 async function loadDashboardData() {
-    if (isDemoMode) {
-        loadDemoData();
-        return;
-    }
-    
     try {
         // Fetch all data in parallel
         const [orders, menu, users] = await Promise.all([
@@ -249,10 +231,18 @@ async function loadDashboardData() {
 function updateDashboardStats(orders, menu, users) {
     const today = new Date().toDateString();
     
-    // Today's orders
+    // Today's orders - filter by actual created_at timestamp
     const todayOrders = orders.filter(o => {
-        // Note: In real scenario, you'd check the order date
-        return true; // For now, showing all orders
+        if (o.created_at) {
+            try {
+                const orderDate = new Date(o.created_at);
+                return orderDate.toDateString() === today;
+            } catch (e) {
+                console.error('Error parsing order date:', e);
+                return false;
+            }
+        }
+        return false;
     });
     
     document.getElementById('todayOrders').textContent = todayOrders.length;
@@ -301,11 +291,23 @@ function createOrdersPerHourChart(orders) {
     const hours = Array.from({length: 24}, (_, i) => i);
     const orderCounts = new Array(24).fill(0);
     
-    // In real scenario, parse order timestamps
-    // For demo, distribute orders randomly
-    orders.forEach(() => {
-        const hour = Math.floor(Math.random() * 24);
-        orderCounts[hour]++;
+    // Get today's date string for filtering
+    const today = new Date().toDateString();
+    
+    // Count orders by hour from actual timestamps
+    orders.forEach(order => {
+        if (order.created_at) {
+            try {
+                const orderDate = new Date(order.created_at);
+                // Only count today's orders
+                if (orderDate.toDateString() === today) {
+                    const hour = orderDate.getHours();
+                    orderCounts[hour]++;
+                }
+            } catch (e) {
+                console.error('Error parsing order timestamp:', e);
+            }
+        }
     });
     
     const isDark = document.body.classList.contains('dark-mode');
@@ -337,7 +339,8 @@ function createOrdersPerHourChart(orders) {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        color: isDark ? '#94a3b8' : '#64748b'
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        stepSize: 1
                     },
                     grid: {
                         color: isDark ? '#334155' : '#e2e8f0'
@@ -490,11 +493,25 @@ function createRevenueTrendChart(orders) {
     for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
+        const dateString = date.toDateString();
         days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
         
-        // In real scenario, filter orders by date
-        // For demo, distribute revenue randomly
-        revenues.push(Math.random() * 5000 + 1000);
+        // Calculate actual revenue for this date from orders
+        const dayRevenue = orders.reduce((sum, order) => {
+            if (order.created_at) {
+                try {
+                    const orderDate = new Date(order.created_at);
+                    if (orderDate.toDateString() === dateString) {
+                        return sum + (order.total_price || 0);
+                    }
+                } catch (e) {
+                    console.error('Error parsing order date:', e);
+                }
+            }
+            return sum;
+        }, 0);
+        
+        revenues.push(dayRevenue);
     }
     
     const isDark = document.body.classList.contains('dark-mode');
@@ -827,7 +844,7 @@ function generateSmartInsights(orders, menu) {
         insightItems.push(`
             <div class="insight-item">
                 <i class="bi bi-lightbulb text-info"></i>
-                <strong>Getting Started:</strong> No orders yet. ${menu.length} menu items ready. Enable Demo Mode to see insights in action!
+                <strong>Getting Started:</strong> No orders yet. ${menu.length} menu items ready. Waiting for customer orders!
             </div>
         `);
     }
@@ -1429,14 +1446,22 @@ function calculateRevenueSummary(orders) {
     document.getElementById('avgOrderValue').textContent = avgOrderValue.toFixed(2);
     document.getElementById('totalOrdersCount').textContent = orders.length;
     
-    // Calculate peak hour (simplified)
+    // Calculate peak hour from actual order timestamps
     const hourCounts = new Array(24).fill(0);
-    orders.forEach(() => {
-        const hour = Math.floor(Math.random() * 24);
-        hourCounts[hour]++;
+    orders.forEach(order => {
+        if (order.created_at) {
+            try {
+                const orderDate = new Date(order.created_at);
+                const hour = orderDate.getHours();
+                hourCounts[hour]++;
+            } catch (e) {
+                console.error('Error parsing order timestamp:', e);
+            }
+        }
     });
     
-    const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+    const maxCount = Math.max(...hourCounts);
+    const peakHour = maxCount > 0 ? hourCounts.indexOf(maxCount) : 0;
     document.getElementById('peakHour').textContent = `${peakHour}:00`;
 }
 
@@ -1455,8 +1480,25 @@ function createDailyRevenueChart(orders) {
     for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
+        const dateString = date.toDateString();
         days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-        revenues.push(Math.random() * 5000 + 1000);
+        
+        // Calculate actual revenue for this date from orders
+        const dayRevenue = orders.reduce((sum, order) => {
+            if (order.created_at) {
+                try {
+                    const orderDate = new Date(order.created_at);
+                    if (orderDate.toDateString() === dateString) {
+                        return sum + (order.total_price || 0);
+                    }
+                } catch (e) {
+                    console.error('Error parsing order date:', e);
+                }
+            }
+            return sum;
+        }, 0);
+        
+        revenues.push(dayRevenue);
     }
     
     const isDark = document.body.classList.contains('dark-mode');
@@ -1480,6 +1522,13 @@ function createDailyRevenueChart(orders) {
                 legend: {
                     labels: {
                         color: isDark ? '#f1f5f9' : '#0f172a'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Revenue: ₹' + context.parsed.y.toFixed(2);
+                        }
                     }
                 }
             },
@@ -1726,47 +1775,6 @@ function stopAutoRefresh() {
         clearInterval(autoRefreshInterval);
         autoRefreshInterval = null;
     }
-}
-
-// ==================== Demo Mode ====================
-function loadDemoData() {
-    // Generate demo orders
-    const demoOrders = Array.from({length: 20}, (_, i) => ({
-        id: i + 1,
-        customer_name: `Customer ${i + 1}`,
-        customer_email: `customer${i + 1}@example.com`,
-        items: [
-            { id: 1, name: 'Burger', qty: Math.floor(Math.random() * 3) + 1 },
-            { id: 2, name: 'Pizza', qty: Math.floor(Math.random() * 2) + 1 }
-        ],
-        total_price: Math.random() * 500 + 100,
-        otp: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        status: ['Order Received', 'Preparing', 'Ready', 'Completed'][Math.floor(Math.random() * 4)]
-    }));
-    
-    // Generate demo menu
-    const demoMenu = [
-        { id: 1, name: 'Burger', price: 80, category: 'Snacks', stock: Math.floor(Math.random() * 50), image: 'burger.jpg' },
-        { id: 2, name: 'Pizza', price: 150, category: 'Meals', stock: Math.floor(Math.random() * 30), image: 'pizza.jpg' },
-        { id: 3, name: 'Tea', price: 20, category: 'Drinks', stock: Math.floor(Math.random() * 100), image: 'tea.jpg' },
-        { id: 4, name: 'Coffee', price: 30, category: 'Drinks', stock: Math.floor(Math.random() * 80), image: 'coffee.jpg' },
-        { id: 5, name: 'Sandwich', price: 60, category: 'Snacks', stock: Math.floor(Math.random() * 40), image: 'sandwich.jpg' }
-    ];
-    
-    // Generate demo users
-    const demoUsers = Array.from({length: 10}, (_, i) => ({
-        email: `user${i + 1}@example.com`,
-        role: ['user', 'staff', 'admin'][Math.floor(Math.random() * 3)],
-        status: ['approved', 'pending'][Math.floor(Math.random() * 2)]
-    }));
-    
-    updateDashboardStats(demoOrders, demoMenu, demoUsers);
-    updateCharts(demoOrders, demoMenu);
-    updateRecentOrders(demoOrders);
-    updateAlerts(demoMenu, demoUsers);
-    generateSmartInsights(demoOrders, demoMenu);
-    
-    showToast('Demo data loaded with simulated real-time updates', 'info');
 }
 
 // ==================== Utility Functions ====================

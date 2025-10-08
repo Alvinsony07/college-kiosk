@@ -5,6 +5,7 @@ import sqlite3
 import hashlib
 import random
 import string
+from datetime import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -65,7 +66,8 @@ def initialize_db():
             items TEXT,
             total_price REAL,
             status TEXT DEFAULT 'Order Received',
-            otp TEXT
+            otp TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
@@ -371,7 +373,7 @@ def delete_menu_item(item_id):
 def get_orders():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, customer_name, customer_email, items, total_price, otp, status FROM orders ORDER BY id DESC")
+    cursor.execute("SELECT id, customer_name, customer_email, items, total_price, otp, status, created_at FROM orders ORDER BY id DESC")
     rows = cursor.fetchall()
     conn.close()
 
@@ -411,7 +413,8 @@ def get_orders():
             "items": detailed_items,   # ✅ always array with name+qty
             "total_price": r[4],
             "otp": r[5],
-            "status": r[6]
+            "status": r[6],
+            "created_at": r[7]
         })
     return jsonify(orders)
 
@@ -476,9 +479,12 @@ def create_order():
         "delivery_mode": delivery_mode
     }
 
+    # Get current timestamp
+    current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     cursor.execute(
-        "INSERT INTO orders (customer_name, customer_email, items, total_price, otp) VALUES (?,?,?,?,?)",
-        (name, email, str(order_payload), total_price, otp)
+        "INSERT INTO orders (customer_name, customer_email, items, total_price, otp, created_at) VALUES (?,?,?,?,?,?)",
+        (name, email, str(order_payload), total_price, otp, current_timestamp)
     )
 
     conn.commit()
