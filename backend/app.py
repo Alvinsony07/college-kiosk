@@ -24,6 +24,22 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 
+# ---------------------- Context Manager for DB ---------------------- #
+from contextlib import contextmanager
+
+@contextmanager
+def get_db_connection():
+    """Context manager for database connections to ensure proper cleanup."""
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        yield conn
+    except Exception as e:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 # ---------------------- DB Setup ---------------------- #
 def initialize_db():
     conn = sqlite3.connect(DB_PATH)
@@ -157,24 +173,10 @@ def validate_required_fields(data, required_fields):
         return False, f"Missing required fields: {', '.join(missing)}"
     return True, "Valid"
 
-# ---------------------- Database Context Manager ---------------------- #
-from contextlib import contextmanager
-
-@contextmanager
-def get_db_connection():
-    """Context manager for database connections to ensure proper cleanup."""
-    conn = sqlite3.connect(DB_PATH)
-    try:
-        yield conn
-    except Exception as e:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
 # ---------------------- Helper ---------------------- #
 def generate_otp():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
 
 # ---------------------- Serve Pages ---------------------- #
 @app.route('/')
@@ -242,6 +244,7 @@ def register_user():
     except sqlite3.IntegrityError:
         return jsonify({'error': 'Email already registered'}), 409
     except Exception as e:
+        print(f"Error during registration: {e}")
         return jsonify({'error': 'Registration failed'}), 500
 
 @app.route('/api/login', methods=['POST'])
@@ -280,6 +283,7 @@ def login_user():
         else:
             return jsonify({'error': 'Invalid credentials'}), 401
     except Exception as e:
+        print(f"Error during login: {e}")
         return jsonify({'error': 'Login failed'}), 500
 
 # ---------------------- Admin APIs ---------------------- #
@@ -292,6 +296,7 @@ def get_pending_users():
             users = cursor.fetchall()
         return jsonify(users), 200
     except Exception as e:
+        print(f"Error fetching pending users: {e}")
         return jsonify({'error': 'Failed to fetch pending users'}), 500
 
 @app.route('/api/users/approve', methods=['POST'])
@@ -315,10 +320,16 @@ def approve_user():
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Check if user exists
+            cursor.execute("SELECT id FROM users WHERE email=?", (email,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'User not found'}), 404
+            
             cursor.execute("UPDATE users SET status='approved', role=? WHERE email=?", (role, email))
             conn.commit()
         return jsonify({'message': f'User {email} approved with role {role}'}), 200
     except Exception as e:
+        print(f"Error approving user: {e}")
         return jsonify({'error': 'Failed to approve user'}), 500
 
 @app.route('/api/users/assign-role', methods=['POST'])
@@ -342,10 +353,16 @@ def assign_role():
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Check if user exists
+            cursor.execute("SELECT id FROM users WHERE email=? AND status='approved'", (email,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'User not found or not approved'}), 404
+            
             cursor.execute("UPDATE users SET role=? WHERE email=? AND status='approved'", (role, email))
             conn.commit()
         return jsonify({'message': f'Role {role} assigned to {email}'}), 200
     except Exception as e:
+        print(f"Error assigning role: {e}")
         return jsonify({'error': 'Failed to assign role'}), 500
 
 @app.route('/api/users/delete', methods=['POST'])
@@ -360,13 +377,23 @@ def delete_user():
     if not validate_email(email):
         return jsonify({'error': 'Invalid email format'}), 400
     
+    # Prevent deleting admin account
+    if email == 'kioskadmin@saintgits.org':
+        return jsonify({'error': 'Cannot delete default admin account'}), 403
+    
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Check if user exists
+            cursor.execute("SELECT id FROM users WHERE email=?", (email,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'User not found'}), 404
+            
             cursor.execute("DELETE FROM users WHERE email=?", (email,))
             conn.commit()
         return jsonify({'message': f'User {email} deleted'}), 200
     except Exception as e:
+        print(f"Error deleting user: {e}")
         return jsonify({'error': 'Failed to delete user'}), 500
 
 @app.route('/api/users', methods=['GET'])
@@ -374,10 +401,12 @@ def get_users():
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT email, role, status FROM users")
-            users = [{'email': email, 'role': role, 'status': status} for (email, role, status) in cursor.fetchall()]
+            cursor.execute("SELECT name, email, role, status FROM users")
+            users = [{'name': name, 'email': email, 'role': role, 'status': status} 
+                    for (name, email, role, status) in cursor.fetchall()]
         return jsonify(users), 200
     except Exception as e:
+        print(f"Error fetching users: {e}")
         return jsonify({'error': 'Failed to fetch users'}), 500
 
 # ---------------------- Menu APIs ---------------------- #
@@ -404,6 +433,7 @@ def get_menu():
             for row in menu
         ]), 200
     except Exception as e:
+        print(f"Error fetching menu: {e}")
         return jsonify({'error': 'Failed to fetch menu'}), 500
 
 @app.route('/api/menu', methods=['POST'])
@@ -454,6 +484,7 @@ def add_menu_item():
             conn.commit()
         return jsonify({'message': 'Menu item added successfully'}), 201
     except Exception as e:
+        print(f"Error adding menu item: {e}")
         return jsonify({'error': 'Failed to add menu item'}), 500
 
 @app.route('/api/menu/<int:item_id>', methods=['PUT'])
@@ -593,10 +624,16 @@ def delete_menu_item(item_id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Check if item exists
+            cursor.execute("SELECT id FROM menu WHERE id=?", (item_id,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'Menu item not found'}), 404
+            
             cursor.execute("DELETE FROM menu WHERE id=?", (item_id,))
             conn.commit()
         return jsonify({'message': 'Menu item deleted successfully'}), 200
     except Exception as e:
+        print(f"Error deleting menu item: {e}")
         return jsonify({'error': 'Failed to delete menu item'}), 500
 
 # ---------------------- Orders APIs ---------------------- #
@@ -655,6 +692,7 @@ def get_orders():
             
         return jsonify(orders), 200
     except Exception as e:
+        print(f"Error fetching orders: {e}")
         return jsonify({'error': 'Failed to fetch orders'}), 500
 
 @app.route('/api/orders', methods=['POST'])
@@ -749,6 +787,7 @@ def create_order():
             conn.commit()
         return jsonify({'message': 'Order created successfully', 'otp': otp, 'final_price': total_price}), 201
     except Exception as e:
+        print(f"Error creating order: {e}")
         return jsonify({'error': 'Failed to create order'}), 500
 
 @app.route('/api/orders/<int:order_id>/status', methods=['PUT'])
@@ -767,10 +806,16 @@ def update_order_status(order_id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Check if order exists
+            cursor.execute("SELECT id FROM orders WHERE id=?", (order_id,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'Order not found'}), 404
+            
             cursor.execute("UPDATE orders SET status=? WHERE id=?", (status, order_id))
             conn.commit()
         return jsonify({'message': 'Order status updated successfully'}), 200
     except Exception as e:
+        print(f"Error updating order status: {e}")
         return jsonify({'error': 'Failed to update order status'}), 500
 
 # ---------------------- Run Server ---------------------- #

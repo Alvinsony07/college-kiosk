@@ -909,12 +909,13 @@ function displayUsers(users) {
     if (!tbody) return;
     
     if (users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No users found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No users found</td></tr>';
         return;
     }
     
     tbody.innerHTML = users.map(user => `
         <tr>
+            <td>${user.name || 'N/A'}</td>
             <td>${user.email}</td>
             <td><span class="badge bg-secondary">${user.role}</span></td>
             <td>
@@ -945,7 +946,8 @@ function filterUsers() {
     const statusFilter = document.getElementById('statusFilter')?.value || '';
     
     const filtered = (window.allUsers || []).filter(user => {
-        const matchesSearch = user.email.toLowerCase().includes(search);
+        const matchesSearch = user.email.toLowerCase().includes(search) || 
+                             (user.name && user.name.toLowerCase().includes(search));
         const matchesRole = !roleFilter || user.role === roleFilter;
         const matchesStatus = !statusFilter || user.status === statusFilter;
         
@@ -1382,7 +1384,7 @@ function displayOrders(orders) {
         const statusClass = {
             'Order Received': 'info',
             'Preparing': 'warning',
-            'Ready': 'success',
+            'Ready for Pickup': 'success',
             'Completed': 'secondary',
             'Cancelled': 'danger'
         }[order.status] || 'info';
