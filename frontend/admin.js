@@ -32,9 +32,6 @@ function initializeApp() {
     // Load initial data
     loadDashboardData();
     
-    // Initialize notification center
-    notificationCenter.initialize();
-    
     // Setup auto-refresh
     startAutoRefresh();
 }
@@ -246,9 +243,6 @@ async function loadDashboardData() {
         // NEW: Generate predictive analytics
         generateDemandForecast(orders, menu);
         generateReorderRecommendations(orders, menu);
-        
-        // Check for notifications based on real data
-        await notificationCenter.checkForNewNotifications(orders, menu, users);
         
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -765,7 +759,9 @@ function generateSmartInsights(orders, menu) {
     });
     
     if (criticalItems.length > 0) {
-        const mostCritical = criticalItems[0];
+        // Sort by stock level (lowest first) to get the most critical item
+        const sortedCritical = criticalItems.sort((a, b) => a.stock - b.stock);
+        const mostCritical = sortedCritical[0];
         const soldQty = itemStats[mostCritical.name]?.quantity || 0;
         const hoursLeft = soldQty > 0 ? Math.floor((mostCritical.stock / soldQty) * 24) : 0;
         
@@ -1909,199 +1905,6 @@ window.deleteMenuItem = deleteMenuItem;
 window.quickRestock = quickRestock;
 window.viewOrderDetails = viewOrderDetails;
 window.downloadReport = downloadReport;
-
-// ==================== Notification Center Class ====================
-class NotificationCenter {
-    constructor() {
-        this.notifications = [];
-        this.unreadCount = 0;
-        this.adminEmail = localStorage.getItem('adminEmail') || 'admin@saintgits.org';
-    }
-    
-    async initialize() {
-        await this.loadNotifications();
-        this.setupAutoRefresh();
-    }
-    
-    async loadNotifications() {
-        try {
-            const response = await fetch(`${API_BASE}/notifications?email=${this.adminEmail}`);
-            if (response.ok) {
-                this.notifications = await response.json();
-                this.unreadCount = this.notifications.filter(n => !n.read).length;
-                this.updateBadge();
-                this.renderNotifications();
-            }
-        } catch (error) {
-            console.error('Error loading notifications:', error);
-        }
-    }
-    
-    async addNotification(type, title, message, priority = 'normal') {
-        try {
-            const response = await fetch(`${API_BASE}/notifications`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    recipient_email: this.adminEmail,
-                    type,
-                    title,
-                    message,
-                    priority
-                })
-            });
-            
-            if (response.ok) {
-                await this.loadNotifications();
-                this.playSound(priority);
-            }
-        } catch (error) {
-            console.error('Error adding notification:', error);
-        }
-    }
-    
-    async markAsRead(notificationId) {
-        try {
-            const response = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
-                method: 'PUT'
-            });
-            
-            if (response.ok) {
-                await this.loadNotifications();
-            }
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
-        }
-    }
-    
-    async markAllAsRead() {
-        try {
-            const response = await fetch(`${API_BASE}/notifications/mark-all-read`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: this.adminEmail })
-            });
-            
-            if (response.ok) {
-                await this.loadNotifications();
-                showToast('All notifications marked as read', 'success');
-            }
-        } catch (error) {
-            console.error('Error marking all as read:', error);
-        }
-    }
-    
-    updateBadge() {
-        const badge = document.getElementById('notificationBadge');
-        if (badge) {
-            badge.textContent = this.unreadCount;
-            badge.style.display = this.unreadCount > 0 ? 'inline' : 'none';
-        }
-    }
-    
-    renderNotifications() {
-        const container = document.getElementById('notificationList');
-        if (!container) return;
-        
-        if (this.notifications.length === 0) {
-            container.innerHTML = '<div class="text-center text-muted p-3">No notifications</div>';
-            return;
-        }
-        
-        container.innerHTML = this.notifications.map(notification => {
-            const iconMap = {
-                'order': 'receipt',
-                'stock': 'box-seam',
-                'user': 'person',
-                'system': 'info-circle'
-            };
-            
-            const icon = iconMap[notification.type] || 'bell';
-            const timeAgo = this.getTimeAgo(notification.created_at);
-            
-            return `
-                <div class="notification-item ${!notification.read ? 'unread' : ''} priority-${notification.priority}" 
-                     onclick="notificationCenter.markAsRead(${notification.id})">
-                    <div class="notification-icon type-${notification.type}">
-                        <i class="bi bi-${icon}"></i>
-                    </div>
-                    <div>
-                        <div class="notification-title">${notification.title}</div>
-                        <div class="notification-message">${notification.message}</div>
-                        <div class="notification-time">${timeAgo}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    getTimeAgo(timestamp) {
-        const now = new Date();
-        const notifTime = new Date(timestamp);
-        const diffMs = now - notifTime;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    }
-    
-    playSound(priority) {
-        if (!document.getElementById('soundAlerts')?.checked) return;
-        
-        const audio = new Audio();
-        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDSG0fPTgjMGHm7A7OmdUBELTKXh8rltIAU2jdXzzn0vBSh9zPLaizsKGGS56+mjUBELTKXh8rltIAU2jdXzzn0vBSh9';
-        audio.play().catch(e => console.log('Audio play failed:', e));
-    }
-    
-    setupAutoRefresh() {
-        setInterval(() => {
-            this.loadNotifications();
-        }, 30000);
-    }
-    
-    async checkForNewNotifications(orders, menu, users) {
-        const lowStockItems = menu.filter(m => m.stock > 0 && m.stock <= 5);
-        if (lowStockItems.length > 0) {
-            for (const item of lowStockItems.slice(0, 3)) {
-                await this.addNotification(
-                    'stock',
-                    'Low Stock Alert',
-                    `${item.name} has only ${item.stock} items left`,
-                    item.stock <= 2 ? 'critical' : 'high'
-                );
-            }
-        }
-        
-        const outOfStockItems = menu.filter(m => m.stock === 0);
-        if (outOfStockItems.length > 0) {
-            for (const item of outOfStockItems.slice(0, 2)) {
-                await this.addNotification(
-                    'stock',
-                    'Out of Stock',
-                    `${item.name} is out of stock. Restock immediately!`,
-                    'critical'
-                );
-            }
-        }
-        
-        const pendingUsers = users.filter(u => u.status === 'pending');
-        if (pendingUsers.length > 0) {
-            await this.addNotification(
-                'user',
-                'Pending User Approvals',
-                `${pendingUsers.length} user${pendingUsers.length > 1 ? 's' : ''} waiting for approval`,
-                'normal'
-            );
-        }
-    }
-}
-
-const notificationCenter = new NotificationCenter();
-window.notificationCenter = notificationCenter;
 
 // ==================== Activity Logging ====================
 async function logActivity(action, details) {

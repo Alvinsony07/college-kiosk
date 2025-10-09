@@ -127,26 +127,6 @@
                     </div>
                 </div>
                 
-                <!-- Notification Center -->
-                <div class="dropdown me-2">
-                    <button class="btn btn-sm btn-outline-primary position-relative" id="notificationBtn" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
-                              id="notificationBadge" style="display: none;">
-                            0
-                        </span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end notification-dropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
-                        <div class="dropdown-header d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-bell"></i> Notifications</span>
-                            <button class="btn btn-sm btn-link p-0" onclick="notificationCenter.markAllAsRead()">Mark all read</button>
-                        </div>
-                        <div id="notificationList">
-                            <div class="text-center text-muted p-3">No notifications</div>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="themeToggle">
                     <label class="form-check-label" for="themeToggle">
@@ -744,40 +724,6 @@
             </div>
             
             <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Notification Settings</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifyNewOrders" checked>
-                                <label class="form-check-label" for="notifyNewOrders">
-                                    Notify on new orders
-                                </label>
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifyLowStock" checked>
-                                <label class="form-check-label" for="notifyLowStock">
-                                    Alert on low stock
-                                </label>
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifyNewUsers" checked>
-                                <label class="form-check-label" for="notifyNewUsers">
-                                    Notify on new user registrations
-                                </label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="soundAlerts" checked>
-                                <label class="form-check-label" for="soundAlerts">
-                                    Enable sound alerts
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
