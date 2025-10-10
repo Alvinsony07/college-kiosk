@@ -278,7 +278,7 @@
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -286,10 +286,10 @@
 
       const data = await res.json();
       if (res.ok) {
-        // Save user info to localStorage
-        localStorage.setItem("userRole", data.role);
-        localStorage.setItem("userName", data.name);
-        localStorage.setItem("adminEmail", email);  // Store email for activity logging
+        // Store full user object
+        localStorage.setItem("user", JSON.stringify(data));
+        // Clear old format to avoid conflicts
+        localStorage.removeItem("userRole");
         
         msg.style.color = "green";
         msg.textContent = "Login successful! Redirecting...";
@@ -300,7 +300,7 @@
           } else if (data.role === "staff") {
             window.location.href = "/staff";
           } else if (data.role === "user") {
-            window.location.href = "/users";  // unified "users" module
+            window.location.href = "/users";
           } else {
             msg.textContent = "Unknown role. Contact admin.";
           }
