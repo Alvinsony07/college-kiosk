@@ -920,6 +920,170 @@ def mark_all_read():
         print(f"Error marking all as read: {e}")
         return jsonify({'error': str(e)}), 500
 
+# ---------------------- Staff Statistics Endpoints ---------------------- #
+@app.route('/api/staff/stats', methods=['GET'])
+def get_staff_stats():
+    """Get statistics for staff dashboard"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Total menu items
+            cursor.execute("SELECT COUNT(*) FROM menu")
+            total_items = cursor.fetchone()[0]
+            
+            # Total orders
+            cursor.execute("SELECT COUNT(*) FROM orders")
+            total_orders = cursor.fetchone()[0]
+            
+            # Pending orders
+            cursor.execute("SELECT COUNT(*) FROM orders WHERE status IN ('Order Received', 'Preparing')")
+            pending_orders = cursor.fetchone()[0]
+            
+            # Total users
+            cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'approved'")
+            total_users = cursor.fetchone()[0]
+            
+            # Pending user requests
+            cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'pending'")
+            pending_users = cursor.fetchone()[0]
+            
+            # Today's revenue
+            today = datetime.now().strftime('%Y-%m-%d')
+            cursor.execute("SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE DATE(created_at) = ?", (today,))
+            today_revenue = cursor.fetchone()[0]
+            
+            return jsonify({
+                'total_items': total_items,
+                'total_orders': total_orders,
+                'pending_orders': pending_orders,
+                'total_users': total_users,
+                'pending_users': pending_users,
+                'today_revenue': today_revenue
+            }), 200
+    except Exception as e:
+        print(f"Error fetching staff stats: {e}")
+        return jsonify({'error': 'Failed to fetch statistics'}), 500
+
+@app.route('/api/staff/users/pending', methods=['GET'])
+def get_staff_pending_users():
+    """Get pending user requests for staff"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name, email, status FROM users WHERE status = 'pending' ORDER BY id DESC")
+            users = cursor.fetchall()
+        return jsonify([{
+            'id': u[0],
+            'name': u[1],
+            'email': u[2],
+            'status': u[3]
+        } for u in users]), 200
+    except Exception as e:
+        print(f"Error fetching pending users: {e}")
+        return jsonify({'error': 'Failed to fetch pending users'}), 500
+
+@app.route('/api/staff/users/<int:user_id>/approve', methods=['PUT'])
+def staff_approve_user(user_id):
+    """Approve a user by staff"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'User not found'}), 404
+            
+            cursor.execute("UPDATE users SET status = 'approved', role = 'user' WHERE id = ?", (user_id,))
+            conn.commit()
+        return jsonify({'message': 'User approved successfully'}), 200
+    except Exception as e:
+        print(f"Error approving user: {e}")
+        return jsonify({'error': 'Failed to approve user'}), 500
+
+@app.route('/api/staff/users/<int:user_id>/reject', methods=['DELETE'])
+def staff_reject_user(user_id):
+    """Reject/delete a user by staff"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'User not found'}), 404
+            
+            cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            conn.commit()
+        return jsonify({'message': 'User rejected successfully'}), 200
+    except Exception as e:
+        print(f"Error rejecting user: {e}")
+        return jsonify({'error': 'Failed to reject user'}), 500
+
+@app.route('/api/staff/orders/recent', methods=['GET'])
+def get_recent_orders():
+    """Get recent orders for staff"""
+    limit = request.args.get('limit', 20, type=int)
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, customer_name, customer_email, items, total_price, otp, status, created_at 
+                FROM orders 
+                ORDER BY created_at DESC 
+                LIMIT ?
+            """, (limit,))
+            rows = cursor.fetchall()
+            
+            orders = []
+            for r in rows:
+                try:
+                    order_data = json.loads(r[3]) if isinstance(r[3], str) else r[3]
+                except (json.JSONDecodeError, TypeError):
+                    try:
+                        order_data = eval(r[3]) if isinstance(r[3], str) else r[3]
+                    except:
+                        order_data = {"items": []}
+
+                detailed_items = []
+                for i in order_data.get("items", []):
+                    try:
+                        cur = conn.cursor()
+                        cur.execute("SELECT name, price, category FROM menu WHERE id=?", (i["id"],))
+                        m = cur.fetchone()
+                        item_name = m[0] if m else f"ID:{i['id']}"
+                        item_price = m[1] if m else 0
+                        item_category = m[2] if m else "Other"
+                    except Exception:
+                        item_name = f"ID:{i['id']}"
+                        item_price = 0
+                        item_category = "Other"
+
+                    detailed_items.append({
+                        "id": i["id"],
+                        "name": item_name,
+                        "qty": i["qty"],
+                        "price": item_price,
+                        "category": item_category
+                    })
+
+                orders.append({
+                    "id": r[0],
+                    "customer_name": r[1],
+                    "customer_email": r[2],
+                    "items": detailed_items,
+                    "total_price": r[4],
+                    "otp": r[5],
+                    "status": r[6],
+                    "created_at": r[7],
+                    "delivery_mode": order_data.get("delivery_mode", "pickup"),
+                    "classroom": order_data.get("classroom", ""),
+                    "department": order_data.get("department", ""),
+                    "block": order_data.get("block", "")
+                })
+            
+        return jsonify(orders), 200
+    except Exception as e:
+        print(f"Error fetching recent orders: {e}")
+        return jsonify({'error': 'Failed to fetch recent orders'}), 500
+
 # ---------------------- Activity Log Endpoints ---------------------- #
 @app.route('/api/admin/log-activity', methods=['POST'])
 def log_activity():
