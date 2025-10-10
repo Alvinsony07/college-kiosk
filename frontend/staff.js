@@ -99,10 +99,6 @@ function switchTab(tabName) {
 
 function loadTabData(tabName) {
   switch(tabName) {
-    case 'users':
-      loadPendingUsers();
-      loadAllUsers();
-      break;
     case 'orders':
       loadOrders();
       break;
@@ -128,148 +124,12 @@ async function loadStatistics() {
       document.getElementById('total-items').textContent = data.total_items || 0;
       document.getElementById('total-orders').textContent = data.total_orders || 0;
       document.getElementById('pending-orders').textContent = data.pending_orders || 0;
-      document.getElementById('total-users').textContent = data.total_users || 0;
-      document.getElementById('pending-users').textContent = data.pending_users || 0;
       document.getElementById('today-revenue').textContent = formatCurrency(data.today_revenue || 0);
     } else {
       console.error('Failed to load statistics:', data.error);
     }
   } catch (error) {
     console.error('Error loading statistics:', error);
-  }
-}
-
-// ===========================
-// User Management
-// ===========================
-
-async function loadPendingUsers() {
-  const loadingEl = document.getElementById('pending-users-loading');
-  const tableEl = document.getElementById('pending-users-table');
-  const emptyEl = document.getElementById('no-pending-users');
-  const tbody = document.getElementById('pending-users-list');
-  
-  loadingEl.style.display = 'block';
-  tableEl.style.display = 'none';
-  emptyEl.style.display = 'none';
-  
-  try {
-    const response = await fetch(`${API_BASE}/api/staff/users/pending`);
-    const users = await response.json();
-    
-    loadingEl.style.display = 'none';
-    
-    if (users.length === 0) {
-      emptyEl.style.display = 'block';
-      return;
-    }
-    
-    tableEl.style.display = 'table';
-    tbody.innerHTML = '';
-    
-    users.forEach(user => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${user.id}</td>
-        <td>${user.name}</td>
-        <td>${user.email}</td>
-        <td><span class="badge pending">${user.status}</span></td>
-        <td>
-          <button class="btn approve-btn" onclick="approveUser(${user.id}, '${user.email}')">
-            <i class="fa-solid fa-check"></i> Approve
-          </button>
-          <button class="btn reject-btn" onclick="rejectUser(${user.id}, '${user.email}')">
-            <i class="fa-solid fa-times"></i> Reject
-          </button>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-    
-    // Update statistics
-    loadStatistics();
-  } catch (error) {
-    loadingEl.style.display = 'none';
-    showAlert('Failed to load pending users: ' + error.message, 'error');
-  }
-}
-
-async function approveUser(userId, userEmail) {
-  if (!confirm(`Approve user: ${userEmail}?`)) return;
-  
-  try {
-    const response = await fetch(`${API_BASE}/api/staff/users/${userId}/approve`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      showAlert(`User ${userEmail} approved successfully!`, 'success');
-      loadPendingUsers();
-      loadAllUsers();
-      loadStatistics();
-    } else {
-      showAlert(data.error || 'Failed to approve user', 'error');
-    }
-  } catch (error) {
-    showAlert('Error approving user: ' + error.message, 'error');
-  }
-}
-
-async function rejectUser(userId, userEmail) {
-  if (!confirm(`Reject and delete user: ${userEmail}? This action cannot be undone.`)) return;
-  
-  try {
-    const response = await fetch(`${API_BASE}/api/staff/users/${userId}/reject`, {
-      method: 'DELETE'
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      showAlert(`User ${userEmail} rejected successfully`, 'success');
-      loadPendingUsers();
-      loadStatistics();
-    } else {
-      showAlert(data.error || 'Failed to reject user', 'error');
-    }
-  } catch (error) {
-    showAlert('Error rejecting user: ' + error.message, 'error');
-  }
-}
-
-async function loadAllUsers() {
-  const loadingEl = document.getElementById('all-users-loading');
-  const tableEl = document.getElementById('all-users-table');
-  const tbody = document.getElementById('all-users-list');
-  
-  loadingEl.style.display = 'block';
-  tableEl.style.display = 'none';
-  
-  try {
-    const response = await fetch(`${API_BASE}/api/users`);
-    const users = await response.json();
-    
-    loadingEl.style.display = 'none';
-    tableEl.style.display = 'table';
-    tbody.innerHTML = '';
-    
-    users.forEach(user => {
-      const row = document.createElement('tr');
-      const statusClass = user.status === 'approved' ? 'approved' : 'pending';
-      row.innerHTML = `
-        <td>${user.name}</td>
-        <td>${user.email}</td>
-        <td><span class="badge">${user.role}</span></td>
-        <td><span class="badge ${statusClass}">${user.status}</span></td>
-      `;
-      tbody.appendChild(row);
-    });
-  } catch (error) {
-    loadingEl.style.display = 'none';
-    showAlert('Failed to load users: ' + error.message, 'error');
   }
 }
 
@@ -326,7 +186,19 @@ async function loadOrders() {
           </div>
         </td>
         <td><strong>${formatCurrency(order.total_price)}</strong></td>
-        <td><code style="background: #374151; padding: 4px 8px; border-radius: 4px;">${order.otp}</code></td>
+        <td>
+          <code style="
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); 
+            color: white; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            letter-spacing: 2px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+          ">${order.otp}</code>
+        </td>
         <td><span class="badge ${statusClass}">${order.status}</span></td>
         <td style="font-size: 0.85rem; color: #9ca3af;">${formatDate(order.created_at)}</td>
         <td>
@@ -573,6 +445,50 @@ document.getElementById('add-item-form').addEventListener('submit', async functi
 });
 
 // ===========================
+// Theme Toggle
+// ===========================
+
+function toggleTheme() {
+  const body = document.body;
+  const themeIcon = document.getElementById('theme-icon');
+  const themeText = document.getElementById('theme-text');
+  
+  body.classList.toggle('light-theme');
+  
+  if (body.classList.contains('light-theme')) {
+    themeIcon.className = 'fa-solid fa-sun';
+    themeText.textContent = 'Light';
+    localStorage.setItem('staffTheme', 'light');
+  } else {
+    themeIcon.className = 'fa-solid fa-moon';
+    themeText.textContent = 'Dark';
+    localStorage.setItem('staffTheme', 'dark');
+  }
+}
+
+// Load saved theme on page load
+function loadSavedTheme() {
+  const savedTheme = localStorage.getItem('staffTheme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-theme');
+    document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+    document.getElementById('theme-text').textContent = 'Light';
+  }
+}
+
+// ===========================
+// Logout Confirmation
+// ===========================
+
+function handleLogout(event) {
+  event.preventDefault();
+  
+  if (confirm('Are you sure you want to logout?')) {
+    window.location.href = '/';
+  }
+}
+
+// ===========================
 // Refresh Data
 // ===========================
 
@@ -593,6 +509,9 @@ function refreshData() {
 // ===========================
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Load saved theme
+  loadSavedTheme();
+  
   // Load statistics on page load
   loadStatistics();
   
