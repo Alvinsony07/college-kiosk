@@ -8,6 +8,7 @@ import string
 import json
 import re
 from datetime import datetime
+import pytz
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -802,8 +803,9 @@ def create_order():
                 "delivery_mode": delivery_mode
             }
 
-            # Get current timestamp
-            current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # Get current timestamp in IST
+            ist = pytz.timezone('Asia/Kolkata')
+            current_timestamp = datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S')
 
             cursor.execute(
                 "INSERT INTO orders (customer_name, customer_email, items, total_price, otp, created_at) VALUES (?,?,?,?,?,?)",
@@ -948,8 +950,9 @@ def get_staff_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'pending'")
             pending_users = cursor.fetchone()[0]
             
-            # Today's revenue
-            today = datetime.now().strftime('%Y-%m-%d')
+            # Today's revenue (using IST)
+            ist = pytz.timezone('Asia/Kolkata')
+            today = datetime.now(ist).strftime('%Y-%m-%d')
             cursor.execute("SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE DATE(created_at) = ?", (today,))
             today_revenue = cursor.fetchone()[0]
             
@@ -1096,10 +1099,13 @@ def log_activity():
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            # Use IST (Indian Standard Time) timezone
+            ist = pytz.timezone('Asia/Kolkata')
+            local_timestamp = datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute('''
-                INSERT INTO activity_log (admin_email, action, details, ip_address)
-                VALUES (?, ?, ?, ?)
-            ''', (admin_email, action, details, ip_address))
+                INSERT INTO activity_log (admin_email, action, details, ip_address, timestamp)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (admin_email, action, details, ip_address, local_timestamp))
             conn.commit()
         return jsonify({'message': 'Activity logged'}), 201
     except Exception as e:

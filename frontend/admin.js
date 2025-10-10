@@ -1984,13 +1984,16 @@ function displayActivityLogs(logs) {
     }
     
     tbody.innerHTML = logs.map(log => {
-        const timestamp = new Date(log.timestamp).toLocaleString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        // Parse the timestamp and format it properly
+        const date = new Date(log.timestamp);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = date.toLocaleString('en-GB', { month: 'short' });
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12 || 12; // Convert to 12-hour format
+        const timestamp = `${day} ${month} ${year}, ${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
         
         const actionBadge = getActionBadge(log.action);
         
