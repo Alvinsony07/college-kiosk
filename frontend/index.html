@@ -2,68 +2,268 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>College Kiosk Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2c5f5f 0%, #4a7f7f 50%, #5a9999 100%);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
+
+    body::before {
+      content: '';
+      position: absolute;
+      right: -10%;
+      bottom: -10%;
+      width: 600px;
+      height: 600px;
+      background-image: url('static/images/grilled-chicken-sandwich-recipe.jpg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.3;
+      border-radius: 50%;
+      filter: blur(3px);
+    }
+
     .login-container {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 320px;
+      background: #f5f5f5;
+      padding: 40px 50px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
     }
-    h2 {
+
+    .logo-container {
       text-align: center;
       margin-bottom: 20px;
     }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+
+    .logo-container img {
+      width: 80px;
+      height: auto;
+      margin-bottom: 10px;
     }
+
+    .title-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .title-container h1 {
+      font-size: 24px;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      color: #999;
+      font-size: 16px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 14px 15px 14px 45px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #ff8c42;
+      box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-top: -10px;
+      margin-bottom: 15px;
+    }
+
+    .forgot-password a {
+      color: #ff8c42;
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.3s ease;
+    }
+
+    .forgot-password a:hover {
+      color: #ff7020;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .remember-me input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      cursor: pointer;
+      accent-color: #ff8c42;
+    }
+
+    .remember-me label {
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
     button {
       width: 100%;
-      padding: 12px;
-      background-color: #004080;
+      padding: 15px;
+      background: linear-gradient(135deg, #ff8c42 0%, #ff7020 100%);
       color: white;
       border: none;
       border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
     }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
     .message {
       text-align: center;
       margin-top: 15px;
       color: red;
+      font-size: 14px;
+      min-height: 20px;
     }
+
     .register-link {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 25px;
+      color: #666;
+      font-size: 14px;
     }
+
     .register-link a {
-      color: #004080;
+      color: #ff8c42;
       text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    .register-link a:hover {
+      color: #ff7020;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 25px;
+      }
     }
   </style>
 </head>
 <body>
 
 <div class="login-container">
-  <h2>Login - College Kiosk</h2>
-  <input type="email" id="email" placeholder="Email (@saintgits.org)" required />
-  <input type="password" id="password" placeholder="Password" required />
-  <button onclick="login()">Login</button>
+  <div class="logo-container">
+    <img src="static/images/saintgits-logo.jpg" alt="Saintgits Logo">
+  </div>
+  
+  <div class="title-container">
+    <h1>Canteen Management</h1>
+    <div class="subtitle">
+      Saintgits College of Engineering<br>
+      MCA Batch 2024-2026
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Email</label>
+    <div class="input-wrapper">
+      <i class="fas fa-envelope input-icon"></i>
+      <input type="email" id="email" placeholder="Enter your email" required />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Password</label>
+    <div class="input-wrapper">
+      <i class="fas fa-lock input-icon"></i>
+      <input type="password" id="password" placeholder="Enter your password" required />
+    </div>
+  </div>
+
+  <div class="forgot-password">
+    <a href="#" onclick="event.preventDefault(); alert('Please contact admin to reset password.');">Forgot Password?</a>
+  </div>
+
+  <div class="remember-me">
+    <input type="checkbox" id="remember" />
+    <label for="remember">Remember me</label>
+  </div>
+
+  <button onclick="login()">Login to Dashboard</button>
+  
   <div class="message" id="msg"></div>
 
-  <!-- Register Link -->
   <div class="register-link">
     Don't have an account? <a href="/register">Register here</a>
   </div>
