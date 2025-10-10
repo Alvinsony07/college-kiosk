@@ -406,7 +406,16 @@
                     <a class="nav-link" data-category="Drinks" href="#">Drinks</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" data-category="Bev" href="#">Beverages</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" data-category="Desserts" href="#">Desserts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-category="Veg" href="#">Veg</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-category="Non-Veg" href="#">Non-Veg</a>
                 </li>
             </ul>
             
@@ -851,7 +860,10 @@
                                 <option value="Snacks">Snacks</option>
                                 <option value="Meals">Meals</option>
                                 <option value="Drinks">Drinks</option>
+                                <option value="Bev">Beverages</option>
                                 <option value="Desserts">Desserts</option>
+                                <option value="Veg">Veg</option>
+                                <option value="Non-Veg">Non-Veg</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -891,27 +903,28 @@
                     <form id="editMenuForm">
                         <input type="hidden" id="editMenuId">
                         <div class="mb-3">
-                            <label class="form-label">Item Name</label>
-                            <input type="text" class="form-control" id="editMenuName">
+                            <label class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="editMenuName" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Price (₹)</label>
-                            <input type="number" class="form-control" id="editMenuPrice" step="0.01">
+                            <label class="form-label">Price (₹) *</label>
+                            <input type="number" class="form-control" id="editMenuPrice" step="0.01" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Category</label>
-                            <select class="form-select" id="editMenuCategory">
+                            <label class="form-label">Category *</label>
+                            <select class="form-select" id="editMenuCategory" required>
                                 <option value="Snacks">Snacks</option>
                                 <option value="Meals">Meals</option>
                                 <option value="Drinks">Drinks</option>
+                                <option value="Bev">Beverages</option>
                                 <option value="Desserts">Desserts</option>
                                 <option value="Veg">Veg</option>
                                 <option value="Non-Veg">Non-Veg</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Stock Quantity</label>
-                            <input type="number" class="form-control" id="editMenuStock">
+                            <label class="form-label">Stock Quantity *</label>
+                            <input type="number" class="form-control" id="editMenuStock" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Change Image (optional)</label>

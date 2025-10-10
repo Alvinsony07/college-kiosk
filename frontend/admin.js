@@ -1181,14 +1181,35 @@ function previewEditImage(e) {
 }
 
 async function submitMenuItem() {
+    // Validate form
+    const form = document.getElementById('addMenuForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
     const itemName = document.getElementById('menuName').value;
+    const category = document.getElementById('menuCategory').value;
+    const imageFile = document.getElementById('menuImage').files[0];
+    
+    // Additional validation
+    if (!category) {
+        showToast('Please select a category', 'error');
+        return;
+    }
+    
+    if (!imageFile) {
+        showToast('Please select an image', 'error');
+        return;
+    }
+    
     const formData = new FormData();
     formData.append('name', itemName);
     formData.append('price', document.getElementById('menuPrice').value);
-    formData.append('category', document.getElementById('menuCategory').value);
+    formData.append('category', category);
     formData.append('stock', document.getElementById('menuStock').value);
     formData.append('deliverable', document.getElementById('menuDeliverable').checked ? 1 : 0);
-    formData.append('image', document.getElementById('menuImage').files[0]);
+    formData.append('image', imageFile);
     
     try {
         const response = await fetch(`${API_BASE}/menu`, {
@@ -1231,14 +1252,28 @@ function editMenuItem(itemId) {
 }
 
 async function updateMenuItem() {
+    // Validate form
+    const form = document.getElementById('editMenuForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
     const itemId = document.getElementById('editMenuId').value;
     const itemName = document.getElementById('editMenuName').value;
+    const category = document.getElementById('editMenuCategory').value;
     const imageFile = document.getElementById('editMenuImage').files[0];
+    
+    // Additional validation
+    if (!category) {
+        showToast('Please select a category', 'error');
+        return;
+    }
     
     const formData = new FormData();
     formData.append('name', itemName);
     formData.append('price', document.getElementById('editMenuPrice').value);
-    formData.append('category', document.getElementById('editMenuCategory').value);
+    formData.append('category', category);
     formData.append('stock', document.getElementById('editMenuStock').value);
     formData.append('deliverable', document.getElementById('editMenuDeliverable').checked ? 1 : 0);
     
@@ -2551,9 +2586,15 @@ class PredictiveAnalytics {
         
         const totalQty = itemOrders.reduce((sum, o) => sum + o.qty, 0);
         
-        const firstDate = itemOrders[0].date;
-        const lastDate = itemOrders[itemOrders.length - 1].date;
-        const daysDiff = Math.max(1, (lastDate - firstDate) / (1000 * 60 * 60 * 24));
+        // Get unique days with orders
+        const uniqueDays = new Set();
+        itemOrders.forEach(order => {
+            const dateKey = order.date.toDateString();
+            uniqueDays.add(dateKey);
+        });
+        
+        // If all orders are on the same day, use 1 day for calculation
+        const daysDiff = Math.max(1, uniqueDays.size);
         
         return totalQty / daysDiff;
     }
@@ -2584,14 +2625,20 @@ class PredictiveAnalytics {
             };
         }
         
-        const now = new Date();
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        // Get unique days with sales
+        const uniqueDays = new Set();
+        salesData.forEach(sale => {
+            const dateKey = sale.date.toDateString();
+            uniqueDays.add(dateKey);
+        });
         
-        const recentSales = salesData.filter(s => s.date >= sevenDaysAgo);
-        const avgDailySales = recentSales.length > 0
-            ? recentSales.reduce((sum, s) => sum + s.qty, 0) / 7
-            : 0;
+        const totalQty = salesData.reduce((sum, s) => sum + s.qty, 0);
         
+        // Calculate avg daily sales based on actual days with sales
+        const actualDays = Math.max(1, uniqueDays.size);
+        const avgDailySales = totalQty / actualDays;
+        
+        // Forecast for next week
         const nextWeekForecast = Math.round(avgDailySales * 7);
         
         const trend = this.calculateTrend(salesData);
