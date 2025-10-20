@@ -10,17 +10,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeApp() {
     // Check if user is logged in
-    const adminEmail = localStorage.getItem('adminEmail');
-    const userName = localStorage.getItem('userName');
+    const userStr = localStorage.getItem('user');
     
-    if (!adminEmail) {
+    if (!userStr) {
+        // Check for legacy format
+        const adminEmail = localStorage.getItem('adminEmail');
+        if (!adminEmail) {
+            window.location.href = '/';
+            return;
+        }
+    }
+    
+    // Parse user data
+    let user = null;
+    try {
+        user = JSON.parse(userStr);
+    } catch (e) {
+        // Fallback to legacy format
+        user = {
+            email: localStorage.getItem('adminEmail'),
+            name: localStorage.getItem('userName'),
+            role: 'admin'
+        };
+    }
+    
+    // Verify user is admin
+    if (user.role !== 'admin') {
+        alert('Access denied. Admin privileges required.');
         window.location.href = '/';
         return;
     }
     
     // Display admin name
-    if (userName) {
-        document.getElementById('adminName').textContent = userName;
+    if (user.name) {
+        document.getElementById('adminName').textContent = user.name;
+    } else if (user.email) {
+        document.getElementById('adminName').textContent = user.email.split('@')[0];
     }
     
     setupEventListeners();
@@ -1943,7 +1968,20 @@ window.downloadReport = downloadReport;
 
 // ==================== Activity Logging ====================
 async function logActivity(action, details) {
-    const adminEmail = localStorage.getItem('adminEmail') || 'admin@saintgits.org';
+    // Get admin email from user object
+    let adminEmail = 'admin@saintgits.org';
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            adminEmail = user.email || adminEmail;
+        } else {
+            // Fallback to legacy format
+            adminEmail = localStorage.getItem('adminEmail') || adminEmail;
+        }
+    } catch (e) {
+        adminEmail = localStorage.getItem('adminEmail') || adminEmail;
+    }
     
     try {
         await fetch(`${API_BASE}/admin/log-activity`, {
