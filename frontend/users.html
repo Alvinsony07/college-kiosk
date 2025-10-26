@@ -101,6 +101,7 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh; /* Prevents screen tearing */
     }
     
     /* ====================== 3D CANVAS BACKGROUND ====================== */
@@ -108,11 +109,12 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       z-index: 0;
-      opacity: 0.4;
+      opacity: 0.25; /* Increased visibility */
       pointer-events: none;
+      background: transparent;
     }
     
     /* Gradient Mesh Overlay */
@@ -120,11 +122,11 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       background: var(--gradient-mesh);
       z-index: 0;
-      opacity: 0.5;
+      opacity: 0.4; /* Increased for better visibility */
       pointer-events: none;
       animation: meshFloat 20s ease-in-out infinite;
     }
@@ -612,6 +614,28 @@
       box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
     }
     
+    /* Out of stock styling */
+    .menu-card.out-of-stock {
+      opacity: 0.6;
+      position: relative;
+    }
+    
+    .menu-card.out-of-stock::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .menu-card.out-of-stock .menu-card-image img {
+      filter: grayscale(50%);
+    }
+    
     .menu-card-content {
       padding: var(--space-lg);
       position: relative;
@@ -877,6 +901,7 @@
       background: linear-gradient(135deg, var(--primary-light), var(--secondary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: var(--space-lg);
     }
     
@@ -903,6 +928,403 @@
     
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+    
+    /* ====================== MODAL ====================== */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: var(--space-lg);
+      overflow-y: auto;
+    }
+    
+    .modal-backdrop.active {
+      display: flex;
+    }
+    
+    .modal {
+      background: var(--bg-card);
+      border-radius: 20px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .modal-header {
+      padding: var(--space-xl);
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+    }
+    
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 2rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      transform: rotate(90deg);
+    }
+    
+    .modal-body {
+      padding: var(--space-xl);
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .form-group {
+      margin-bottom: var(--space-lg);
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: var(--space-sm);
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group input[type="time"] {
+      width: 100%;
+      padding: var(--space-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: inherit;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .radio-group {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+    
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .radio-label:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+    
+    .radio-label input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    .radio-label input[type="radio"]:checked {
+      accent-color: var(--primary);
+    }
+    
+    .radio-label span {
+      font-weight: 500;
+    }
+    
+    .delivery-fields {
+      padding: var(--space-lg);
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-top: var(--space-md);
+    }
+    
+    .order-summary {
+      margin-top: var(--space-xl);
+      padding: var(--space-lg);
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .order-summary h4 {
+      margin: 0 0 var(--space-md);
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+    
+    .order-summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.875rem;
+    }
+    
+    .order-summary-item:last-child {
+      border-bottom: none;
+    }
+    
+    .order-summary-item.total {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-top: var(--space-sm);
+      padding-top: var(--space-md);
+      border-top: 2px solid var(--border);
+    }
+    
+    .modal-footer {
+      padding: var(--space-xl);
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: var(--space-md);
+      justify-content: flex-end;
+    }
+    
+    /* ====================== VALIDATION STYLES ====================== */
+    .form-group.error input {
+      border-color: var(--danger);
+      background: rgba(220, 38, 38, 0.05);
+    }
+    
+    .form-group.success input {
+      border-color: var(--success);
+      background: rgba(22, 163, 74, 0.05);
+    }
+    
+    .error-message {
+      display: none;
+      color: var(--danger);
+      font-size: 0.75rem;
+      margin-top: var(--space-xs);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    
+    .form-group.error .error-message {
+      display: flex;
+    }
+    
+    .success-message {
+      display: none;
+      color: var(--success);
+      font-size: 0.75rem;
+      margin-top: var(--space-xs);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    
+    .form-group.success .success-message {
+      display: flex;
+    }
+    
+    /* ====================== PAYMENT SYSTEM ====================== */
+    .payment-section {
+      margin-top: var(--space-xl);
+      padding: var(--space-lg);
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .payment-section h4 {
+      margin: 0 0 var(--space-md);
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+    
+    .payment-methods {
+      display: grid;
+      gap: var(--space-md);
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .payment-method {
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .payment-method input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+    }
+    
+    .payment-method-card {
+      padding: var(--space-lg);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 100px;
+    }
+    
+    .payment-method input:checked + .payment-method-card {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .payment-method-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .payment-icon {
+      font-size: 2rem;
+      margin-bottom: var(--space-xs);
+    }
+    
+    .payment-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .payment-details {
+      margin-top: var(--space-lg);
+      padding: var(--space-lg);
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: none;
+    }
+    
+    .payment-details.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .upi-input-group {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    
+    .upi-input-group input {
+      flex: 1;
+    }
+    
+    .verify-btn {
+      padding: var(--space-md) var(--space-lg);
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    .verify-btn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+    
+    .payment-qr {
+      text-align: center;
+      padding: var(--space-lg);
+    }
+    
+    .qr-code {
+      width: 200px;
+      height: 200px;
+      margin: var(--space-md) auto;
+      background: white;
+      padding: var(--space-md);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .card-input-group {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: var(--space-md);
+    }
+    
+    .card-number-input {
+      grid-column: 1 / -1;
+    }
+    
+    .payment-instruction {
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      background: rgba(6, 182, 212, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
     }
     
     /* ====================== RESPONSIVE ====================== */
@@ -1040,9 +1462,10 @@
       <div class="menu-filters" id="menuFilters">
         <button class="filter-btn active" data-filter="all">All Items</button>
         <button class="filter-btn" data-filter="Snacks">Snacks</button>
-        <button class="filter-btn" data-filter="Meals">Meals</button>
+        <button class="filter-btn" data-filter="Veg">Veg</button>
+        <button class="filter-btn" data-filter="Non-Veg">Non-Veg</button>
         <button class="filter-btn" data-filter="Drinks">Drinks</button>
-        <button class="filter-btn" data-filter="Desserts">Desserts</button>
+        <button class="filter-btn" data-filter="Bev">Beverages</button>
       </div>
       
       <div class="menu-grid" id="menuGrid">
@@ -1074,6 +1497,193 @@
       </div>
     </div>
   </section>
+  
+  <!-- Checkout Modal -->
+  <div class="modal-backdrop" id="checkoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Confirm Your Order</h3>
+        <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" id="nameGroup">
+          <label for="customerName">Full Name *</label>
+          <input type="text" id="customerName" placeholder="Enter your full name" required>
+          <span class="error-message"><i class="fas fa-exclamation-circle"></i> <span id="nameError"></span></span>
+          <span class="success-message"><i class="fas fa-check-circle"></i> Looks good!</span>
+        </div>
+        
+        <div class="form-group" id="emailGroup">
+          <label for="customerEmail">Email Address *</label>
+          <input type="email" id="customerEmail" placeholder="you@college.edu" required>
+          <span class="error-message"><i class="fas fa-exclamation-circle"></i> <span id="emailError"></span></span>
+          <span class="success-message"><i class="fas fa-check-circle"></i> Valid email</span>
+        </div>
+        
+        <div class="form-group" id="phoneGroup">
+          <label for="customerPhone">Phone Number *</label>
+          <input type="tel" id="customerPhone" placeholder="1234567890" maxlength="10">
+          <span class="error-message"><i class="fas fa-exclamation-circle"></i> <span id="phoneError"></span></span>
+          <span class="success-message"><i class="fas fa-check-circle"></i> Valid phone</span>
+        </div>
+        
+        <div class="form-group">
+          <label>Order Type *</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="orderType" value="pickup" checked onchange="toggleDeliveryFields()">
+              <span>Pickup from Kiosk</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="orderType" value="delivery" onchange="toggleDeliveryFields()">
+              <span>Deliver to Classroom</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Delivery Fields (hidden by default) -->
+        <div id="deliveryFields" class="delivery-fields" style="display: none;">
+          <div class="form-group">
+            <label for="classroom">Classroom Number *</label>
+            <input type="text" id="classroom" placeholder="e.g., Room 301">
+          </div>
+          
+          <div class="form-group">
+            <label for="department">Department *</label>
+            <input type="text" id="department" placeholder="e.g., Computer Science">
+          </div>
+          
+          <div class="form-group">
+            <label for="block">Block/Building *</label>
+            <input type="text" id="block" placeholder="e.g., Block A">
+          </div>
+          
+          <div class="form-group">
+            <label for="deliveryTime">Expected Delivery Time</label>
+            <input type="time" id="deliveryTime">
+          </div>
+        </div>
+        
+        <!-- Payment Section -->
+        <div class="payment-section">
+          <h4><i class="fas fa-credit-card"></i> Payment Method *</h4>
+          <div class="payment-methods">
+            <label class="payment-method">
+              <input type="radio" name="paymentMethod" value="upi" checked onchange="showPaymentDetails('upi')">
+              <div class="payment-method-card">
+                <div class="payment-icon">📱</div>
+                <div class="payment-name">UPI</div>
+              </div>
+            </label>
+            
+            <label class="payment-method">
+              <input type="radio" name="paymentMethod" value="card" onchange="showPaymentDetails('card')">
+              <div class="payment-method-card">
+                <div class="payment-icon">💳</div>
+                <div class="payment-name">Card</div>
+              </div>
+            </label>
+            
+            <label class="payment-method">
+              <input type="radio" name="paymentMethod" value="netbanking" onchange="showPaymentDetails('netbanking')">
+              <div class="payment-method-card">
+                <div class="payment-icon">🏦</div>
+                <div class="payment-name">Net Banking</div>
+              </div>
+            </label>
+            
+            <label class="payment-method">
+              <input type="radio" name="paymentMethod" value="cod" onchange="showPaymentDetails('cod')">
+              <div class="payment-method-card">
+                <div class="payment-icon">💵</div>
+                <div class="payment-name">Cash on Delivery</div>
+              </div>
+            </label>
+          </div>
+          
+          <!-- UPI Payment Details -->
+          <div id="upiDetails" class="payment-details active">
+            <div class="form-group">
+              <label for="upiId">UPI ID</label>
+              <div class="upi-input-group">
+                <input type="text" id="upiId" placeholder="yourname@upi">
+                <button class="verify-btn" onclick="verifyUPI()">
+                  <i class="fas fa-check"></i> Verify
+                </button>
+              </div>
+            </div>
+            <div class="payment-instruction">
+              <i class="fas fa-info-circle"></i> Enter your UPI ID (e.g., 9876543210@paytm, user@phonepe)
+            </div>
+          </div>
+          
+          <!-- Card Payment Details -->
+          <div id="cardDetails" class="payment-details">
+            <div class="form-group card-number-input">
+              <label for="cardNumber">Card Number</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+            </div>
+            <div class="card-input-group">
+              <div class="form-group">
+                <label for="cardName">Cardholder Name</label>
+                <input type="text" id="cardName" placeholder="JOHN DOE">
+              </div>
+              <div class="form-group">
+                <label for="cardExpiry">Expiry</label>
+                <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label for="cardCVV">CVV</label>
+                <input type="password" id="cardCVV" placeholder="123" maxlength="3">
+              </div>
+            </div>
+            <div class="payment-instruction">
+              <i class="fas fa-lock"></i> Your card details are secure and encrypted
+            </div>
+          </div>
+          
+          <!-- Net Banking Details -->
+          <div id="netbankingDetails" class="payment-details">
+            <div class="form-group">
+              <label for="bankSelect">Select Your Bank</label>
+              <select id="bankSelect" style="width: 100%; padding: var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font: inherit;">
+                <option value="">Choose a bank</option>
+                <option value="sbi">State Bank of India</option>
+                <option value="hdfc">HDFC Bank</option>
+                <option value="icici">ICICI Bank</option>
+                <option value="axis">Axis Bank</option>
+                <option value="pnb">Punjab National Bank</option>
+                <option value="kotak">Kotak Mahindra Bank</option>
+                <option value="other">Other Banks</option>
+              </select>
+            </div>
+            <div class="payment-instruction">
+              <i class="fas fa-info-circle"></i> You will be redirected to your bank's secure login page
+            </div>
+          </div>
+          
+          <!-- Cash on Delivery Details -->
+          <div id="codDetails" class="payment-details">
+            <div class="payment-instruction" style="background: rgba(251, 191, 36, 0.1); border-left-color: var(--warning);">
+              <i class="fas fa-money-bill-wave"></i> Pay with cash when your order is delivered. Please keep exact change ready.
+            </div>
+          </div>
+        </div>
+        
+        <div class="order-summary">
+          <h4>Order Summary</h4>
+          <div id="orderSummaryContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCheckoutModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmOrder()">
+          <i class="fas fa-check-circle"></i>
+          Place Order
+        </button>
+      </div>
+    </div>
+  </div>
   
   <!-- Footer -->
   <footer>
@@ -1148,63 +1758,130 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       camera.position.z = 5;
       
-      // Particles
+      // Subtle sparkle particles (like steam/freshness)
       const particlesGeometry = new THREE.BufferGeometry();
-      const particlesCount = 300;
+      const particlesCount = 150; // Reduced for subtlety
       const posArray = new Float32Array(particlesCount * 3);
+      const colorArray = new Float32Array(particlesCount * 3);
       
-      for (let i = 0; i < particlesCount * 3; i++) {
-        posArray[i] = (Math.random() - 0.5) * 15;
+      for (let i = 0; i < particlesCount; i++) {
+        // Spread particles across the screen
+        posArray[i * 3] = (Math.random() - 0.5) * 20;
+        posArray[i * 3 + 1] = (Math.random() - 0.5) * 15;
+        posArray[i * 3 + 2] = (Math.random() - 0.5) * 10;
+        
+        // Warm colors (gold, orange, white) for "freshness" effect
+        const colorChoice = Math.random();
+        if (colorChoice < 0.3) {
+          // Golden sparkles
+          colorArray[i * 3] = 1.0;     // R
+          colorArray[i * 3 + 1] = 0.8; // G
+          colorArray[i * 3 + 2] = 0.3; // B
+        } else if (colorChoice < 0.6) {
+          // Orange/warm sparkles
+          colorArray[i * 3] = 1.0;     // R
+          colorArray[i * 3 + 1] = 0.5; // G
+          colorArray[i * 3 + 2] = 0.2; // B
+        } else {
+          // White sparkles
+          colorArray[i * 3] = 1.0;
+          colorArray[i * 3 + 1] = 1.0;
+          colorArray[i * 3 + 2] = 1.0;
+        }
       }
       
       particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+      particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+      
       const particlesMaterial = new THREE.PointsMaterial({
-        size: 0.03,
-        color: 0x6366f1,
+        size: 0.04,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.6,
-        blending: THREE.AdditiveBlending
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true
       });
       
       const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
       scene.add(particlesMesh);
       
-      // Geometric shapes
-      const torusGeometry = new THREE.TorusGeometry(1.2, 0.4, 16, 100);
-      const torusMaterial = new THREE.MeshPhongMaterial({
-        color: 0x6366f1,
-        wireframe: true,
+      // Food-themed elements (subtle, non-distracting)
+      const foodItems = [];
+      
+      // Create subtle food icon shapes using simple geometry
+      // Pizza slice (triangle with circle segments)
+      const pizzaGroup = new THREE.Group();
+      const pizzaGeometry = new THREE.CircleGeometry(0.6, 8, 0, Math.PI / 3);
+      const pizzaMaterial = new THREE.MeshPhongMaterial({
+        color: 0xff6b35,
         transparent: true,
-        opacity: 0.2
+        opacity: 0.08,
+        side: THREE.DoubleSide
       });
-      const torus = new THREE.Mesh(torusGeometry, torusMaterial);
-      torus.position.set(-3, 2, -2);
-      scene.add(torus);
+      const pizza = new THREE.Mesh(pizzaGeometry, pizzaMaterial);
+      pizzaGroup.add(pizza);
+      pizzaGroup.position.set(-4, 3, -3);
+      scene.add(pizzaGroup);
+      foodItems.push({ mesh: pizzaGroup, baseY: 3, speed: 0.3, amplitude: 0.4 });
       
-      const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0);
-      const icosahedronMaterial = new THREE.MeshPhongMaterial({
-        color: 0xec4899,
-        wireframe: true,
+      // Coffee cup (cylinder)
+      const cupGroup = new THREE.Group();
+      const cupGeometry = new THREE.CylinderGeometry(0.3, 0.35, 0.8, 12);
+      const cupMaterial = new THREE.MeshPhongMaterial({
+        color: 0x8b4513,
         transparent: true,
-        opacity: 0.2
+        opacity: 0.08
       });
-      const icosahedron = new THREE.Mesh(icosahedronGeometry, icosahedronMaterial);
-      icosahedron.position.set(3, -2, -1);
-      scene.add(icosahedron);
+      const cup = new THREE.Mesh(cupGeometry, cupMaterial);
+      cupGroup.add(cup);
+      cupGroup.position.set(4, -2, -4);
+      scene.add(cupGroup);
+      foodItems.push({ mesh: cupGroup, baseY: -2, speed: 0.4, amplitude: 0.5 });
       
-      // Lights
-      const light1 = new THREE.DirectionalLight(0xffffff, 1);
-      light1.position.set(5, 5, 5);
-      scene.add(light1);
+      // Burger (stacked discs)
+      const burgerGroup = new THREE.Group();
+      const bunTop = new THREE.Mesh(
+        new THREE.SphereGeometry(0.4, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshPhongMaterial({ color: 0xd4a574, transparent: true, opacity: 0.08 })
+      );
+      const patty = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.38, 0.38, 0.15, 16),
+        new THREE.MeshPhongMaterial({ color: 0x8b4513, transparent: true, opacity: 0.08 })
+      );
+      patty.position.y = -0.15;
+      burgerGroup.add(bunTop);
+      burgerGroup.add(patty);
+      burgerGroup.position.set(-3, -3, -3);
+      scene.add(burgerGroup);
+      foodItems.push({ mesh: burgerGroup, baseY: -3, speed: 0.35, amplitude: 0.3 });
       
-      const light2 = new THREE.DirectionalLight(0x6366f1, 0.5);
-      light2.position.set(-5, -5, -5);
-      scene.add(light2);
+      // Donut (much more subtle now)
+      const donutGeometry = new THREE.TorusGeometry(0.5, 0.2, 12, 24);
+      const donutMaterial = new THREE.MeshPhongMaterial({
+        color: 0xffb6c1,
+        transparent: true,
+        opacity: 0.06 // Very subtle!
+      });
+      const donut = new THREE.Mesh(donutGeometry, donutMaterial);
+      donut.position.set(3, 2, -5);
+      scene.add(donut);
+      foodItems.push({ mesh: donut, baseY: 2, speed: 0.25, amplitude: 0.35 });
       
-      const ambientLight = new THREE.AmbientLight(0x404040);
+      // Soft ambient lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
       scene.add(ambientLight);
       
-      // Mouse interaction
+      // Warm directional light (like kitchen lighting)
+      const mainLight = new THREE.DirectionalLight(0xfff5e1, 0.8);
+      mainLight.position.set(5, 5, 5);
+      scene.add(mainLight);
+      
+      // Accent light with food-appropriate color
+      const accentLight = new THREE.DirectionalLight(0xff6b35, 0.3);
+      accentLight.position.set(-5, -3, -5);
+      scene.add(accentLight);
+      
+      // Mouse interaction (very subtle)
       let mouseX = 0;
       let mouseY = 0;
       
@@ -1213,18 +1890,35 @@
         mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
       });
       
-      // Animation
+      // Animation loop
+      let time = 0;
       function animate() {
         requestAnimationFrame(animate);
+        time += 0.01;
         
-        particlesMesh.rotation.y += 0.001;
-        torus.rotation.x += 0.01;
-        torus.rotation.y += 0.005;
-        icosahedron.rotation.x += 0.005;
-        icosahedron.rotation.y += 0.01;
+        // Gentle sparkle rotation
+        particlesMesh.rotation.y += 0.0005;
         
-        camera.position.x += (mouseX * 0.3 - camera.position.x) * 0.05;
-        camera.position.y += (mouseY * 0.3 - camera.position.y) * 0.05;
+        // Make particles twinkle
+        const positions = particlesMesh.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+          positions[i + 1] += Math.sin(time + i) * 0.002; // Gentle up/down movement
+        }
+        particlesMesh.geometry.attributes.position.needsUpdate = true;
+        
+        // Animate food items with gentle floating motion
+        foodItems.forEach((item, index) => {
+          // Floating up and down (like steam rising)
+          item.mesh.position.y = item.baseY + Math.sin(time * item.speed + index) * item.amplitude;
+          
+          // Very gentle rotation
+          item.mesh.rotation.y += 0.002;
+          item.mesh.rotation.x = Math.sin(time * 0.3 + index) * 0.1;
+        });
+        
+        // Subtle camera movement based on mouse (much less intense)
+        camera.position.x += (mouseX * 0.1 - camera.position.x) * 0.02;
+        camera.position.y += (mouseY * 0.1 - camera.position.y) * 0.02;
         camera.lookAt(scene.position);
         
         renderer.render(scene, camera);
@@ -1342,10 +2036,23 @@
       try {
         const response = await fetch('/api/menu');
         const data = await response.json();
-        menuItems = data.filter(item => item.available && item.stock > 0);
+        // Show all available items, even if stock is 0 (we'll disable the button)
+        menuItems = data.filter(item => item.available);
+        console.log('Loaded menu items:', menuItems); // Debug
         renderMenu();
       } catch (error) {
         console.error('Failed to load menu:', error);
+        // Show error message
+        const grid = document.getElementById('menuGrid');
+        if (grid) {
+          grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--text-tertiary); margin-bottom: 1rem;"></i>
+              <h3 style="color: var(--text-secondary);">Failed to load menu</h3>
+              <p style="color: var(--text-tertiary);">Please refresh the page or contact support</p>
+            </div>
+          `;
+        }
       }
     }
     
@@ -1355,33 +2062,47 @@
         ? menuItems 
         : menuItems.filter(item => item.category === filter);
       
+      console.log('Rendering menu - Filter:', filter, 'Items:', filtered.length); // Debug
+      
       if (filtered.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">No items available in this category</p>';
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+            <i class="fas fa-utensils" style="font-size: 3rem; color: var(--text-tertiary); opacity: 0.5; margin-bottom: 1rem;"></i>
+            <h3 style="color: var(--text-secondary);">No items in this category</h3>
+            <p style="color: var(--text-tertiary);">Try selecting a different category</p>
+          </div>
+        `;
         return;
       }
       
-      grid.innerHTML = filtered.map((item, index) => `
-        <div class="menu-card" style="animation-delay: ${index * 0.1}s">
+      grid.innerHTML = filtered.map((item, index) => {
+        const isOutOfStock = item.stock <= 0;
+        const imageUrl = item.image ? `/static/images/${item.image}` : 'https://via.placeholder.com/400x250/1e1e1e/6366f1?text=' + encodeURIComponent(item.name);
+        
+        return `
+        <div class="menu-card ${isOutOfStock ? 'out-of-stock' : ''}" style="animation-delay: ${index * 0.1}s">
           <div class="menu-card-image">
-            <img src="/static/images/${item.image}" alt="${item.name}" loading="lazy">
-            ${index % 3 === 0 ? '<div class="menu-card-badge popular">Popular</div>' : ''}
-            ${index % 5 === 0 ? '<div class="menu-card-badge new">New</div>' : ''}
+            <img src="${imageUrl}" alt="${item.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x250/1e1e1e/6366f1?text=${encodeURIComponent(item.name)}'">
+            ${isOutOfStock ? '<div class="menu-card-badge" style="background: rgba(220, 38, 38, 0.9);">Out of Stock</div>' : ''}
+            ${!isOutOfStock && index % 3 === 0 ? '<div class="menu-card-badge popular">Popular</div>' : ''}
+            ${!isOutOfStock && index % 5 === 0 ? '<div class="menu-card-badge new">New</div>' : ''}
           </div>
           <div class="menu-card-content">
             <div class="menu-card-header">
               <h3 class="menu-card-title">${item.name}</h3>
-              <p class="menu-card-category">${item.category}</p>
+              <p class="menu-card-category">${item.category}${isOutOfStock ? ' • Stock: ' + item.stock : ' • Stock: ' + item.stock}</p>
             </div>
             <div class="menu-card-footer">
-              <div class="menu-card-price">₹${item.price}</div>
-              <button class="add-to-cart-btn" onclick="addToCart(${item.id})">
-                <i class="fas fa-plus"></i>
-                Add
+              <div class="menu-card-price">₹${item.price.toFixed(2)}</div>
+              <button class="add-to-cart-btn" onclick="addToCart(${item.id})" ${isOutOfStock ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                <i class="fas fa-${isOutOfStock ? 'ban' : 'plus'}"></i>
+                ${isOutOfStock ? 'Unavailable' : 'Add'}
               </button>
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
     
     // Menu filters
@@ -1398,7 +2119,16 @@
     // ====================== CART MANAGEMENT ======================
     function addToCart(itemId) {
       const item = menuItems.find(i => i.id === itemId);
-      if (!item) return;
+      if (!item) {
+        showToast('Item not found!', 'error');
+        return;
+      }
+      
+      // Check stock
+      if (item.stock <= 0) {
+        showToast('Sorry, this item is out of stock!', 'error');
+        return;
+      }
       
       const existingItem = cart.find(i => i.id === itemId);
       if (existingItem) {
@@ -1408,17 +2138,19 @@
       }
       
       updateCartBadge();
-      showToast('Added to cart!');
+      showToast('Added to cart!', 'success');
       
       // Animate button
       const btn = event.target.closest('.add-to-cart-btn');
-      gsap.to(btn, {
-        scale: 1.2,
-        duration: 0.2,
-        yoyo: true,
-        repeat: 1,
-        ease: 'power2.inOut'
-      });
+      if (btn) {
+        gsap.to(btn, {
+          scale: 1.2,
+          duration: 0.2,
+          yoyo: true,
+          repeat: 1,
+          ease: 'power2.inOut'
+        });
+      }
     }
     
     function removeFromCart(itemId) {
@@ -1522,21 +2254,426 @@
     
     // ====================== CHECKOUT ======================
     async function checkout() {
-      if (cart.length === 0) return;
+      if (cart.length === 0) {
+        showToast('Your cart is empty!', 'error');
+        return;
+      }
       
+      // Open checkout modal
+      openCheckoutModal();
+    }
+    
+    function openCheckoutModal() {
+      const modal = document.getElementById('checkoutModal');
+      
+      // Pre-fill user data
+      if (user) {
+        document.getElementById('customerName').value = user.name || '';
+        document.getElementById('customerEmail').value = user.email || '';
+      }
+      
+      // Generate order summary
+      const summaryDiv = document.getElementById('orderSummaryContent');
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const deliveryFee = 5;
+      const total = subtotal + deliveryFee;
+      
+      summaryDiv.innerHTML = `
+        ${cart.map(item => `
+          <div class="order-summary-item">
+            <span>${item.name} × ${item.quantity}</span>
+            <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+          </div>
+        `).join('')}
+        <div class="order-summary-item">
+          <span>Subtotal</span>
+          <span>₹${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="order-summary-item">
+          <span>Delivery Fee</span>
+          <span>₹${deliveryFee.toFixed(2)}</span>
+        </div>
+        <div class="order-summary-item total">
+          <span>Total</span>
+          <span>₹${total.toFixed(2)}</span>
+        </div>
+      `;
+      
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Setup real-time validation
+      setupFormValidation();
+      
+      // Reset payment method to UPI
+      document.querySelector('input[name="paymentMethod"][value="upi"]').checked = true;
+      showPaymentDetails('upi');
+    }
+    
+    function closeCheckoutModal() {
+      const modal = document.getElementById('checkoutModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    function toggleDeliveryFields() {
+      const deliveryFields = document.getElementById('deliveryFields');
+      const selectedType = document.querySelector('input[name="orderType"]:checked').value;
+      
+      if (selectedType === 'delivery') {
+        deliveryFields.style.display = 'block';
+      } else {
+        deliveryFields.style.display = 'none';
+      }
+    }
+    
+    // ====================== VALIDATION FUNCTIONS ======================
+    function setupFormValidation() {
+      const nameInput = document.getElementById('customerName');
+      const emailInput = document.getElementById('customerEmail');
+      const phoneInput = document.getElementById('customerPhone');
+      
+      // Real-time validation
+      nameInput.addEventListener('input', () => validateName());
+      nameInput.addEventListener('blur', () => validateName());
+      
+      emailInput.addEventListener('input', () => validateEmail());
+      emailInput.addEventListener('blur', () => validateEmail());
+      
+      phoneInput.addEventListener('input', () => validatePhone());
+      phoneInput.addEventListener('blur', () => validatePhone());
+      
+      // Card number formatting
+      const cardNumberInput = document.getElementById('cardNumber');
+      if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', (e) => {
+          let value = e.target.value.replace(/\s/g, '');
+          let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+          e.target.value = formattedValue;
+        });
+      }
+      
+      // Card expiry formatting
+      const cardExpiryInput = document.getElementById('cardExpiry');
+      if (cardExpiryInput) {
+        cardExpiryInput.addEventListener('input', (e) => {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+          }
+          e.target.value = value;
+        });
+      }
+    }
+    
+    function validateName() {
+      const nameInput = document.getElementById('customerName');
+      const nameGroup = document.getElementById('nameGroup');
+      const nameError = document.getElementById('nameError');
+      const name = nameInput.value.trim();
+      
+      if (name.length === 0) {
+        setValidationState(nameGroup, 'error');
+        nameError.textContent = 'Name is required';
+        return false;
+      } else if (name.length < 3) {
+        setValidationState(nameGroup, 'error');
+        nameError.textContent = 'Name must be at least 3 characters';
+        return false;
+      } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+        setValidationState(nameGroup, 'error');
+        nameError.textContent = 'Name can only contain letters';
+        return false;
+      } else {
+        setValidationState(nameGroup, 'success');
+        return true;
+      }
+    }
+    
+    function validateEmail() {
+      const emailInput = document.getElementById('customerEmail');
+      const emailGroup = document.getElementById('emailGroup');
+      const emailError = document.getElementById('emailError');
+      const email = emailInput.value.trim();
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      
+      if (email.length === 0) {
+        setValidationState(emailGroup, 'error');
+        emailError.textContent = 'Email is required';
+        return false;
+      } else if (!emailRegex.test(email)) {
+        setValidationState(emailGroup, 'error');
+        emailError.textContent = 'Please enter a valid email address';
+        return false;
+      } else {
+        setValidationState(emailGroup, 'success');
+        return true;
+      }
+    }
+    
+    function validatePhone() {
+      const phoneInput = document.getElementById('customerPhone');
+      const phoneGroup = document.getElementById('phoneGroup');
+      const phoneError = document.getElementById('phoneError');
+      const phone = phoneInput.value.trim();
+      
+      if (phone.length === 0) {
+        setValidationState(phoneGroup, 'error');
+        phoneError.textContent = 'Phone number is required';
+        return false;
+      } else if (!/^\d{10}$/.test(phone)) {
+        setValidationState(phoneGroup, 'error');
+        phoneError.textContent = 'Phone number must be 10 digits';
+        return false;
+      } else {
+        setValidationState(phoneGroup, 'success');
+        return true;
+      }
+    }
+    
+    function setValidationState(element, state) {
+      element.classList.remove('error', 'success');
+      if (state) {
+        element.classList.add(state);
+      }
+    }
+    
+    function validateDeliveryFields() {
+      if (document.querySelector('input[name="orderType"]:checked').value !== 'delivery') {
+        return true;
+      }
+      
+      const classroom = document.getElementById('classroom').value.trim();
+      const department = document.getElementById('department').value.trim();
+      const block = document.getElementById('block').value.trim();
+      
+      if (!classroom || !department || !block) {
+        showToast('Please fill in all delivery details', 'error');
+        return false;
+      }
+      
+      return true;
+    }
+    
+    function validatePaymentMethod() {
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+      
+      if (paymentMethod === 'upi') {
+        const upiId = document.getElementById('upiId').value.trim();
+        if (!upiId) {
+          showToast('Please enter your UPI ID', 'error');
+          return false;
+        }
+        if (!/^[\w.-]+@[\w.-]+$/.test(upiId)) {
+          showToast('Please enter a valid UPI ID', 'error');
+          return false;
+        }
+      } else if (paymentMethod === 'card') {
+        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        const cardName = document.getElementById('cardName').value.trim();
+        const cardExpiry = document.getElementById('cardExpiry').value.trim();
+        const cardCVV = document.getElementById('cardCVV').value.trim();
+        
+        if (!cardNumber || cardNumber.length !== 16) {
+          showToast('Please enter a valid 16-digit card number', 'error');
+          return false;
+        }
+        if (!cardName) {
+          showToast('Please enter cardholder name', 'error');
+          return false;
+        }
+        if (!cardExpiry || !/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+          showToast('Please enter valid expiry date (MM/YY)', 'error');
+          return false;
+        }
+        if (!cardCVV || cardCVV.length !== 3) {
+          showToast('Please enter valid 3-digit CVV', 'error');
+          return false;
+        }
+      } else if (paymentMethod === 'netbanking') {
+        const bank = document.getElementById('bankSelect').value;
+        if (!bank) {
+          showToast('Please select your bank', 'error');
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    // ====================== PAYMENT FUNCTIONS ======================
+    function showPaymentDetails(method) {
+      // Hide all payment details
+      document.querySelectorAll('.payment-details').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // Show selected payment method details
+      const detailsMap = {
+        'upi': 'upiDetails',
+        'card': 'cardDetails',
+        'netbanking': 'netbankingDetails',
+        'cod': 'codDetails'
+      };
+      
+      const detailsId = detailsMap[method];
+      if (detailsId) {
+        document.getElementById(detailsId).classList.add('active');
+      }
+    }
+    
+    function verifyUPI() {
+      const upiId = document.getElementById('upiId').value.trim();
+      
+      if (!upiId) {
+        showToast('Please enter UPI ID', 'error');
+        return;
+      }
+      
+      if (!/^[\w.-]+@[\w.-]+$/.test(upiId)) {
+        showToast('Invalid UPI ID format', 'error');
+        return;
+      }
+      
+      // Simulate UPI verification
+      showToast('Verifying UPI ID...', 'success');
+      
+      setTimeout(() => {
+        showToast('UPI ID verified successfully! ✓', 'success');
+      }, 1500);
+    }
+    
+    function processPayment(orderData) {
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+      
+      // Add payment info to order data
+      orderData.payment_method = paymentMethod;
+      
+      if (paymentMethod === 'upi') {
+        orderData.payment_details = {
+          upi_id: document.getElementById('upiId').value.trim()
+        };
+      } else if (paymentMethod === 'card') {
+        // In production, this would be tokenized and sent securely
+        orderData.payment_details = {
+          card_last_4: document.getElementById('cardNumber').value.replace(/\s/g, '').slice(-4),
+          card_type: 'Credit/Debit'
+        };
+      } else if (paymentMethod === 'netbanking') {
+        orderData.payment_details = {
+          bank: document.getElementById('bankSelect').value
+        };
+      } else if (paymentMethod === 'cod') {
+        orderData.payment_details = {
+          cash_amount: orderData.total_price
+        };
+      }
+      
+      // Simulate payment processing
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (Math.random() > 0.05) { // 95% success rate
+            resolve({
+              success: true,
+              transaction_id: 'TXN' + Date.now(),
+              message: 'Payment successful'
+            });
+          } else {
+            reject(new Error('Payment failed. Please try again.'));
+          }
+        }, 2000);
+      });
+    }
+    
+    async function confirmOrder() {
+      // Step 1: Validate all form fields
+      const isNameValid = validateName();
+      const isEmailValid = validateEmail();
+      const isPhoneValid = validatePhone();
+      
+      if (!isNameValid || !isEmailValid || !isPhoneValid) {
+        showToast('Please fix the errors in the form', 'error');
+        return;
+      }
+      
+      // Step 2: Validate delivery fields if needed
+      if (!validateDeliveryFields()) {
+        return;
+      }
+      
+      // Step 3: Validate payment method
+      if (!validatePaymentMethod()) {
+        return;
+      }
+      
+      // Step 4: Validate cart (stock check)
+      if (cart.length === 0) {
+        showToast('Your cart is empty', 'error');
+        return;
+      }
+      
+      // Check if items are still available
+      for (const cartItem of cart) {
+        const menuItem = menuItems.find(m => m.id === cartItem.id);
+        if (!menuItem || !menuItem.available) {
+          showToast(`${cartItem.name} is no longer available`, 'error');
+          return;
+        }
+        if (menuItem.stock < cartItem.quantity) {
+          showToast(`Only ${menuItem.stock} ${cartItem.name} available`, 'error');
+          return;
+        }
+      }
+      
+      // Get form data
+      const name = document.getElementById('customerName').value.trim();
+      const email = document.getElementById('customerEmail').value.trim();
+      const phone = document.getElementById('customerPhone').value.trim();
+      const orderType = document.querySelector('input[name="orderType"]:checked').value;
+      
+      const orderData = {
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        items: cart.map(item => ({ id: item.id, qty: item.quantity })),
+        total_price: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 5,
+        delivery_mode: orderType
+      };
+      
+      // Add delivery details if delivery mode
+      if (orderType === 'delivery') {
+        orderData.classroom = document.getElementById('classroom').value.trim();
+        orderData.department = document.getElementById('department').value.trim();
+        orderData.block = document.getElementById('block').value.trim();
+        const deliveryTime = document.getElementById('deliveryTime').value.trim();
+        if (deliveryTime) {
+          orderData.expected_time = deliveryTime;
+        }
+      }
+      
+      // Disable button and show loading
       const btn = event.target;
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Processing...';
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner"></span> Processing Payment...';
       
       try {
-        const orderData = {
-          customer_name: user.name,
-          customer_email: user.email,
-          items: cart.map(item => ({ id: item.id, qty: item.quantity })),
-          total_price: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 5,
-          delivery_mode: 'pickup' // You can add UI for this
-        };
+        // Step 5: Process payment first
+        showToast('Processing payment...', 'success');
+        const paymentResult = await processPayment(orderData);
         
+        if (!paymentResult.success) {
+          throw new Error('Payment failed');
+        }
+        
+        // Add payment info to order
+        orderData.transaction_id = paymentResult.transaction_id;
+        orderData.payment_status = 'completed';
+        
+        btn.innerHTML = '<span class="spinner"></span> Placing Order...';
+        
+        // Step 6: Place order
         const response = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1546,38 +2683,83 @@
         const data = await response.json();
         
         if (response.ok) {
-          alert(`Order placed successfully! Your OTP is: ${data.otp}\n\nShow this OTP to collect your order.`);
+          // Success!
+          closeCheckoutModal();
+          
+          // Create detailed success message
+          const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+          const paymentMethodNames = {
+            'upi': 'UPI',
+            'card': 'Card',
+            'netbanking': 'Net Banking',
+            'cod': 'Cash on Delivery'
+          };
+          
+          const otpMessage = `
+✅ Order Placed Successfully!
+
+📦 Order ID: ${data.order_id || 'N/A'}
+🔐 Your OTP: ${data.otp}
+💰 Amount Paid: ₹${data.final_price || orderData.total_price}
+💳 Payment: ${paymentMethodNames[paymentMethod]}
+📝 Transaction ID: ${paymentResult.transaction_id}
+
+${orderType === 'delivery' ? 
+  '🚚 Your order will be delivered to:\n   ' + orderData.classroom + ', ' + orderData.department + ', ' + orderData.block :
+  '🏪 Please show this OTP at the kiosk to collect your order'}
+
+Thank you for ordering! 🎉
+          `;
+          
+          alert(otpMessage);
+          
+          // Clear cart
           cart = [];
           updateCartBadge();
+          renderCart();
+          
+          // Reload menu to update stock
+          await loadMenu();
+          
           navigateTo('home');
+          showToast('Order placed successfully!', 'success');
         } else {
-          alert('Error: ' + (data.error || 'Failed to place order'));
+          showToast('Error: ' + (data.error || 'Failed to place order'), 'error');
         }
       } catch (error) {
-        alert('Failed to place order. Please try again.');
+        console.error('Order error:', error);
+        showToast(error.message || 'Failed to place order. Please try again.', 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle"></i> Proceed to Checkout';
+        btn.innerHTML = originalHTML;
       }
     }
     
     // ====================== UTILITIES ======================
-    function showToast(message) {
-      // Simple toast - you can enhance this
+    function showToast(message, type = 'success') {
       const toast = document.createElement('div');
       toast.textContent = message;
+      
+      const bgColor = type === 'error' ? '#dc2626' : 'var(--primary)';
+      const icon = type === 'error' ? '⚠️' : '✓';
+      
       toast.style.cssText = `
         position: fixed;
         bottom: 2rem;
         right: 2rem;
         padding: 1rem 1.5rem;
-        background: var(--primary);
+        background: ${bgColor};
         color: white;
         border-radius: 12px;
         font-weight: 600;
         z-index: 10000;
         box-shadow: var(--shadow-xl);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       `;
+      
+      toast.innerHTML = `<span style="font-size: 1.2rem;">${icon}</span> ${message}`;
       document.body.appendChild(toast);
       
       gsap.from(toast, {
