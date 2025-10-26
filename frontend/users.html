@@ -2201,7 +2201,8 @@
       }
       
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const deliveryFee = 5; // You can add logic here
+      // Delivery fee is now shown in checkout modal based on order type
+      const deliveryFee = 0; // No fee shown in cart
       const total = subtotal + deliveryFee;
       
       container.innerHTML = `
@@ -2238,11 +2239,7 @@
           </div>
           <div class="cart-summary-row">
             <span class="cart-summary-label">Delivery Fee</span>
-            <span class="cart-summary-value">₹${deliveryFee.toFixed(2)}</span>
-          </div>
-          <div class="cart-summary-row">
-            <span class="cart-summary-label">Total</span>
-            <span class="cart-summary-value">₹${total.toFixed(2)}</span>
+            <span class="cart-summary-value" style="font-size: 0.9em; opacity: 0.8;">At checkout</span>
           </div>
           <button class="checkout-btn" onclick="checkout()">
             <i class="fas fa-check-circle"></i>
@@ -2272,10 +2269,27 @@
         document.getElementById('customerEmail').value = user.email || '';
       }
       
-      // Generate order summary
+      // Generate initial order summary (will be updated when order type changes)
+      updateOrderSummary();
+      
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Setup real-time validation
+      setupFormValidation();
+      
+      // Reset payment method to UPI
+      document.querySelector('input[name="paymentMethod"][value="upi"]').checked = true;
+      showPaymentDetails('upi');
+    }
+    
+    function updateOrderSummary() {
       const summaryDiv = document.getElementById('orderSummaryContent');
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const deliveryFee = 5;
+      
+      // Check selected order type
+      const orderType = document.querySelector('input[name="orderType"]:checked')?.value || 'pickup';
+      const deliveryFee = orderType === 'delivery' ? 3 : 0;
       const total = subtotal + deliveryFee;
       
       summaryDiv.innerHTML = `
@@ -2291,23 +2305,13 @@
         </div>
         <div class="order-summary-item">
           <span>Delivery Fee</span>
-          <span>₹${deliveryFee.toFixed(2)}</span>
+          <span>${orderType === 'delivery' ? '₹' + deliveryFee.toFixed(2) : 'Free'}</span>
         </div>
         <div class="order-summary-item total">
           <span>Total</span>
           <span>₹${total.toFixed(2)}</span>
         </div>
       `;
-      
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      
-      // Setup real-time validation
-      setupFormValidation();
-      
-      // Reset payment method to UPI
-      document.querySelector('input[name="paymentMethod"][value="upi"]').checked = true;
-      showPaymentDetails('upi');
     }
     
     function closeCheckoutModal() {
@@ -2325,6 +2329,9 @@
       } else {
         deliveryFields.style.display = 'none';
       }
+      
+      // Update order summary to reflect delivery fee changes
+      updateOrderSummary();
     }
     
     // ====================== VALIDATION FUNCTIONS ======================
@@ -2632,12 +2639,17 @@
       const phone = document.getElementById('customerPhone').value.trim();
       const orderType = document.querySelector('input[name="orderType"]:checked').value;
       
+      // Calculate delivery fee based on order type
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const deliveryFee = orderType === 'delivery' ? 3 : 0;
+      const totalPrice = subtotal + deliveryFee;
+      
       const orderData = {
         customer_name: name,
         customer_email: email,
         customer_phone: phone,
         items: cart.map(item => ({ id: item.id, qty: item.quantity })),
-        total_price: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 5,
+        total_price: totalPrice,
         delivery_mode: orderType
       };
       
