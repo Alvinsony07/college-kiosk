@@ -722,13 +722,87 @@ def get_orders():
         print(f"Error fetching orders: {e}")
         return jsonify({'error': 'Failed to fetch orders'}), 500
 
+@app.route('/api/orders/my', methods=['GET'])
+def get_my_orders():
+    """Return orders for a given customer email with detailed items."""
+    email = request.args.get('email')
+    limit = request.args.get('limit', 50, type=int)
+    if not email or not validate_email(email):
+        return jsonify({'error': 'Valid email query parameter is required'}), 400
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, customer_name, customer_email, items, total_price, otp, status, created_at 
+                FROM orders 
+                WHERE customer_email = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+            """, (email, limit))
+            rows = cursor.fetchall()
+
+            orders = []
+            for r in rows:
+                # Parse items safely
+                try:
+                    order_data = json.loads(r[3]) if isinstance(r[3], str) else r[3]
+                except (json.JSONDecodeError, TypeError):
+                    try:
+                        order_data = eval(r[3]) if isinstance(r[3], str) else r[3]
+                    except:
+                        order_data = {"items": []}
+
+                detailed_items = []
+                for i in order_data.get("items", []):
+                    try:
+                        cur = conn.cursor()
+                        cur.execute("SELECT name, price, category FROM menu WHERE id=?", (i["id"],))
+                        m = cur.fetchone()
+                        item_name = m[0] if m else f"ID:{i['id']}"
+                        item_price = m[1] if m else 0
+                        item_category = m[2] if m else "Other"
+                    except Exception:
+                        item_name = f"ID:{i['id']}"
+                        item_price = 0
+                        item_category = "Other"
+
+                    detailed_items.append({
+                        "id": i["id"],
+                        "name": item_name,
+                        "qty": i["qty"],
+                        "price": item_price,
+                        "category": item_category
+                    })
+
+                orders.append({
+                    "id": r[0],
+                    "customer_name": r[1],
+                    "customer_email": r[2],
+                    "items": detailed_items,
+                    "total_price": r[4],
+                    "otp": r[5],
+                    "status": r[6],
+                    "created_at": r[7],
+                    "delivery_mode": order_data.get("delivery_mode", "pickup"),
+                    "classroom": order_data.get("classroom", ""),
+                    "department": order_data.get("department", ""),
+                    "block": order_data.get("block", "")
+                })
+
+        return jsonify(orders), 200
+    except Exception as e:
+        print(f"Error fetching my orders: {e}")
+        return jsonify({'error': 'Failed to fetch orders'}), 500
+
 @app.route('/api/orders', methods=['POST'])
 def create_order():
     data = request.get_json()
     name = data.get('customer_name')
     email = data.get('customer_email')
     items = data.get('items')
-    total_price = data.get('total_price')
+    # Client-provided total will be ignored; server will compute authoritative total
+    client_total_price = data.get('total_price')
     delivery_mode = data.get('delivery_mode', 'pickup')
 
     # Delivery details (only if delivery selected)
@@ -750,11 +824,7 @@ def create_order():
     if not isinstance(items, list) or len(items) == 0:
         return jsonify({'error': 'Items must be a non-empty list'}), 400
 
-    # Validate total_price
-    is_valid, result = validate_positive_number(total_price, "Total price")
-    if not is_valid:
-        return jsonify({'error': result}), 400
-    total_price = result
+    # We'll compute total server-side to prevent tampering
 
     try:
         with get_db_connection() as conn:
@@ -774,18 +844,27 @@ def create_order():
                 if not row or row[0] < item['qty']:
                     return jsonify({'error': f"Not enough stock for item {item['id']}"}), 400
 
-            # Delivery charge logic (by quantity not rupees)
-            if delivery_mode == 'delivery':
-                deliverable_items = []
-                total_qty = 0
-                for i in items:
-                    cursor.execute("SELECT deliverable FROM menu WHERE id=?", (i['id'],))
-                    r = cursor.fetchone()
-                    if r and r[0] == 1:
-                        deliverable_items.append(i)
-                    total_qty += i['qty']
-                if deliverable_items and total_qty < 5:
-                    total_price += 5
+            # Compute subtotal from current menu prices and validate availability/deliverability
+            subtotal = 0.0
+            total_qty = 0
+            for item in items:
+                cursor.execute("SELECT price, available, stock, deliverable FROM menu WHERE id=?", (item['id'],))
+                row = cursor.fetchone()
+                if not row:
+                    return jsonify({'error': f"Menu item not found: {item['id']}"}), 400
+                price, available, stock, deliverable_flag = row
+                if not available:
+                    return jsonify({'error': f"Item not available: {item['id']}"}), 400
+                if stock < item['qty']:
+                    return jsonify({'error': f"Not enough stock for item {item['id']}"}), 400
+                if delivery_mode == 'delivery' and deliverable_flag != 1:
+                    return jsonify({'error': f"Item not deliverable: {item['id']}"}), 400
+                subtotal += float(price) * float(item['qty'])
+                total_qty += item['qty']
+
+            # Delivery charge rule: If delivery and total quantity < 5, add flat ₹5
+            delivery_fee = 5 if (delivery_mode == 'delivery' and total_qty < 5) else 0
+            total_price = round(subtotal + delivery_fee, 2)
 
             # Deduct stock
             for item in items:
@@ -811,9 +890,10 @@ def create_order():
                 "INSERT INTO orders (customer_name, customer_email, items, total_price, otp, created_at) VALUES (?,?,?,?,?,?)",
                 (name, email, json.dumps(order_payload), total_price, otp, current_timestamp)
             )
+            order_id = cursor.lastrowid
 
             conn.commit()
-        return jsonify({'message': 'Order created successfully', 'otp': otp, 'final_price': total_price}), 201
+        return jsonify({'message': 'Order created successfully', 'order_id': order_id, 'otp': otp, 'final_price': total_price}), 201
     except Exception as e:
         print(f"Error creating order: {e}")
         return jsonify({'error': 'Failed to create order'}), 500

@@ -1399,6 +1399,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="#orders" class="nav-link" data-page="orders">
+            <i class="fas fa-receipt"></i>
+            My Orders
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#cart" class="nav-link" data-page="cart">
             <i class="fas fa-shopping-cart"></i>
             Cart
@@ -1489,6 +1495,30 @@
           </div>
           <h3>Your cart is empty</h3>
           <p class="text-secondary">Add some delicious items to get started!</p>
+          <button class="btn btn-primary" onclick="scrollToMenu()" style="margin-top: var(--space-lg)">
+            <i class="fas fa-utensils"></i>
+            Browse Menu
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- My Orders Section -->
+  <section id="ordersSection" class="hidden">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">History</span>
+        <h2 class="section-title">My Orders</h2>
+        <p class="section-subtitle">Track your recent orders and OTPs.</p>
+      </div>
+      <div id="ordersContent">
+        <div class="cart-empty">
+          <div class="cart-empty-icon">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <h3>No orders yet</h3>
+          <p class="text-secondary">Start by adding something tasty from the menu.</p>
           <button class="btn btn-primary" onclick="scrollToMenu()" style="margin-top: var(--space-lg)">
             <i class="fas fa-utensils"></i>
             Browse Menu
@@ -2012,7 +2042,8 @@
       // Show/hide sections
       document.getElementById('heroSection').classList.toggle('hidden', page !== 'home');
       document.getElementById('menuSection').classList.toggle('hidden', page !== 'menu');
-      document.getElementById('cartSection').classList.toggle('hidden', page !== 'cart');
+  document.getElementById('cartSection').classList.toggle('hidden', page !== 'cart');
+  document.getElementById('ordersSection').classList.toggle('hidden', page !== 'orders');
       
       // Scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2020,6 +2051,13 @@
       // Refresh cart if viewing cart page
       if (page === 'cart') {
         renderCart();
+      }
+      // Load orders and start/stop polling
+      if (page === 'orders') {
+        loadMyOrders();
+        startOrdersPolling();
+      } else {
+        stopOrdersPolling();
       }
     }
     
@@ -2289,7 +2327,8 @@
       
       // Check selected order type
       const orderType = document.querySelector('input[name="orderType"]:checked')?.value || 'pickup';
-      const deliveryFee = orderType === 'delivery' ? 3 : 0;
+      const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const deliveryFee = orderType === 'delivery' && totalQty < 5 ? 5 : 0;
       const total = subtotal + deliveryFee;
       
       summaryDiv.innerHTML = `
@@ -2620,7 +2659,7 @@
         return;
       }
       
-      // Check if items are still available
+      // Check if items are still available and deliverable if needed
       for (const cartItem of cart) {
         const menuItem = menuItems.find(m => m.id === cartItem.id);
         if (!menuItem || !menuItem.available) {
@@ -2629,6 +2668,11 @@
         }
         if (menuItem.stock < cartItem.quantity) {
           showToast(`Only ${menuItem.stock} ${cartItem.name} available`, 'error');
+          return;
+        }
+        const orderTypeCheck = document.querySelector('input[name="orderType"]:checked').value;
+        if (orderTypeCheck === 'delivery' && !menuItem.deliverable) {
+          showToast(`${menuItem.name} cannot be delivered. Remove or switch to Pickup.`, 'error');
           return;
         }
       }
@@ -2641,7 +2685,8 @@
       
       // Calculate delivery fee based on order type
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const deliveryFee = orderType === 'delivery' ? 3 : 0;
+  const totalQtyForFee = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const deliveryFee = orderType === 'delivery' && totalQtyForFee < 5 ? 5 : 0;
       const totalPrice = subtotal + deliveryFee;
       
       const orderData = {
@@ -2789,6 +2834,70 @@ Thank you for ordering! 🎉
           onComplete: () => toast.remove()
         });
       }, 2000);
+    }
+
+    // ====================== MY ORDERS ======================
+    let myOrdersInterval = null;
+    function startOrdersPolling() {
+      stopOrdersPolling();
+      myOrdersInterval = setInterval(loadMyOrders, 15000);
+    }
+    function stopOrdersPolling() {
+      if (myOrdersInterval) {
+        clearInterval(myOrdersInterval);
+        myOrdersInterval = null;
+      }
+    }
+    async function loadMyOrders() {
+      if (!user || !user.email) return;
+      try {
+        const res = await fetch(`/api/orders/my?email=${encodeURIComponent(user.email)}&limit=20`);
+        const orders = await res.json();
+        if (res.ok) {
+          renderMyOrders(orders);
+        }
+      } catch (e) {
+        console.error('Failed to load orders', e);
+      }
+    }
+    function renderMyOrders(orders) {
+      const container = document.getElementById('ordersContent');
+      if (!orders || orders.length === 0) {
+        container.innerHTML = `
+          <div class="cart-empty">
+            <div class="cart-empty-icon"><i class="fas fa-receipt"></i></div>
+            <h3>No orders yet</h3>
+            <p class="text-secondary">Your recent orders will appear here.</p>
+          </div>`;
+        return;
+      }
+      const statusSteps = ['Order Received', 'Preparing', 'Ready for Pickup', 'Completed'];
+      container.innerHTML = orders.map(o => {
+        const created = new Date(o.created_at.replace(' ', 'T'));
+        const stepIndex = Math.max(0, statusSteps.indexOf(o.status));
+        return `
+          <div class="cart-item" style="align-items:flex-start;">
+            <div class="cart-item-details" style="width:100%">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <h3 class="cart-item-name">Order #${o.id}</h3>
+                <div style="opacity:0.8;font-size:0.9rem;">${created.toLocaleString()}</div>
+              </div>
+              <p class="cart-item-price">Total: ₹${Number(o.total_price).toFixed(2)} • OTP: <strong>${o.otp}</strong></p>
+              <div style="margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap;">
+                ${o.items.map(i => `<span class="menu-card-category" style="background:var(--bg-elevated);padding:6px 10px;border-radius:999px;">${i.name} × ${i.qty}</span>`).join('')}
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                ${statusSteps.map((s, idx) => `
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:12px;height:12px;border-radius:50%;${idx<=stepIndex?'background:var(--primary);box-shadow:var(--shadow-glow);':'background:var(--border)'}"></div>
+                    <span style="font-size:0.9rem;${idx<=stepIndex?'color:var(--text-primary)':'color:var(--text-tertiary)'}">${s}</span>
+                    ${idx<statusSteps.length-1?'<span style="width:40px;height:2px;background:var(--border);display:inline-block;margin:0 8px;"></span>':''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
     }
   </script>
 </body>
