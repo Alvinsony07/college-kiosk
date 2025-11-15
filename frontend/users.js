@@ -7,7 +7,6 @@ const state = {
   orders: [],
   currentPage: 'home',
   currentFilter: 'all',
-  loyaltyPoints: 0,
   isInitialized: false
 };
 
@@ -1167,11 +1166,7 @@ function updateUserStats() {
   const totalOrders = state.orders.length;
   const savedAmount = state.orders.reduce((sum, order) => sum + (order.total_price * 0.05), 0); // Assuming 5% savings
   
-  // Calculate loyalty points (1 point per ₹10 spent)
-  const totalSpent = state.orders.reduce((sum, order) => sum + order.total_price, 0);
-  state.loyaltyPoints = Math.floor(totalSpent / 10);
-  
-  console.log('[STATS] Calculated - Orders:', totalOrders, 'Saved:', savedAmount, 'Points:', state.loyaltyPoints);
+  console.log('[STATS] Calculated - Orders:', totalOrders, 'Saved:', savedAmount);
   
   // First, make stat cards visible with fade-in animation
   const statCards = document.querySelectorAll('[data-stat-card]');
@@ -1186,7 +1181,6 @@ function updateUserStats() {
   setTimeout(() => {
     animateValue('totalOrdersStat', 0, totalOrders, 800);
     animateValue('savedAmountStat', 0, Math.floor(savedAmount), 800, '₹');
-    animateValue('loyaltyPoints', 0, state.loyaltyPoints, 800);
   }, 200);
 }
 
