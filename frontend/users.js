@@ -10,9 +10,33 @@ const state = {
   isInitialized: false
 };
 
+// ==================== THEME MANAGEMENT ====================
+function initTheme() {
+  // Load theme preference from localStorage
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  console.log('[THEME] Initialized theme:', savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  console.log('[THEME] Switched to:', newTheme);
+  
+  // Optional: Add a subtle animation effect
+  document.body.style.transition = 'background-color 0.3s ease';
+}
+
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[INIT] Starting initialization...');
+  
+  // Initialize theme first
+  initTheme();
   
   // Show loading immediately
   showLoading(true);
