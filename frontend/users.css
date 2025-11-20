@@ -1213,6 +1213,12 @@ body {
 .order-status.completed { background: #e8f5e9; color: var(--swiggy-green); }
 .order-status.order-received { background: #e3f2fd; color: #5d8ed5; }
 
+[data-theme="dark"] .order-status.pending { background: rgba(245, 166, 35, 0.2); color: #ffa143; }
+[data-theme="dark"] .order-status.preparing { background: rgba(252, 128, 25, 0.2); color: var(--swiggy-orange); }
+[data-theme="dark"] .order-status.ready { background: rgba(96, 178, 70, 0.2); color: var(--swiggy-green); }
+[data-theme="dark"] .order-status.completed { background: rgba(96, 178, 70, 0.2); color: var(--swiggy-green); }
+[data-theme="dark"] .order-status.order-received { background: rgba(93, 142, 213, 0.2); color: #81b4f5; }
+
 .order-items {
   margin-bottom: 0;
   color: var(--text-secondary);
