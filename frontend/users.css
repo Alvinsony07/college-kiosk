@@ -745,6 +745,11 @@ body {
 .favorite-btn:hover { transform: scale(1.1); }
 .favorite-btn.active { background: #fff5f0; color: #e23744; }
 
+[data-theme="dark"] .favorite-btn.active { 
+  background: rgba(226, 55, 68, 0.2); 
+  color: #ff4d4d;
+}
+
 .menu-card-badges {
   position: absolute;
   top: 0.75rem;
@@ -770,8 +775,28 @@ body {
 .badge.new { background: var(--swiggy-green); color: white; }
 .badge.discount { background: #f5a623; color: white; }
 
+[data-theme="dark"] .badge:not(.popular):not(.new):not(.discount) {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+  border: none;
+  font-weight: 800;
+}
+
 .menu-card-content {
   padding: 1rem;
+}
+
+[data-theme="dark"] .menu-card-content * {
+  color: inherit;
+}
+
+[data-theme="dark"] .menu-card-content .menu-card-title,
+[data-theme="dark"] .menu-card-content .menu-card-price {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .menu-card-content .menu-card-meta {
+  color: var(--text-secondary) !important;
 }
 
 .menu-card-title {
@@ -782,7 +807,7 @@ body {
 }
 
 [data-theme="dark"] .menu-card-title {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .menu-card-meta {
@@ -795,7 +820,7 @@ body {
 }
 
 [data-theme="dark"] .menu-card-meta {
-  color: var(--text-tertiary);
+  color: var(--text-secondary) !important;
 }
 
 .menu-card-footer {
@@ -813,14 +838,28 @@ body {
   color: var(--text-primary);
 }
 
+[data-theme="dark"] .menu-card-price {
+  color: var(--text-primary) !important;
+}
+
 .menu-card-stock {
   font-size: 0.75rem;
   color: var(--text-tertiary);
   margin-top: 0.25rem;
 }
 
+.menu-card-stock.low {
+  color: var(--swiggy-orange);
+  font-weight: 700;
+}
+
 [data-theme="dark"] .menu-card-stock {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .menu-card-stock.low {
+  color: var(--swiggy-orange);
+  font-weight: 700;
 }
 
 .menu-card-stock.low { color: var(--warning); }
@@ -1570,14 +1609,21 @@ body {
 }
 
 [data-theme="dark"] p,
-[data-theme="dark"] span:not(.nav-badge):not(.badge),
+[data-theme="dark"] span:not(.nav-badge):not(.badge):not(.order-status),
+[data-theme="dark"] div:not(.badge),
 [data-theme="dark"] h1,
 [data-theme="dark"] h2,
 [data-theme="dark"] h3,
 [data-theme="dark"] h4,
 [data-theme="dark"] h5,
 [data-theme="dark"] h6 {
-  color: inherit;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .menu-card p,
+[data-theme="dark"] .menu-card span:not(.badge),
+[data-theme="dark"] .menu-card div:not(.badge):not(.menu-card-image) {
+  color: var(--text-primary) !important;
 }
 
 [data-theme="dark"] .order-card p,
