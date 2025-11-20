@@ -747,7 +747,7 @@ body {
 
 [data-theme="dark"] .favorite-btn.active { 
   background: rgba(226, 55, 68, 0.2); 
-  color: #ff4d4d;
+  color: #e23744 !important;
 }
 
 .menu-card-badges {
@@ -1536,6 +1536,7 @@ body {
 
 [data-theme="dark"] .favorite-btn.active {
   background: rgba(226, 55, 68, 0.2);
+  color: #e23744 !important;
 }
 
 [data-theme="dark"] .loading-overlay {
