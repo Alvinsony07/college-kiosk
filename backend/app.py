@@ -846,6 +846,67 @@ def update_order_status(order_id):
         print(f"Error updating order status: {e}")
         return jsonify({'error': 'Failed to update order status'}), 500
 
+@app.route('/api/orders/<int:order_id>/cancel', methods=['POST'])
+def cancel_order(order_id):
+    """Cancel an order and restore stock - similar to Swiggy's cancellation"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Get order details
+            cursor.execute("SELECT items, status, customer_email FROM orders WHERE id=?", (order_id,))
+            order = cursor.fetchone()
+            
+            if not order:
+                return jsonify({'error': 'Order not found'}), 404
+            
+            items_json, current_status, customer_email = order
+            
+            # Check if order can be cancelled
+            if current_status in ['Completed', 'Cancelled']:
+                return jsonify({'error': f'Cannot cancel order with status: {current_status}'}), 400
+            
+            # Parse order items
+            try:
+                order_data = json.loads(items_json) if isinstance(items_json, str) else items_json
+                items = order_data.get('items', [])
+            except (json.JSONDecodeError, TypeError):
+                return jsonify({'error': 'Invalid order data'}), 500
+            
+            # Restore stock for each item
+            for item in items:
+                item_id = item.get('id')
+                quantity = item.get('qty', 0)
+                if item_id and quantity > 0:
+                    cursor.execute("UPDATE menu SET stock = stock + ? WHERE id=?", (quantity, item_id))
+            
+            # Update order status to Cancelled
+            cursor.execute("UPDATE orders SET status='Cancelled' WHERE id=?", (order_id,))
+            
+            # Create notification for user
+            cursor.execute('''
+                INSERT INTO notifications (recipient_email, title, message, type, priority)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                customer_email,
+                'Order Cancelled',
+                f'Your order #{order_id} has been cancelled successfully. Stock has been restored.',
+                'info',
+                'normal'
+            ))
+            
+            conn.commit()
+            
+        return jsonify({
+            'message': 'Order cancelled successfully',
+            'order_id': order_id,
+            'status': 'Cancelled'
+        }), 200
+        
+    except Exception as e:
+        print(f"Error cancelling order: {e}")
+        return jsonify({'error': 'Failed to cancel order'}), 500
+
 # ---------------------- Notification Endpoints ---------------------- #
 @app.route('/api/notifications', methods=['GET'])
 def get_notifications():

@@ -1017,6 +1017,11 @@ function renderOrders() {
         <div class="order-footer">
           <div class="order-total">₹${order.total_price.toFixed(2)}</div>
           <div class="order-actions">
+            ${(order.status === 'Order Received' || order.status === 'Preparing') ? `
+              <button class="btn btn-cancel btn-sm" onclick="event.stopPropagation(); cancelOrder(${order.id})" title="Cancel Order">
+                <i class="fas fa-times-circle"></i> Cancel
+              </button>
+            ` : ''}
             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); reorder(${order.id})">
               <i class="fas fa-redo"></i> Reorder
             </button>
@@ -1121,6 +1126,17 @@ function viewOrderDetails(orderId) {
         <div style="font-weight: 600; margin-bottom: 0.5rem;">Your OTP</div>
         <div style="font-size: 2rem; font-weight: 800; letter-spacing: 0.25em; color: var(--primary);">${order.otp}</div>
         <div style="font-size: 0.875rem; color: var(--text-tertiary); margin-top: 0.5rem;">Show this at the kiosk to collect your order</div>
+      </div>
+    ` : ''}
+    
+    ${(order.status === 'Order Received' || order.status === 'Preparing') ? `
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+        <button class="btn btn-cancel" onclick="cancelOrder(${order.id})" style="flex: 1;">
+          <i class="fas fa-times-circle"></i> Cancel Order
+        </button>
+        <button class="btn btn-secondary" onclick="closeModal('orderDetailsModal')" style="flex: 1;">
+          <i class="fas fa-arrow-left"></i> Go Back
+        </button>
       </div>
     ` : ''}
   `;
@@ -1328,6 +1344,80 @@ function animateCards() {
   }
 }
 
+// ==================== ORDER CANCELLATION ====================
+let orderToCancel = null;
+
+function cancelOrder(orderId) {
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order) {
+    showToast('Order not found', 'error');
+    return;
+  }
+  
+  // Check if order can be cancelled
+  if (order.status === 'Completed' || order.status === 'Cancelled') {
+    showToast(`Cannot cancel order with status: ${order.status}`, 'error');
+    return;
+  }
+  
+  // Store order ID for confirmation
+  orderToCancel = orderId;
+  
+  // Close order details modal if open
+  closeModal('orderDetailsModal');
+  
+  // Show cancel confirmation modal
+  const modal = document.getElementById('cancelOrderModal');
+  if (modal) {
+    modal.classList.add('active');
+  }
+}
+
+async function confirmCancelOrder() {
+  if (!orderToCancel) return;
+  
+  const orderId = orderToCancel;
+  orderToCancel = null;
+  
+  // Close modal
+  closeModal('cancelOrderModal');
+  
+  // Show loading
+  showLoading(true);
+  
+  try {
+    console.log('[CANCEL] Cancelling order:', orderId);
+    
+    const response = await fetch(`/api/orders/${orderId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to cancel order');
+    }
+    
+    console.log('[CANCEL] Order cancelled successfully:', data);
+    
+    // Reload orders to get updated list
+    await loadOrders();
+    renderOrders();
+    
+    // Update stats
+    updateUserStats();
+    
+    showToast('Order cancelled successfully! Stock has been restored.', 'success');
+    
+  } catch (error) {
+    console.error('[ERROR] Failed to cancel order:', error);
+    showToast(error.message || 'Failed to cancel order', 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
 // Make functions globally accessible
 window.navigateTo = navigateTo;
 window.toggleFavorite = toggleFavorite;
@@ -1340,5 +1430,7 @@ window.confirmOrder = confirmOrder;
 window.viewOrderDetails = viewOrderDetails;
 window.reorder = reorder;
 window.reorderLast = reorderLast;
+window.cancelOrder = cancelOrder;
+window.confirmCancelOrder = confirmCancelOrder;
 window.closeModal = closeModal;
 window.logout = logout;

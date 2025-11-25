@@ -601,6 +601,44 @@ body {
   color: var(--swiggy-orange);
 }
 
+.btn-cancel {
+  background: white;
+  color: var(--error);
+  border: 1px solid rgba(226, 55, 68, 0.3);
+  font-weight: 600;
+}
+
+.btn-cancel:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+  box-shadow: 0 2px 8px rgba(226, 55, 68, 0.3);
+}
+
+[data-theme="dark"] .btn-cancel {
+  background: var(--bg-elevated);
+  color: var(--error);
+  border-color: rgba(226, 55, 68, 0.4);
+}
+
+[data-theme="dark"] .btn-cancel:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: white;
+  box-shadow: 0 2px 8px rgba(226, 55, 68, 0.3);
+  font-weight: 600;
+}
+
+.btn-danger:hover {
+  background: #c72e3a;
+  box-shadow: 0 4px 12px rgba(226, 55, 68, 0.4);
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1320,9 +1358,58 @@ body {
   animation: modalSlideIn 0.3s ease;
 }
 
+.modal-sm {
+  max-width: 450px;
+}
+
 @keyframes modalSlideIn {
   from { opacity: 0; transform: translateY(-50px) scale(0.9); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Cancel Order Modal Styles */
+.cancel-order-content {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.cancel-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: rgba(226, 55, 68, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancel-icon i {
+  font-size: 2.5rem;
+  color: var(--error);
+}
+
+.cancel-order-content h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.cancel-order-content p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.cancel-order-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.cancel-order-actions .btn {
+  flex: 1;
 }
 
 .modal-header {
@@ -1560,6 +1647,10 @@ body {
   background: var(--bg-elevated);
   border-color: var(--border);
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .cancel-icon {
+  background: rgba(226, 55, 68, 0.15);
 }
 
 [data-theme="dark"] .radio-label {

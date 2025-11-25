@@ -206,6 +206,32 @@
     </div>
   </div>
   
+  <div class="modal-overlay" id="cancelOrderModal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Cancel Order</h3>
+        <button class="modal-close" onclick="closeModal('cancelOrderModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cancel-order-content">
+          <div class="cancel-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h4>Are you sure you want to cancel?</h4>
+          <p>Your order will be cancelled and the stock will be restored. This action cannot be undone.</p>
+          <div class="cancel-order-actions">
+            <button class="btn btn-secondary" onclick="closeModal('cancelOrderModal')">
+              <i class="fas fa-times"></i> No, Keep Order
+            </button>
+            <button class="btn btn-danger" onclick="confirmCancelOrder()">
+              <i class="fas fa-check"></i> Yes, Cancel Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <div class="toast-container" id="toastContainer"></div>
   
   <div class="loading-overlay hidden" id="loadingOverlay">
