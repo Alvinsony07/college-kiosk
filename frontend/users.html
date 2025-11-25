@@ -232,6 +232,179 @@
     </div>
   </div>
   
+  <!-- UPI Payment Modal -->
+  <div class="modal-overlay" id="upiPaymentModal">
+    <div class="modal modal-payment">
+      <div class="modal-header">
+        <h3><i class="fas fa-mobile-alt"></i> UPI Payment</h3>
+        <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="payment-content">
+          <div class="payment-amount">
+            <div class="amount-label">Amount to Pay</div>
+            <div class="amount-value" id="upiAmount">₹0.00</div>
+          </div>
+          
+          <div class="upi-qr-section">
+            <div class="qr-code-container">
+              <div class="qr-code">
+                <div class="qr-pattern"></div>
+              </div>
+              <div class="scan-animation"></div>
+            </div>
+            <p class="qr-instruction">Scan QR code with any UPI app</p>
+          </div>
+          
+          <div class="upi-id-section">
+            <div class="divider">
+              <span>OR</span>
+            </div>
+            <div class="upi-id-input">
+              <label>Enter UPI ID</label>
+              <div class="input-group">
+                <input type="text" id="upiIdInput" placeholder="yourname@upi" autocomplete="off">
+                <button class="btn btn-primary" onclick="processUPIPayment()">
+                  <i class="fas fa-check"></i> Pay
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="payment-timer">
+            <i class="fas fa-clock"></i> 
+            <span id="upiTimer">05:00</span>
+          </div>
+          
+          <div class="upi-apps">
+            <p>Supported UPI Apps</p>
+            <div class="upi-app-icons">
+              <div class="upi-app" onclick="selectUPIApp('GooglePay')">
+                <i class="fab fa-google-pay"></i>
+                <span>GPay</span>
+              </div>
+              <div class="upi-app" onclick="selectUPIApp('PhonePe')">
+                <i class="fas fa-mobile-alt"></i>
+                <span>PhonePe</span>
+              </div>
+              <div class="upi-app" onclick="selectUPIApp('Paytm')">
+                <i class="fas fa-wallet"></i>
+                <span>Paytm</span>
+              </div>
+              <div class="upi-app" onclick="selectUPIApp('BHIM')">
+                <i class="fas fa-university"></i>
+                <span>BHIM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Card Payment Modal -->
+  <div class="modal-overlay" id="cardPaymentModal">
+    <div class="modal modal-payment">
+      <div class="modal-header">
+        <h3><i class="fas fa-credit-card"></i> Card Payment</h3>
+        <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="payment-content">
+          <div class="payment-amount">
+            <div class="amount-label">Amount to Pay</div>
+            <div class="amount-value" id="cardAmount">₹0.00</div>
+          </div>
+          
+          <div class="card-preview">
+            <div class="credit-card">
+              <div class="card-chip"></div>
+              <div class="card-number" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+              <div class="card-details">
+                <div class="card-holder">
+                  <div class="label">Card Holder</div>
+                  <div class="value" id="cardHolderDisplay">YOUR NAME</div>
+                </div>
+                <div class="card-expiry">
+                  <div class="label">Expires</div>
+                  <div class="value" id="cardExpiryDisplay">MM/YY</div>
+                </div>
+              </div>
+              <div class="card-logo">
+                <i class="fab fa-cc-visa"></i>
+              </div>
+            </div>
+          </div>
+          
+          <form id="cardPaymentForm" onsubmit="return false;">
+            <div class="form-group">
+              <label>Card Number</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" 
+                     maxlength="19" oninput="formatCardNumber(this); updateCardPreview()" required>
+              <div class="card-types">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-amex"></i>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Card Holder Name</label>
+              <input type="text" id="cardHolder" placeholder="John Doe" 
+                     oninput="updateCardPreview()" required>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Expiry Date</label>
+                <input type="text" id="cardExpiry" placeholder="MM/YY" 
+                       maxlength="5" oninput="formatExpiry(this); updateCardPreview()" required>
+              </div>
+              <div class="form-group">
+                <label>CVV</label>
+                <input type="password" id="cardCVV" placeholder="123" 
+                       maxlength="3" pattern="[0-9]{3}" required>
+                <i class="fas fa-lock cvv-lock"></i>
+              </div>
+            </div>
+            
+            <button type="button" class="btn btn-primary btn-block" onclick="processCardPayment()">
+              <i class="fas fa-shield-alt"></i> Pay Securely
+            </button>
+          </form>
+          
+          <div class="payment-security">
+            <i class="fas fa-lock"></i>
+            <span>Your payment is secured with 256-bit SSL encryption</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Payment Processing Modal -->
+  <div class="modal-overlay" id="paymentProcessingModal">
+    <div class="modal modal-sm">
+      <div class="modal-body">
+        <div class="payment-processing">
+          <div class="processing-animation">
+            <div class="processing-circle"></div>
+            <div class="processing-checkmark hidden">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+          <h3 id="processingTitle">Processing Payment...</h3>
+          <p id="processingMessage">Please wait while we process your payment</p>
+          <div class="processing-steps">
+            <div class="step" id="step1"><i class="fas fa-circle"></i> Verifying details</div>
+            <div class="step" id="step2"><i class="fas fa-circle"></i> Contacting bank</div>
+            <div class="step" id="step3"><i class="fas fa-circle"></i> Confirming payment</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <div class="toast-container" id="toastContainer"></div>
   
   <div class="loading-overlay hidden" id="loadingOverlay">

@@ -774,6 +774,9 @@ function updateCheckoutTotal() {
   }
 }
 
+// Store order data temporarily for payment
+let pendingOrderData = null;
+
 async function confirmOrder() {
   const form = document.getElementById('checkoutForm');
   if (!form.checkValidity()) {
@@ -820,30 +823,220 @@ async function confirmOrder() {
     orderData.block = document.getElementById('block').value.trim();
   }
   
+  // Store order data for after payment
+  pendingOrderData = orderData;
+  
+  // Close checkout modal
+  closeModal('checkoutModal');
+  
+  // Open appropriate payment modal based on payment method
+  if (paymentMethod === 'upi') {
+    openUPIPayment(totalPrice);
+  } else if (paymentMethod === 'card') {
+    openCardPayment(totalPrice);
+  } else {
+    // COD - process immediately
+    await processOrder();
+  }
+}
+
+// ==================== PAYMENT SIMULATIONS ====================
+let paymentTimer = null;
+let timeRemaining = 300; // 5 minutes
+
+function openUPIPayment(amount) {
+  const modal = document.getElementById('upiPaymentModal');
+  document.getElementById('upiAmount').textContent = `₹${amount.toFixed(2)}`;
+  document.getElementById('upiIdInput').value = '';
+  
+  // Start timer
+  timeRemaining = 300;
+  updatePaymentTimer();
+  paymentTimer = setInterval(() => {
+    timeRemaining--;
+    updatePaymentTimer();
+    if (timeRemaining <= 0) {
+      clearInterval(paymentTimer);
+      closePaymentModal();
+      showToast('Payment session expired. Please try again.', 'error');
+    }
+  }, 1000);
+  
+  modal.classList.add('active');
+}
+
+function updatePaymentTimer() {
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+  const timerEl = document.getElementById('upiTimer');
+  if (timerEl) {
+    timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+}
+
+function selectUPIApp(appName) {
+  showToast(`Opening ${appName}...`, 'info');
+  setTimeout(() => {
+    processUPIPayment();
+  }, 1000);
+}
+
+async function processUPIPayment() {
+  const upiId = document.getElementById('upiIdInput').value.trim();
+  
+  if (!upiId || !upiId.includes('@')) {
+    showToast('Please enter a valid UPI ID', 'error');
+    return;
+  }
+  
+  clearInterval(paymentTimer);
+  closePaymentModal();
+  
+  // Show processing modal
+  await showPaymentProcessing('UPI');
+}
+
+function openCardPayment(amount) {
+  const modal = document.getElementById('cardPaymentModal');
+  document.getElementById('cardAmount').textContent = `₹${amount.toFixed(2)}`;
+  
+  // Clear form
+  document.getElementById('cardPaymentForm').reset();
+  updateCardPreview();
+  
+  modal.classList.add('active');
+}
+
+function formatCardNumber(input) {
+  let value = input.value.replace(/\s/g, '');
+  let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+  input.value = formatted;
+}
+
+function formatExpiry(input) {
+  let value = input.value.replace(/\D/g, '');
+  if (value.length >= 2) {
+    value = value.slice(0, 2) + '/' + value.slice(2, 4);
+  }
+  input.value = value;
+}
+
+function updateCardPreview() {
+  const cardNumber = document.getElementById('cardNumber').value || '•••• •••• •••• ••••';
+  const cardHolder = document.getElementById('cardHolder').value.toUpperCase() || 'YOUR NAME';
+  const cardExpiry = document.getElementById('cardExpiry').value || 'MM/YY';
+  
+  document.getElementById('cardNumberDisplay').textContent = cardNumber;
+  document.getElementById('cardHolderDisplay').textContent = cardHolder;
+  document.getElementById('cardExpiryDisplay').textContent = cardExpiry;
+}
+
+async function processCardPayment() {
+  const form = document.getElementById('cardPaymentForm');
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
+  const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+  const cardHolder = document.getElementById('cardHolder').value;
+  const cardExpiry = document.getElementById('cardExpiry').value;
+  const cardCVV = document.getElementById('cardCVV').value;
+  
+  if (cardNumber.length < 13 || cardCVV.length !== 3) {
+    showToast('Please enter valid card details', 'error');
+    return;
+  }
+  
+  closePaymentModal();
+  
+  // Show processing modal
+  await showPaymentProcessing('Card');
+}
+
+function closePaymentModal() {
+  if (paymentTimer) {
+    clearInterval(paymentTimer);
+  }
+  document.getElementById('upiPaymentModal').classList.remove('active');
+  document.getElementById('cardPaymentModal').classList.remove('active');
+}
+
+async function showPaymentProcessing(method) {
+  const modal = document.getElementById('paymentProcessingModal');
+  const title = document.getElementById('processingTitle');
+  const message = document.getElementById('processingMessage');
+  
+  title.textContent = 'Processing Payment...';
+  message.textContent = `Please wait while we process your ${method} payment`;
+  
+  // Reset steps
+  document.querySelectorAll('.processing-steps .step').forEach(step => {
+    step.classList.remove('active', 'completed');
+  });
+  
+  // Hide checkmark
+  document.querySelector('.processing-checkmark').classList.add('hidden');
+  document.querySelector('.processing-circle').style.display = 'block';
+  
+  modal.classList.add('active');
+  
+  // Simulate payment processing steps
+  await sleep(1500);
+  document.getElementById('step1').classList.add('active');
+  
+  await sleep(1500);
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step1').classList.add('completed');
+  document.getElementById('step2').classList.add('active');
+  
+  await sleep(1500);
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step2').classList.add('completed');
+  document.getElementById('step3').classList.add('active');
+  
+  await sleep(1500);
+  document.getElementById('step3').classList.remove('active');
+  document.getElementById('step3').classList.add('completed');
+  
+  // Show success
+  document.querySelector('.processing-circle').style.display = 'none';
+  document.querySelector('.processing-checkmark').classList.remove('hidden');
+  
+  title.textContent = 'Payment Successful!';
+  message.textContent = 'Your payment has been processed successfully';
+  
+  await sleep(1500);
+  
+  // Close processing modal and place order
+  modal.classList.remove('active');
+  
+  // Now process the actual order
+  await processOrder();
+}
+
+async function processOrder() {
   const btn = document.getElementById('confirmOrderBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Processing...';
   
   try {
     const response = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
+      body: JSON.stringify(pendingOrderData)
     });
     
     const data = await response.json();
     
     if (response.ok) {
-      closeModal('checkoutModal');
-      
       // Show success with OTP
       showToast(`Order placed! OTP: ${data.otp}`, 'success');
-      alert(`✅ Order Placed Successfully!\n\n📦 Your OTP: ${data.otp}\n💰 Total: ₹${totalPrice.toFixed(2)}\n\n${orderType === 'delivery' ? '🚚 Will be delivered soon!' : '🏪 Show OTP at kiosk to collect'}\n\nThank you!`);
+      alert(`✅ Order Placed Successfully!\n\n📦 Your OTP: ${data.otp}\n💰 Total: ₹${pendingOrderData.total_price.toFixed(2)}\n\n${pendingOrderData.delivery_mode === 'delivery' ? '🚚 Will be delivered soon!' : '🏪 Show OTP at kiosk to collect'}\n\nThank you!`);
       
-      // Clear cart
+      // Clear cart and pending order
       state.cart = [];
       saveCart();
       updateCartBadge();
+      pendingOrderData = null;
       
       // Reload menu and orders
       showLoading(true);
@@ -863,14 +1056,17 @@ async function confirmOrder() {
       navigateTo('orders');
     } else {
       showToast(data.error || 'Failed to place order', 'error');
+      pendingOrderData = null;
     }
   } catch (error) {
     console.error('[ERROR] Order placement failed:', error);
     showToast('Failed to place order. Please try again.', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-check-circle"></i> Place Order';
+    pendingOrderData = null;
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // ==================== ORDERS ====================
